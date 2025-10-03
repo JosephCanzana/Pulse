@@ -1,0 +1,28 @@
+{
+  "name": "pulse",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "npx @tailwindcss/cli -i ./src/input.css -o ./styles/tailwind.css",
+    "watch:css": "npx @tailwindcss/cli -i ./src/input.css -o ./styles/tailwind.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JosephCanzana/Pulse.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JosephCanzana/Pulse/issues"
+  },
+  "homepage": "https://github.com/JosephCanzana/Pulse#readme",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.14",
+    "@tailwindcss/postcss": "^4.1.14",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.14"
+  }
+}

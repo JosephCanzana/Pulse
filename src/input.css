@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Example custom class using @apply */
+.btn-primary {
+  @apply bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-200;
+}
