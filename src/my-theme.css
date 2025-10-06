@@ -1,0 +1,104 @@
+/* Theme colors for consistency */
+:root {
+    /* Accent / Brand */
+  --clr-primary: #60A5FA;       
+  --clr-secondary: #3B82F6;     
+  --clr-tertiary: #2563EB;      
+
+  /* Background & surfaces */
+  --clr-bg: #0F172A;            
+  --clr-surface: #1E293B;       
+
+  /* txt clrs */
+  --clr-txt-primary: #F8FAFC;  
+  --clr-txt-secondary: #CBD5E1;
+  --clr-txt-hover: #60A5FA;
+
+  /* Borders & dividers */
+  --clr-border: #334155;        
+  
+  /* Feedback */
+  --clr-success: #22C55E;       
+  --clr-error: #F87171;         
+  --clr-warning: #FBBF24;       
+  --clr-info: #3B82F6;          
+  
+}
+
+[data-theme="light"] {
+  /* Brand / Accent clrs */
+  --clr-primary: #3B82F6;   
+  --clr-secondary: #2563EB;   
+  --clr-tertiary: #60A5FA;    
+  
+  /* Background & surfaces */
+  --clr-bg: #F8FAFC;      
+  --clr-surface: #FFFFFF;     
+  
+  /* txt clrs */
+  --clr-txt-primary: #0F172A;  
+  --clr-txt-secondary: #475569;
+  --clr-txt-hover: #3B82F6;
+
+
+  /* Borders & dividers */
+  --clr-border: #E2E8F0;        
+
+  /* Feedback clrs (kept vivid for clarity) */
+  --clr-success: #22C55E;       
+  --clr-error: #EF4444;         
+  --clr-warning: #FACC15;       
+  --clr-info: #3B82F6;         
+
+}
+
+/* Local fonts for ease of use */
+@font-face {
+  font-family: 'Roboto';
+  src: url('/static/fonts/Roboto-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/static/fonts/Roboto-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/static/fonts/Roboto/Roboto-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/static/fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/static/fonts/Poppins-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/static/fonts/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+    font-family: 'LLPIXEL3';
+    src: url('/static/fonts/LLPIXEL3.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+

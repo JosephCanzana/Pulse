@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/pulse.png') }}">
+</head>
+<body class="flex flex-col min-h-screen">
+    <nav class="sticky top-0 w-full h-14 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] pl-60 pr-60">
+        <div class="flex items-center justify-center">
+            <a href="/" class="flex items-center justify-center w-[2.2rem] h-[2.2rem] border-2 rounded-full border-[var(--clr-border)]">
+                <img src="{{ url_for('static', filename='images/pulse.png') }}" alt="Pulse">
+            </a>
+            <h1 class="font-normal ml-1 text-4xl text-[var(--clr-primary)] font-[LLPIXEL3]">Pulse</h1>
+        </div>
+        {% if not session.get("user_id") %}
+            <div>
+                <a href="#" class="btn-nav">Section 1</a>
+                <a href="#" class="btn-nav">Section 2</a>
+                <a href="#" class="btn-nav">Section 3</a>
+            </div>
+            <div class="">
+                <a href="{{ url_for('login') }}" class="text-center border-[var(--clr-primary)] border-2 pt-1.5 pb-1.5 pr-6 pl-6 mr-2 ml-2 rounded-full text-sm font-bold text-[var(--clr-txt-primary)] hover:bg-[var(--clr-tertiary)] hover:text-[var(--clr-bg)] transition-all ease-in-out duration-500">
+                    Log in
+                </a>
+                <a href="{{ url_for('register') }}" class="text-center border-[var(--clr-primary)] border-2 pt-1.5 pb-1.5 pr-6 pl-6 mr-2 ml-2 rounded-full text-sm font-bold text-[var(--clr-txt-primary)] hover:bg-[var(--clr-success)] hover:text-[var(--clr-bg)] transition-all ease-in-out duration-500">
+                    Sign up
+                </a>
+            </div>
+            {% else %}
+            <div>
+                <a href="#" class="btn-nav">Dashboard</a>
+                <a href="#" class="btn-nav">Timeline</a>
+                <a href="#" class="btn-nav">Leadboard</a>
+                <a href="#" class="btn-nav">Hall</a>
+                <a href="#" class="btn-nav">About</a>
+
+            </div>
+            <form action="{{ url_for('logout') }}" method="post" class="btn-nav">
+                <input type="submit" value="Log out">
+            </form>
+            {% endif %}
+        </nav>
+    <main class="w-full h-screen bg-[var(--clr-bg)] text-[var(--clr-txt-primary)] pt-12 pl-60 pr-60">
+        {% block main %}{% endblock %}
+    </main>
+    <footer>
+        <!-- Footer content here -->
+    </footer>
+</body>
+</html>

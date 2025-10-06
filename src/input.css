@@ -1,6 +1,7 @@
 @import "tailwindcss";
+@import "./my-theme.css";
 
-/* Example custom class using @apply */
-.btn-primary {
-  @apply bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-200;
-}
+.btn-nav{
+  @apply mr-2 ml-2 text-sm font-normal text-center text-[var(--clr-txt-primary)]
+  hover:text-[var(--clr-txt-hover)]
+  transition-all ease-in-out duration-200}

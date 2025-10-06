@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "npx @tailwindcss/cli -i ./src/input.css -o ./styles/tailwind.css",
-    "watch:css": "npx @tailwindcss/cli -i ./src/input.css -o ./styles/tailwind.css --watch"
+    "build:css": "npx @tailwindcss/cli -i ./src/input.css -o ./static/tailwind.css",
+    "watch:css": "npx @tailwindcss/cli -i ./src/input.css -o ./static/tailwind.css --watch",
+    "watch:flask": "flask --app app --debug run"
   },
   "repository": {
     "type": "git",
