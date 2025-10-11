@@ -6,48 +6,143 @@
     <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/pulse.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> 
 </head>
+
 <body class="flex flex-col min-h-screen">
-    <nav class="sticky top-0 w-full h-14 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] pl-60 pr-60">
+    <!-- SIDEBAR  -->
+    {% if session.get("user_id") %}
+    <div id="sidebar" class="fixed top-17 left-0 h-full w-64 z-20 bg-[var(--clr-surface)] text-white transform shadow-md shadow-black -translate-x-full transition-transform duration-300">
+        <div class="flex flex-col mt-6">
+            <!-- still on process -->
+            <!-- <a href="{{ url_for('dashboard') }}" class="btn-side-bar">
+                <span class="material-symbols-outlined">browse_activity</span>
+                <span class="ml-2">Dashboard</span>
+            </a>
+            <a href="{{ url_for('timeline') }}" class="btn-side-bar">
+                <span class="material-symbols-outlined">view_day</span>
+                <span class="ml-2">Timeline</span>
+            </a>
+            <a href="{{ url_for('leaderboard') }}" class="btn-side-bar">
+                <span class="material-symbols-outlined">leaderboard</span>
+                <span class="ml-2">Leaderboard</span>
+            </a> -->
+            <a href="{{ url_for('course') }}" class="btn-side-bar">
+                <span class="material-symbols-outlined">book_2</span>
+                <span class="ml-2">Course</span>
+            </a>
+            <a href="{{ url_for('projects') }}" class="btn-side-bar">
+                <span class="material-symbols-outlined">folder_code</span>
+                <span class="ml-2">Projects</span>
+            </a>
+            <a href="{{ url_for('achievements') }}" class="btn-side-bar">
+                <span class="material-symbols-outlined">social_leaderboard</span>
+                <span class="ml-2">Achievements</span>
+            </a>
+            <a href="{{ url_for('about') }}" class="btn-side-bar">
+                <span class="material-symbols-outlined">info</span>
+                <span class="ml-2">About</span>
+            </a>
+        </div>
+    </div>
+
+    {% endif %}
+    
+    <nav class="sticky top-0 w-full h-17 z-30 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] pl-7 pr-7 shadow-md drop-shadow-black">
+        <!-- Centered in between landing page -->
+         <!-- If theres no user yet -->
+        {% if not session.get("user_id") %}
         <div class="flex items-center justify-center">
             <a href="/" class="flex items-center justify-center w-[2.2rem] h-[2.2rem] border-2 rounded-full border-[var(--clr-border)]">
                 <img src="{{ url_for('static', filename='images/pulse.png') }}" alt="Pulse">
             </a>
-            <h1 class="font-normal ml-1 text-4xl text-[var(--clr-primary)] font-[LLPIXEL3]">Pulse</h1>
+            <h1 class="font-normal ml-1 text-3xl text-[var(--clr-primary)] font-[LLPIXEL3]">Pulse</h1>
         </div>
-        {% if not session.get("user_id") %}
-            <div>
-                <a href="#" class="btn-nav">Section 1</a>
-                <a href="#" class="btn-nav">Section 2</a>
-                <a href="#" class="btn-nav">Section 3</a>
-            </div>
-            <div class="">
-                <a href="{{ url_for('login') }}" class="text-center border-[var(--clr-primary)] border-2 pt-1.5 pb-1.5 pr-6 pl-6 mr-2 ml-2 rounded-full text-sm font-bold text-[var(--clr-txt-primary)] hover:bg-[var(--clr-tertiary)] hover:text-[var(--clr-bg)] transition-all ease-in-out duration-500">
-                    Log in
-                </a>
-                <a href="{{ url_for('register') }}" class="text-center border-[var(--clr-primary)] border-2 pt-1.5 pb-1.5 pr-6 pl-6 mr-2 ml-2 rounded-full text-sm font-bold text-[var(--clr-txt-primary)] hover:bg-[var(--clr-success)] hover:text-[var(--clr-bg)] transition-all ease-in-out duration-500">
-                    Sign up
-                </a>
-            </div>
-            {% else %}
-            <div>
-                <a href="#" class="btn-nav">Dashboard</a>
-                <a href="#" class="btn-nav">Timeline</a>
-                <a href="#" class="btn-nav">Leadboard</a>
-                <a href="#" class="btn-nav">Hall</a>
-                <a href="#" class="btn-nav">About</a>
+        <div>
+            <a href="#" class="btn-nav">Section 1</a>
+            <a href="#" class="btn-nav">Section 2</a>
+            <a href="#" class="btn-nav">Section 3</a>
+        </div>
+        <div class="flex items-center justify-center">
+            <a href="{{ url_for('login') }}" class="text-center border-[var(--clr-primary)] border-2 pt-1.5 pb-1.5 pr-6 pl-6 mr-2 ml-2 rounded-full text-sm font-bold text-[var(--clr-txt-primary)] hover:bg-[var(--clr-tertiary)] hover:text-[var(--clr-bg)] transition-all ease-in-out duration-500">
+                Log in
+            </a>
+            <a href="{{ url_for('register') }}" class="text-center border-[var(--clr-primary)] border-2 pt-1.5 pb-1.5 pr-6 pl-6 mr-2 ml-2 rounded-full text-sm font-bold text-[var(--clr-txt-primary)] hover:bg-[var(--clr-success)] hover:text-[var(--clr-bg)] transition-all ease-in-out duration-500">
+                Sign up
+            </a>
+        </div>
 
+        <!-- there's a user -->
+        {% else %}
+        <!-- This is for the left side of navbar -->
+        <div class="flex items-center justify-center mp-0.5">
+            <!-- EXPANDABLE SIDEBAR -->
+            <button id="menu-btn" class="material-symbols-outlined bg-[var(--clr-border)] text-[var(--clr-txt-primary)] w-8 h-8 mr-5 rounded-md hover:bg-[var(--clr-primary)] hover:text-[var(--clr-bg)] transition-all ease-in-out 2s]">
+                menu
+            </button>
+            
+            <!-- LOGO -->
+            <div class="flex items-center justify-center mr-5 ">
+                <a href="{{ url_for('dashboard') }}" class="flex items-center justify-center w-[2.2rem] h-[2.2rem] border-2 rounded-full border-[var(--clr-border)]">
+                    <img src="{{ url_for('static', filename='images/pulse.png') }}" alt="Pulse">
+                </a>
+                <h1 class="font-normal ml-1 pb-1 text-3xl text-center text-[var(--clr-primary)] font-[LLPIXEL3]">Pulse</h1>
             </div>
-            <form action="{{ url_for('logout') }}" method="post" class="btn-nav">
-                <input type="submit" value="Log out">
+        </div>
+
+        <div>
+            <a href="{{ url_for('dashboard') }}" class="material-symbols-outlined btn-nav-icon">home</a>
+            <a href="{{ url_for('timeline') }}" class="material-symbols-outlined btn-nav-icon">view_day</a>
+            <a href="{{ url_for('leaderboard') }}" class="material-symbols-outlined btn-nav-icon">leaderboard</a>
+        </div>
+
+        <!-- This is for the right side of navbar -->
+        <div class="flex items-center justify-center">
+            
+            <a href="#" class="material-symbols-outlined btn-nav-icon">notifications</a>
+            <a href="#" class="material-symbols-outlined btn-nav-icon">settings_account_box</a>
+            
+            <form action="{{ url_for('logout') }}" method="post" class="flex justify-center items-center">
+                <button class="material-symbols-outlined btn-nav-icon">
+                    logout
+                </button>
             </form>
-            {% endif %}
-        </nav>
-    <main class="w-full h-screen bg-[var(--clr-bg)] text-[var(--clr-txt-primary)] pt-12 pl-60 pr-60">
-        {% block main %}{% endblock %}
-    </main>
-    <footer>
-        <!-- Footer content here -->
-    </footer>
+        </div>
+        {% endif %}
+    </nav>
+    
+    <!-- Wrapper of main contents to be movable -->
+    <div class="flex-1 transition-all duration-300" id="wrapper">        
+        <main class="w-full h-screen bg-[var(--clr-bg)] text-[var(--clr-txt-primary)] pt-12 pl-15 pr-15">
+            {% block main %}{% endblock %}
+        </main>
+        <footer>
+            <!-- Footer content here -->
+        </footer>
+    </div>
+        
+    <!-- Side bar simple script -->
+    <script>
+        const menuBtn = document.getElementById('menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('wrapper');
+
+
+
+
+        if (localStorage.getItem('sidebarOpen') === 'true') {
+            sidebar.classList.remove('-translate-x-full');
+            mainContent.classList.add('ml-64');
+        }
+        
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            mainContent.classList.toggle('ml-64');
+
+        const isOpen = !sidebar.classList.contains('-translate-x-full');
+        localStorage.setItem('sidebarOpen', isOpen);
+        });
+    </script>
 </body>
 </html>

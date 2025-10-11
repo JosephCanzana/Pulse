@@ -4,4 +4,29 @@
 .btn-nav{
   @apply mr-2 ml-2 text-sm font-normal text-center text-[var(--clr-txt-primary)]
   hover:text-[var(--clr-txt-hover)]
-  transition-all ease-in-out duration-200}
+  transition-all ease-in-out duration-200
+}
+
+.btn-nav-icon{
+  @apply mr-3 ml-3 
+  text-sm
+  text-center
+  text-[var(--clr-txt-primary)]
+  hover:text-[var(--clr-txt-hover)]
+  transition-all ease-in-out duration-200
+}
+
+.btn-side-bar{
+  @apply 
+  flex
+  ml-3 mr-3 mb-2 mt-2 
+  pt-2 pb-2 pl-5 pr-5
+  items-start
+  justify-start
+  text-center
+  rounded-full
+  text-[var(--clr-txt-primary)]
+  hover:bg-[var(--clr-primary)]
+  hover:text-[var(--clr-bg)]
+  transition-all ease-in-out duration-200
+}
