@@ -55,15 +55,15 @@ def register():
 # DASHBOARD
 @app.route("/dashboard")
 def dashboard():
-    return render_template("navbar/dashboard.html", name="test")
+    return render_template("main/dashboard.html", name="test")
 # LEADERBOARD
 @app.route("/leaderboard")
 def leaderboard():
-    return render_template("navbar/leaderboard.html")
+    return render_template("main/leaderboard.html")
 # TIMELINE
 @app.route("/timeline")
 def timeline():
-    return render_template("navbar/timeline.html")
+    return render_template("main/timeline.html")
 
 
 # ==== SIDE BAR PAGES =====
@@ -71,15 +71,15 @@ def timeline():
 # COURSE
 @app.route("/course")
 def course():
-    return render_template("sidebar/course.html")
+    return render_template("others/course.html")
 # ABOUT
 @app.route("/about")
 def about():
-    return render_template("sidebar/about.html")
+    return render_template("others/about.html")
 # ACHIEVEMENTS
 @app.route("/achievements")
 def achievements():
-    return render_template("sidebar/achievements.html")
+    return render_template("others/achievements.html")
 # PROJECTS
 @app.route("/projects")
 def projects():
@@ -90,7 +90,7 @@ def projects():
 # LOGOUT
 @app.route("/logout", methods=["POST"])
 def logout():
-    session["user_id"] = None
+    session.clear()
     return redirect(url_for("index"))
 
 if __name__ == "__main__": 

@@ -1,57 +1,60 @@
-/* Theme colors for consistency */
 :root {
-    /* Accent / Brand */
-  --clr-primary: #60A5FA;       
-  --clr-secondary: #3B82F6;     
-  --clr-tertiary: #2563EB;      
-
-  /* Background & surfaces */
-  --clr-bg: #0F172A;            
-  --clr-surface: #1E293B;       
-
-  /* txt clrs */
-  --clr-txt-primary: #F8FAFC;  
-  --clr-txt-secondary: #CBD5E1;
-  --clr-txt-hover: #60A5FA;
-
-  /* Borders & dividers */
-  --clr-border: #334155;        
-  
-  /* Feedback */
-  --clr-success: #22C55E;       
-  --clr-error: #F87171;         
-  --clr-warning: #FBBF24;       
-  --clr-info: #3B82F6;          
-  
-}
-
-[data-theme="light"] {
-  /* Brand / Accent clrs */
-  --clr-primary: #3B82F6;   
-  --clr-secondary: #2563EB;   
-  --clr-tertiary: #60A5FA;    
+  /* Brand / Accent colors */
+  --clr-primary: #2563EB;   
+  --clr-secondary: #3B82F6; 
+  --clr-tertiary: #60A5FA;  
   
   /* Background & surfaces */
-  --clr-bg: #F8FAFC;      
-  --clr-surface: #FFFFFF;     
+  --clr-bg: #F5F7FA;        
+  --clr-surface: #FFFFFF;  
+  --clr-surface-alt: #F9FAFB;
   
-  /* txt clrs */
-  --clr-txt-primary: #0F172A;  
+  /* Text colors */
+  --clr-txt-primary: #111827;
   --clr-txt-secondary: #475569;
-  --clr-txt-hover: #3B82F6;
-
+  --clr-txt-muted: #64748B;   
+  --clr-txt-hover: #1D4ED8;   
 
   /* Borders & dividers */
-  --clr-border: #E2E8F0;        
+  --clr-border: #E5E7EB;      
+  --clr-border-strong: #D1D5DB;
 
-  /* Feedback clrs (kept vivid for clarity) */
-  --clr-success: #22C55E;       
-  --clr-error: #EF4444;         
-  --clr-warning: #FACC15;       
-  --clr-info: #3B82F6;         
+  /* Feedback colors */
+  --clr-success: #16A34A;
+  --clr-error: #DC2626;
+  --clr-warning: #EAB308;
+  --clr-info: #2563EB;
 
 }
 
+[data-theme="dark"] {
+  /* Brand / Accent */
+  --clr-primary: #60A5FA;
+  --clr-secondary: #3B82F6;
+  --clr-tertiary: #1D4ED8;
+
+  /* Background & surfaces */
+  --clr-bg: #0F172A;           
+  --clr-surface: #1E293B;     
+  --clr-surface-alt: #273549; 
+
+  /* Text colors */
+  --clr-txt-primary: #F8FAFC;
+  --clr-txt-secondary: #CBD5E1;
+  --clr-txt-muted: #94A3B8;
+  --clr-txt-hover: #93C5FD;
+
+  /* Borders & dividers */
+  --clr-border: #334155;
+  --clr-border-strong: #475569;
+
+  /* Feedback */
+  --clr-success: #22C55E;
+  --clr-error: #F87171;
+  --clr-warning: #FBBF24;
+  --clr-info: #60A5FA;
+
+}
 /* Local fonts for ease of use */
 @font-face {
   font-family: 'Roboto';
