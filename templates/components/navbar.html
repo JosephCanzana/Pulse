@@ -1,0 +1,26 @@
+<!-- NAVBAR -->
+<nav class="sticky top-0 w-full h-17 z-50 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] pl-4 pr-7 drop-shadow-black shadow-2xs">
+    
+<!-- LEFT SIDE -->
+    <div class="flex items-center justify-center mp-0.5 ">
+        <button id="menu-btn" class="btn-side-bar w-12 h-12 flex items-center justify-center mt-2 mb-2 rounded-xl hover:bg-[var(--clr-primary)] hover:text-[var(--clr-bg)] transition">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+        <!-- LOGO -->
+        <div class="flex items-center justify-center mr-5 ml-5">
+            <a href="{{ url_for('student') }}" class="flex  items-center justify-center w-[2.2rem] h-[2.2rem] border-2 rounded-full border-[var(--clr-border)]">
+                <img src="{{ url_for('static', filename='images/pulse.svg') }}" alt="Pulse">
+            </a>
+            <h1 class="font-normal ml-1 text-3xl text-center text-[var(--clr-primary)] font-[LLPIXEL3] text-shadow-black/30">Pulse</h1>
+        </div>
+    </div>
+
+    <!-- This is for the right side of navbar -->
+    <div class="flex items-center justify-center">
+        
+        <a href="#" class="material-symbols-outlined btn-nav-icon">notifications</a>
+        <a href="#" class="material-symbols-outlined btn-nav-icon">search</a>
+        <a href="#" class="material-symbols-outlined btn-nav-icon">account_circle</a>
+        
+    </div>
+</nav>

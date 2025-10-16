@@ -52,3 +52,11 @@
   transition-all ease-in-out duration-200
   select-none;
 }
+
+
+.txt-input{
+  @apply p-2 
+  mr-1 ml-1 mt-1 mb-1 
+  bg-[var(--clr-txt-muted)] text-[var(--clr-txt-secondary)]
+  rounded-xl
+}

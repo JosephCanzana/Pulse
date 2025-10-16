@@ -1,0 +1,22 @@
+<nav class="sticky top-0 w-full h-17 z-30 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] pl-60 pr-60 shadow-md drop-shadow-black">
+    <!-- If theres no user yet -->
+    <div class="flex items-center justify-center">
+        <a href="/" class="flex items-center justify-center w-[2.2rem] h-[2.2rem] border-2 rounded-full border-[var(--clr-border)]">
+            <img src="{{ url_for('static', filename='images/pulse.png') }}" alt="Pulse">
+        </a>
+        <h1 class="font-normal ml-1 text-3xl text-[var(--clr-primary)] font-[LLPIXEL3]">Pulse</h1>
+    </div>
+    <div>
+        <a href="#" class="btn-nav">Section 1</a>
+        <a href="#" class="btn-nav">Section 2</a>
+        <a href="#" class="btn-nav">Section 3</a>
+    </div>
+    <div class="flex items-center justify-center">
+        <a href="{{ url_for('login') }}" class="text-center border-[var(--clr-primary)] border-2 pt-1.5 pb-1.5 pr-6 pl-6 mr-1 ml-1 rounded-full text-sm font-bold text-[var(--clr-txt-primary)] hover:bg-[var(--clr-success)] hover:text-[var(--clr-bg)] transition-all ease-in-out duration-500">
+            Login
+        </a>
+        <button class="theme-toggle">
+            <span class="material-symbols-outlined text-center pt-1.5 pb-1.5 pr-4 pl-4 -ml-1 rounded-xl  text-[var(--clr-txt-muted)] text-sm hover:text-[var(--clr-surface-alt)] hover:bg-[var(--clr-primary)] transition-all duration-300 ease-in-out">light_mode</span>
+        </button>
+    </div>
+</nav>

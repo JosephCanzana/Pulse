@@ -1,238 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}{% endblock %}</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}">
-        <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/pulse.png') }}">
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/pulse.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body class="flex flex-col min-h-screen bg-[var(--clr-bg)]">
+    <!-- LANDING PAGE NON-LOGGED IN USERS -->
+    {% if not session.get("user_id") %}
     
-    <body class="flex flex-col min-h-screen bg-[var(--clr-bg)]">
-        <!-- LANDING PAGE NON-LOGGED IN USERS -->
-        {% if not session.get("user_id") %}
-        <nav class="sticky top-0 w-full h-17 z-30 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] pl-60 pr-60 shadow-md drop-shadow-black">
-            <!-- If theres no user yet -->
-            <div class="flex items-center justify-center">
-                <a href="/" class="flex items-center justify-center w-[2.2rem] h-[2.2rem] border-2 rounded-full border-[var(--clr-border)]">
-                    <img src="{{ url_for('static', filename='images/pulse.png') }}" alt="Pulse">
-                </a>
-                <h1 class="font-normal ml-1 text-3xl text-[var(--clr-primary)] font-[LLPIXEL3]">Pulse</h1>
-            </div>
-            <div>
-                <a href="#" class="btn-nav">Section 1</a>
-                <a href="#" class="btn-nav">Section 2</a>
-                <a href="#" class="btn-nav">Section 3</a>
-            </div>
-            <div class="flex items-center justify-center">
-                <a href="{{ url_for('login') }}" class="text-center pt-1.5 pb-1.5 pr-4 pl-4 mr-1 ml-0.5 rounded-full text-sm font-bold text-[var(--clr-txt-primary)] hover:bg-[var(--clr-tertiary)] hover:text-[var(--clr-bg)] transition-all ease-in-out duration-500">
-                    Log in
-                </a>
-                <a href="{{ url_for('register') }}" class="text-center border-[var(--clr-primary)] border-2 pt-1.5 pb-1.5 pr-6 pl-6 mr-1 ml-1 rounded-full text-sm font-bold text-[var(--clr-txt-primary)] hover:bg-[var(--clr-success)] hover:text-[var(--clr-bg)] transition-all ease-in-out duration-500">
-                    Sign up
-                </a>
-                <button class="theme-toggle">
-                    <span class="material-symbols-outlined text-center pt-1.5 pb-1.5 pr-4 pl-4 -mr-15 -ml-1 rounded-xl  text-[var(--clr-txt-muted)] text-sm hover:text-[var(--clr-surface-alt)] hover:bg-[var(--clr-primary)] transition-all duration-300 ease-in-out">light_mode</span>
-                </button>
-            </div>
-        </nav>
-        <!-- Wrapper of main contents to be movable -->
-        <div class="flex-1 transition-all duration-300 pl-60 pr-60" id="wrapper">        
-            <main class="w-full h-screen bg-[var(--clr-bg)] text-[var(--clr-txt-primary)] pt-12">
-                {% block landing %}{% endblock %}
-            </main>
-            <footer>
-                <!-- Footer content here -->
-            </footer>
-            {% else %}
-        </div>
-
-
-        <!-- LOGGED IN USERS -->
-        
-        <!-- SIDEBAR COLLAPSED -->
-        <div id="sidebar-collapsed"  class="side-bar-container fixed left-0 top-[4.25rem] h-[calc(100vh-4.25rem)] w-20 z-30 bg-[var(--clr-surface)] text-white transform transition-transform duration-300 ease-in-out">
-            <!-- PAGE LINKS -->
-            <div class="flex justify-center items-center flex-col">
-                <a href="{{ url_for('dashboard') }}" class="btn-side-bar-collapsed">
-                    <span class="material-symbols-outlined">home</span>
-                </a>
-                <a href="{{ url_for('dashboard') }}" class="btn-side-bar-collapsed">
-                    <span class="material-symbols-outlined">account_circle</span>
-                </a>
-                <a href="{{ url_for('course') }}" class="btn-side-bar-collapsed">
-                    <span class="material-symbols-outlined">book_2</span>
-                </a>
-                <a href="{{ url_for('about') }}" class="btn-side-bar-collapsed">
-                    <span class="material-symbols-outlined">info</span>
-                </a>
-            </div>
-        
-            <div class="flex flex-col justify-center items-center mb-2">
-                <button class="btn-side-bar-collapsed theme-toggle">
-                    <span class="material-symbols-outlined">light_mode</span>
-                </button>
-
-                <form action="{{ url_for('logout') }}" method="post" class="btn-side-bar-collapsed">
-                    <button class="material-symbols-outlined">
-                        logout
-                    </button>
-                </form>
-            </div>
-        </div>
+    {% include 'components/navbar_guest.html' %}
     
-    <!-- SIDEBAR SHOWED -->
-    <div id="sidebar-expand" class="side-bar-container h-[calc(100vh-4.25rem)] w-60 z-40 bg-[var(--clr-surface)] text-white transform shadow-md shadow-black/30 -translate-x-full transition-transform duration-500">
-        
-        <div class="flex flex-col justify-center items-start">
-            <!-- Expanded buttons -->
-            <a href="{{ url_for('dashboard') }}" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">home</span>
-                <span class="ml-4">Dashboard</span> 
-            </a>
-            <a href="{{ url_for('dashboard') }}" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">account_circle</span>
-                <span class="ml-4">Account</span> 
-                
-            </a>
-            <a href="{{ url_for('course') }}" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">book_2</span>
-                <span class="ml-4">Course</span> 
-            </a>
-            <a href="{{ url_for('about') }}" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">info</span>
-                <span class="ml-4">About</span> 
-            </a>
-        </div>
-        
-        <div class="flex flex-col justify-center items-start mb-2">
-            <button class="btn-side-bar-expand theme-toggle">
-                <span class="material-symbols-outlined">light_mode</span>
-                <span class="ml-4">Theme</span> 
-            </button>
-            <form action="{{ url_for('logout') }}" method="post" class="btn-side-bar-expand">
-                <button class="material-symbols-outlined">
-                    logout
-                </button>
-                <button class="ml-4">Logout</button> 
-            </form>
-        </div>
+    <!-- Wrapper of main contents to be movable -->
+    <div class="flex-1 transition-all duration-300 pl-60 pr-60" id="wrapper">        
+        <main class="w-full h-screen bg-[var(--clr-bg)] text-[var(--clr-txt-primary)] pt-12">
+            {% block landing %}
+                <!-- Landing page -->
+            {% endblock %}
+        </main>
+        <footer>
+            {% include 'components/footer_guest.html' %}
+        </footer>
     </div>
+    {% else %}
     
-    <!-- NAVBAR -->
-    <nav class="sticky top-0 w-full h-17 z-50 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] pl-4 pr-7 drop-shadow-black shadow-2xs">
-        
-    <!-- LEFT SIDE -->
-        <div class="flex items-center justify-center mp-0.5 ">
-            <button id="menu-btn" class="btn-side-bar w-12 h-12 flex items-center justify-center mt-2 mb-2 rounded-xl hover:bg-[var(--clr-primary)] hover:text-[var(--clr-bg)] transition">
-                <span class="material-symbols-outlined">menu</span>
-            </button>
-            <!-- LOGO -->
-            <div class="flex items-center justify-center mr-5 ml-5">
-                <a href="{{ url_for('dashboard') }}" class="flex  items-center justify-center w-[2.2rem] h-[2.2rem] border-2 rounded-full border-[var(--clr-border)]">
-                    <img src="{{ url_for('static', filename='images/pulse.svg') }}" alt="Pulse">
-                </a>
-                <h1 class="font-normal ml-1 text-3xl text-center text-[var(--clr-primary)] font-[LLPIXEL3] text-shadow-black/30">Pulse</h1>
-            </div>
-        </div>
-
-        <!-- This is for the right side of navbar -->
-        <div class="flex items-center justify-center">
-            
-            <a href="#" class="material-symbols-outlined btn-nav-icon">notifications</a>
-            <a href="#" class="material-symbols-outlined btn-nav-icon">search</a>
-            <a href="#" class="material-symbols-outlined btn-nav-icon">account_circle</a>
-            
-        </div>
-    </nav>
-        
+    
+    <!-- LOGGED IN USERS -->
+    
+    <!-- sidebar -->
+    {% include 'components/sidebar.html' %}
+    
+    <!-- navbar -->
+    {% include 'components/navbar.html' %}
+    
     <!--WRAPPER -->
     <div class="flex-1 transition-all duration-450 ml-20" id="wrapper">    
         <!-- MAIN  -->
         <main class="w-full h-screen bg-[var(--clr-bg)] text-[var(--clr-txt-primary)] pt-12 pl-12 pr-12">
             {% block main %}
-            <!-- 
-                DONT PUT ANYTHING HERE!
-            -->
+            <!-- DONT PUT ANYTHING HERE! -->
             {% endblock %}
         </main>
         <footer>
-            <!-- Footer content here -->
+            {% include 'components/footer.html' %}
         </footer>
     </div>
     {% endif %}
         
     <!-- Side bar and theme simple script -->
-    <script>
-
-        //Sidebar
-        const menuBtn = document.getElementById('menu-btn');
-        const sidebarExpand = document.getElementById('sidebar-expand');
-        const sidebarCollapsed = document.getElementById('sidebar-collapsed');
-        const mainContent = document.getElementById('wrapper');
-
-        if (menuBtn && sidebarExpand && sidebarCollapsed && mainContent) {
-            // For maintaining the sidebar open even if the page is refreshed 
-            if (localStorage.getItem('sidebarOpen') === 'true') {
-                sidebarExpand.classList.remove('-translate-x-full');
-                mainContent.classList.add('ml-60');
-            }
-
-            menuBtn.addEventListener('click', () => {
-                sidebarExpand.classList.toggle('-translate-x-full');
-                sidebarCollapsed.classList.toggle('translate-y-full');
-                mainContent.classList.toggle('ml-60');
-
-                const isOpen = !sidebarExpand.classList.contains('-translate-x-full');
-                localStorage.setItem('sidebarOpen', isOpen);
-            });
-        }
-
-        
-        //Theme change
-        const themeToggles = document.querySelectorAll('.theme-toggle');
-        const root = document.documentElement;
-
-        // === Load saved theme from localStorage ===
-        const savedTheme = localStorage.getItem('theme');
-
-        // Default to light mode if nothing is saved
-        if (savedTheme === 'dark') {
-        root.setAttribute('data-theme', 'dark');
-        themeToggles.forEach(btn => {
-            btn.querySelector('.material-symbols-outlined').textContent = 'dark_mode';
-        });
-        } else {
-        root.removeAttribute('data-theme');
-        themeToggles.forEach(btn => {
-            btn.querySelector('.material-symbols-outlined').textContent = 'light_mode';
-        });
-        }
-
-        // === Toggle theme when any button is clicked ===
-        themeToggles.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const isDark = root.getAttribute('data-theme') === 'dark';
-
-            if (isDark) {
-            // Switch to light mode
-            root.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
-            themeToggles.forEach(b => {
-                b.querySelector('.material-symbols-outlined').textContent = 'light_mode';
-            });
-            } else {
-            // Switch to dark mode
-            root.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-            themeToggles.forEach(b => {
-                b.querySelector('.material-symbols-outlined').textContent = 'dark_mode';
-            });
-            }
-        });
-        });
-
-    </script>
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
 </body>
 </html>

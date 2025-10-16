@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Dashboard
+{% endblock %}
+
+{% block main %}
+<h1>Dashboard Admin</h1>
+<h2>Hello {{ name.capitalize() }}!</h2>
+<h2>Your DB Id: {{ session.get("user_id") }}</h2>
+
+{% endblock %}

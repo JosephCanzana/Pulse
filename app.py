@@ -1,19 +1,39 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask_mysqldb import MySQL
 
-
-# ==== SETUP ====
+# ==== APP SETUP ====
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 # To be replaced with random cookies
 app.secret_key = "tmpsecretkey"
 
+# ==== DATABASE CONFIG ====
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = ''  # replace this with password if you have one
+app.config['MYSQL_DB'] = 'lms_db'
+app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
-# ==== STARTING PAGES ====
+mysql = MySQL(app)
+
+# TEST
+@app.route("/testdb")
+def testdb():
+    cur = mysql.connection.cursor()
+    cur.execute("SHOW TABLES;")
+    tables = cur.fetchall()
+    cur.close()
+
+    return {"tables": tables}
+
+
+# ==== GENERAL PAGES ====
 
 # LANDING PAGE
 @app.route("/")
 def index():
     return render_template("index.html")
+
 # LOGIN
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -21,77 +41,73 @@ def login():
         email = request.form.get("email")
         password = request.form.get("password")
 
-        # confirm email exist and get id
-        # is the password same as the id.password
+        # connect to db
+        cur = mysql.connection.cursor()
+
+        # confirm email exist
+        cur.execute("SELECT * FROM User WHERE email = %s", (email,))
+        user = cur.fetchone()
+        if user is None:
+            return render_template("apology.html", message=user)
         
-        # temporary id -> to be updated when db is confirmed
-        tmp = "tmp-id"
-        session["user_id"] = tmp
-        return redirect(url_for("dashboard"))
-    else:
-        return render_template("login.html")
-# REGISTER
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        email = request.form.get("email")
-        first_name = request.form.get("first-name")
-        last_name = request.form.get("last-name")
-        password = request.form.get("password")
-        confirm_password = request.form.get("confirm-password")
+        # is the password same as the id.password
+        if password != user["password"]:
+            return render_template("apology.html", message=user)
+        
+        # assign it to the current session
+        session["user_id"] = user["id"]
+        session["first_name"] = user["first_name"]
+        session["last_name"] = user["last_name"]
+        session["role"] = user["role"]
 
-        # Email same as the school email
-        # Password and confirm password same 
-        # Password requirements
-        # Append to the Database
+        # Redirect to the user's role
+        match session["role"]:
+            case "admin":
+                return redirect(url_for("admin"))
+            case "teacher":
+                return redirect(url_for("teacher"))
+            case "student":
+                return redirect(url_for("student"))
+            case _:
+                return redirect(url_for("auth/login.html"))   
+    
+    else:   
+        return render_template("auth/login.html")
 
-        return redirect(url_for("login"))
-    else:
-        return render_template("register.html")
-
-
-# ==== NAVIGATION BAR PAGES =====
-
-# DASHBOARD
-@app.route("/dashboard")
-def dashboard():
-    return render_template("main/dashboard.html", name="test")
-# LEADERBOARD
-@app.route("/leaderboard")
-def leaderboard():
-    return render_template("main/leaderboard.html")
-# TIMELINE
-@app.route("/timeline")
-def timeline():
-    return render_template("main/timeline.html")
-
-
-# ==== SIDE BAR PAGES =====
-
-# COURSE
-@app.route("/course")
-def course():
-    return render_template("others/course.html")
 # ABOUT
 @app.route("/about")
 def about():
-    return render_template("others/about.html")
-# ACHIEVEMENTS
-@app.route("/achievements")
-def achievements():
-    return render_template("others/achievements.html")
-# PROJECTS
-@app.route("/projects")
-def projects():
-    return render_template("sidebar/projects.html")
-
-
+    return render_template("about.html")
 
 # LOGOUT
 @app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
     return redirect(url_for("index"))
+
+# ==== ADMIN PAGES =====
+
+@app.route("/admin")
+def admin():
+    return render_template("admin/dashboard.html", name=session["first_name"])
+
+
+# ==== TEACHER PAGES =====
+
+@app.route("/teacher")
+def teacher():
+    return render_template("teacher/dashboard.html", name="Teacher")
+
+
+# ==== STUDENT PAGES =====
+
+@app.route("/student")
+def student():
+    return render_template("student/dashboard.html", name="Student")
+
+
+
+
 
 if __name__ == "__main__": 
     app.run(debug=True)
