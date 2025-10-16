@@ -32,18 +32,6 @@ if (menuBtn && sidebarExpand && sidebarCollapsed && mainContent) {
     });
 }
 
-// REset side bar in logged out
-const logoutBtn = document.getElementById('logout-btn');
-const logoutForm = document.getElementById('logout-form');
-
-if (logoutBtn && logoutForm) {
-    logoutBtn.addEventListener('click', (e) => {
-        // Delay slightly
-        e.preventDefault();
-        localStorage.removeItem('sidebarOpen');
-        logoutForm.submit(); 
-    });
-}
 
 
 

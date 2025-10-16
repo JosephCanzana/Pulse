@@ -6,7 +6,7 @@
 
 {% block main %}
 <h1>Dashboard Teacher</h1>
-<h2>Hello {{ name.capitalize() }}!</h2>
+<h2>Hello {{ session.get('first_name').capitalize() }}!</h2>
 <h2>Your DB Id: {{ session.get("user_id") }}</h2>
 
 {% endblock %}
