@@ -1,6 +1,25 @@
 @import "tailwindcss";
 @import "./my-theme.css";
 
+/* Text input */
+.txt-input-box {
+  @apply w-full px-4 py-2 rounded-xl 
+  bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)]
+  border border-[var(--clr-border)]
+  focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+  transition-all duration-200;
+}
+
+/* Submit button */
+.btn-submit {
+  @apply w-full py-2.5 mt-2 rounded-xl font-medium
+  bg-[var(--clr-primary)] text-[var(--clr-bg)]
+  hover:bg-[var(--clr-secondary)] active:bg-[var(--clr-tertiary)]
+  transition-all duration-200 ease-in-out
+  cursor-pointer;
+}
+
+
 .btn-nav{
   @apply mr-2 ml-2 text-sm font-normal text-center text-[var(--clr-txt-primary)]
   hover:text-[var(--clr-txt-hover)]

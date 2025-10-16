@@ -96,14 +96,14 @@ def admin():
 
 @app.route("/teacher")
 def teacher():
-    return render_template("teacher/dashboard.html", name="Teacher")
+    return render_template("teacher/dashboard.html", name=session["first_name"])
 
 
 # ==== STUDENT PAGES =====
 
 @app.route("/student")
 def student():
-    return render_template("student/dashboard.html", name="Student")
+    return render_template("student/dashboard.html", name=session["first_name"])
 
 
 

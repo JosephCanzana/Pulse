@@ -1,16 +1,56 @@
 {% extends "layout.html" %}
-  
+
 {% block title %}
   Log in
 {% endblock %}
 
 {% block landing %}
-<h1>Log in</h1>
+<!-- main wrapper from layout.html already has height -->
+<div class="flex flex-col md:flex-row w-full h-full text-[var(--clr-txt-primary)] transition-colors duration-300">
 
-<form action="{{ url_for('login') }}" method="post" class="flex flex-col">
-  <input type="text" name="email" placeholder="Email" class="txt-input-box" required>
-  <input type="password" name="password" placeholder="Password" required>
-  <input type="submit" value="Login">
-</form>
+  <!-- LEFT SIDE -->
+  <div class="hidden md:flex flex-1 items-center justify-center p-16 w-1/2">
+    <div class="text-center select-none">
+      <h2 class="font-[LLPIXEL3] text-6xl text-[var(--clr-primary)] mb-6">Pulse LMS</h2>
+      <p class="text-[var(--clr-txt-secondary)] text-xl max-w-lg leading-relaxed">
+        Welcome back! Manage your courses, connect with students, and stay on track.
+      </p>
+    </div>
+  </div>
 
+  <!-- RIGHT SIDE -->
+  <div class="flex flex-1 items-center justify-center px-8 py-12 ">
+    <div class="w-full max-w-lg bg-[var(--clr-surface)] shadow-2xl rounded-2xl p-10 border border-[var(--clr-border)] transition-colors duration-300">
+      <h1 class="text-4xl font-semibold text-center mb-8 text-[var(--clr-primary)]">Log in</h1>
+
+      <form action="{{ url_for('login') }}" method="post" class="flex flex-col gap-5">
+        <input 
+          type="text" 
+          name="email" 
+          placeholder="Email" 
+          class="txt-input-box text-lg"
+          required
+        >
+        <input 
+          type="password" 
+          name="password" 
+          placeholder="Password" 
+          class="txt-input-box text-lg"
+          required
+        >
+        <input 
+          type="submit" 
+          value="Login" 
+          class="btn-submit text-lg py-3"
+        >
+      </form>
+
+      <p class="text-center text-base text-[var(--clr-txt-muted)] mt-6">
+        Forgot your password? 
+        <a href="#" class="text-[var(--clr-primary)] hover:text-[var(--clr-txt-hover)] transition-colors duration-200">Reset here</a>
+      </p>
+    </div>
+  </div>
+
+</div>
 {% endblock %}
