@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Add students
+{% endblock %}
+
+{% block main %}
+<!-- TODO:  add student profile -->
+<h1>Add Students</h1>
+<form action="{{ url_for('admin_student_add') }}" method="post" class="flex align-center items-center flex-col">
+  <!-- USER form part -->
+  <input type="text" name="school_id" placeholder="school-id">
+  <input type="text" name="first_name" placeholder="First name">
+  <input type="text" name="second_name" placeholder="Second name">
+  <input type="text" name="last_name" placeholder="Last name">
+  <!-- gender -->
+   <select name="gender" required>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+   </select>
+
+   <!-- Student form part -->
+  <select name="education_lvl" id="">
+    {% for lvl in education_lvls %}
+      <option value="{{ lvl.id }}">{{ lvl.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="course" id="">
+    {% for course in courses %}
+      <option value="{{ course.id }}">{{ course.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="section" id="">
+    {% for section in sections %}
+      <option value="{{ section.id }}">{{ section.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="year" id="">
+    {% for year in years %}
+      <option value="{{ year.id }}">{{ year.name }}</option>
+    {% endfor %}
+  </select>
+  <button>Submit</button>
+</form>
+
+
+{% endblock %}
