@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Student list
+{% endblock %}
+
+{% block main %}
+<!-- TODO: edit css styling(make it better) -->
+ <div class="flex items-center justify-center flex-col">
+   <a href="{{ url_for('admin_student_add') }}" class="rounded-full border-1 m-2 border-blue-600 p-3">Add page</a>
+   <h1 class="m-2">Student list</h1>
+   <ul>
+      {% for student in students %}
+      <li>{{ student.first_name }}</li>
+      {% endfor %}
+   </ul>
+ </div>
+
+{% endblock %}

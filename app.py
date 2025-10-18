@@ -16,6 +16,8 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
 
+# ==== GLOBAL VARIABLES ====
+
 # TEST
 @app.route("/testdb")
 def testdb():
@@ -45,18 +47,21 @@ def login():
         cur = mysql.connection.cursor()
 
         # confirm email exist
-        cur.execute("SELECT * FROM User WHERE email = %s", (email,))
+        cur.execute("SELECT * FROM Users WHERE email = %s", (email,))
         user = cur.fetchone()
         if user is None:
+            # For debug
             return render_template("apology.html", message=user)
         
         # is the password same as the id.password
         if password != user["password"]:
+            # For debug
             return render_template("apology.html", message=user)
         
         # assign it to the current session
         session["user_id"] = user["id"]
         session["first_name"] = user["first_name"]
+        session["middle_name"] = user["middle_name"]
         session["last_name"] = user["last_name"]
         session["role"] = user["role"]
 
@@ -70,6 +75,8 @@ def login():
                 return redirect(url_for("student"))
             case _:
                 return redirect(url_for("auth/login.html"))   
+            
+        cur.close()
     
     else:   
         return render_template("auth/login.html")
@@ -91,6 +98,43 @@ def logout():
 def admin():
     return render_template("admin/dashboard.html", name=session["first_name"])
 
+
+@app.route("/admin/student")
+def admin_student():
+    cur = mysql.connection.cursor()
+    
+    cur.execute("Select * FROM StudentProfile")
+    students = cur.fetchall()
+
+    cur.close()
+
+    return render_template("admin/student/list.html", students=students)
+
+
+@app.route("/admin/student/add", methods=["POST", "GET"])
+def admin_student_add():
+    if request.method == "POST":
+        # Form getters
+        f_name = request.form.get("first-name").title()
+        s_name = request.form.get("second-name").title()
+        l_name = request.form.get("last-name").title()
+        school_id = request.form.get("school-id")
+        gender = request.form.get("gender").title()
+
+        # TODO: add studentprofile assign
+
+        # convert school id to email
+        email = f"{school_id}@holycross.edu.ph"
+
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO Users (first_name, middle_name, last_name, email, school_id, gender, role) VALUES (%s, %s, %s, %s, %s, %s, 'student')",
+        (f_name, s_name, l_name, email, school_id, gender))
+        mysql.connection.commit()
+
+        render_template("admin/student/add_form.html")
+
+    else:
+        return render_template("admin/student/add_form.html")
 
 # ==== TEACHER PAGES =====
 

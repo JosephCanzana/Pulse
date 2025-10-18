@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Add students
+{% endblock %}
+
+{% block main %}
+<!-- todo add student profil -->
+<h1>Add Students</h1>
+<form action="{{ url_for('admin_student_add') }}" method="post" class="flex align-center items-center flex-col">
+  <input type="text" name="school-id" placeholder="school-id">
+  <input type="text" name="first-name" placeholder="First name">
+  <input type="text" name="second-name" placeholder="Second name">
+  <input type="text" name="last-name" placeholder="Last name">
+  <!-- gender -->
+  <div>
+    <input type="radio" id="male" name="gender" value="Male" required>
+    <label for="male">Male</label><br>
+  
+    <input type="radio" id="female" name="gender" value="Female" required>
+    <label for="female">Female</label><br>
+  </div>
+  <button>Submit</button>
+</form>
+
+
+{% endblock %}

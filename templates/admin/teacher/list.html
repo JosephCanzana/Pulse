@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Teacher list
+{% endblock %}
+
+{% block main %}
+<h1>Dashboard Admin</h1>
+<h2>Hello {{ session.get('first_name').capitalize() }}!</h2>
+<h2>Your DB Id: {{ session.get("user_id") }}</h2>
+
+{% endblock %}
