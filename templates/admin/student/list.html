@@ -9,11 +9,31 @@
  <div class="flex items-center justify-center flex-col">
    <a href="{{ url_for('admin_student_add') }}" class="rounded-full border-1 m-2 border-blue-600 p-3">Add page</a>
    <h1 class="m-2">Student list</h1>
-   <ul>
-      {% for student in students %}
-      <li>{{ student.first_name }}</li>
-      {% endfor %}
-   </ul>
+   <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>School ID</th>
+          <th>Course</th>
+          <th>Section</th>
+          <th>Year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td>{{ s.first_name }} {{ s.last_name }}</td>
+          <td>{{ s.email }}</td>
+          <td>{{ s.school_id }}</td>
+          <td>{{ s.course_id }}</td>
+          <td>{{ s.section_id }}</td>
+          <td>{{ s.year_id }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
  </div>
 
 {% endblock %}

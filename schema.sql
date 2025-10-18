@@ -8,7 +8,7 @@ USE lms_db;
 CREATE TABLE IF NOT EXISTS EducationLevel (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name ENUM('Elementary', 'Junior High', 'Senior High', 'College') NOT NULL
-) ENGINE=InnoDB;
+);
 
 -- Course table
 CREATE TABLE IF NOT EXISTS Course (
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS Course (
     education_level_id INT,
     FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
         ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 -- AcademicYear table
 CREATE TABLE IF NOT EXISTS AcademicYear (
@@ -26,16 +26,19 @@ CREATE TABLE IF NOT EXISTS AcademicYear (
     education_level_id INT,
     FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
         ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 -- Section table
 CREATE TABLE IF NOT EXISTS Section (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     education_level_id INT,
+    course_id INT,
     FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    FOREIGN KEY (course_id) REFERENCES Course(id)
         ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 -- Subject table
 CREATE TABLE IF NOT EXISTS Subject (
@@ -44,7 +47,7 @@ CREATE TABLE IF NOT EXISTS Subject (
     education_level_id INT,
     FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
         ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 -- Users table
 CREATE TABLE IF NOT EXISTS Users (
@@ -57,7 +60,7 @@ CREATE TABLE IF NOT EXISTS Users (
     gender ENUM('Male','Female','Other'),
     password VARCHAR(255) NOT NULL DEFAULT 'mcmY_1946',
     role ENUM('admin','teacher','student') NOT NULL
-) ENGINE=InnoDB;
+);
 
 -- StudentProfile table
 CREATE TABLE IF NOT EXISTS StudentProfile (
@@ -77,7 +80,7 @@ CREATE TABLE IF NOT EXISTS StudentProfile (
         ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (year_id) REFERENCES AcademicYear(id)
         ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 -- TeacherProfile table
 CREATE TABLE IF NOT EXISTS TeacherProfile (
@@ -86,7 +89,7 @@ CREATE TABLE IF NOT EXISTS TeacherProfile (
     department VARCHAR(100),
     FOREIGN KEY (user_id) REFERENCES Users(id)
         ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB;
+);
 
 -- Class table
 CREATE TABLE IF NOT EXISTS Class (
@@ -106,7 +109,7 @@ CREATE TABLE IF NOT EXISTS Class (
         ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (year_id) REFERENCES AcademicYear(id)
         ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB;
+);
 
 -- ClassStudent table
 CREATE TABLE IF NOT EXISTS ClassStudent (
@@ -117,10 +120,67 @@ CREATE TABLE IF NOT EXISTS ClassStudent (
         ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (student_id) REFERENCES Users(id)
         ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB;
+);
 
 -- Insert default admin user
 INSERT INTO Users 
     (first_name, middle_name, last_name, email, school_id, gender, password, role) 
 VALUES 
     ('Admin', 'A', 'User', 'administrator@holycross.edu.ph', 'LMS001', 'Other', 'adminpassword', 'admin');
+
+-- Education level, Year, Course
+
+INSERT INTO EducationLevel (Name) VALUES
+('Elementary'),
+('Junior High'),
+('Senior High'),
+('College');
+
+INSERT INTO Course (Name, education_level_id) VALUES
+('None', 1), 
+('None', 2),
+('STEM', 3),
+('ABM', 3),
+('Bachelor of Science in Computer Science', 4),
+('Associate in Computer Technology', 4),
+('Bachelor of Science in Hotel Management', 4);
+
+INSERT INTO Section (Name, education_level_id, course_id) VALUES
+('rose', 1, 1),
+('tree', 1, 1),
+('cecilia', 2, 1),
+('eagle', 2, 1),
+('A', 3, 1),
+('B', 3, 2),
+('A', 4, 1),
+('B', 4, 3),
+('B', 4, 4);
+
+INSERT INTO AcademicYear (name, education_level_id) VALUES
+('Grade 1', 1),
+('Grade 2', 1),
+('Grade 7', 2),
+('Grade 8', 2),
+('Grade 11', 3),
+('Grade 12', 3),
+('1st Year', 4),
+('2nd Year', 4);
+
+
+INSERT INTO Subject (Name, education_level_id) VALUES
+('Math', 1),
+('English', 1),
+('Science', 1),
+('Math', 2),
+('English', 2),
+('Biology', 2),
+('Math', 3),
+('English', 3),
+('Physics', 3),
+('Programming', 4),
+('Data Structures', 4);
+
+
+
+
+
