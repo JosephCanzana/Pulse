@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 
 def apology(num=400, message="Error occur"):
-    return render_template("apology.html", message=message)
+    return render_template("apology.html", message=message, error_code=num)
 
 
 def encrypt_password(password):

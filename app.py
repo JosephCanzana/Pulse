@@ -43,12 +43,12 @@ def login():
         user = db.session.execute(text("SELECT * FROM Users WHERE email = :email"), {"email": email}).mappings().first()
         if user is None:
             # For debug
-            return render_template("apology.html", message=user)
+            return apology(404, message="User doesn't exist.")
         
         # is the password same as the id.password
         if password != user["password"]:
             # For debug
-            return render_template("apology.html", message=user)
+            return apology(401, message="Wrong Password.")
         
         # assign it to the current session
         session["user_id"] = user["id"]
@@ -128,10 +128,14 @@ def admin_student_add():
         # convert school id to email
         email = f"{school_id}@holycross.edu.ph"
 
-        # Get existing course to avoid duplicate
-        if is_exist(db, school_id, "school_id", "StudentProfile"):
-            return apology(message="It exist")
+        # Get existing student id to avoid duplicate
+        if is_exist(db, school_id, "school_id", "Users"):
+            return apology(409, "The school id already exist.")
 
+        # First, second, and last name is already existing
+        if is_exist(db, first, "first_name", "Users") and is_exist(db, second, "middle_name", "Users") and is_exist(db, last, "last_name", "Users"):
+            return apology(409, "The name already exist.")
+        
         # Add user in db
         user = add_user(db, first, second, last, email, school_id, gender, "student")
         user_id = user["id"]
@@ -147,10 +151,10 @@ def admin_student_add():
         return redirect(url_for("admin_student_add"))
 
     else: 
-        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).fetchall()
-        courses = db.session.execute(text("SELECT * FROM Course")).fetchall()
-        sections = db.session.execute(text("SELECT * FROM Section")).fetchall()
-        years = db.session.execute(text("SELECT * FROM AcademicYear")).fetchall()
+        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+        courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
+        sections = db.session.execute(text("SELECT * FROM Section")).mappings().all()
+        years = db.session.execute(text("SELECT * FROM AcademicYear")).mappings().all()
 
         return render_template("admin/student/add_form.html", education_lvls=education_lvls, courses=courses, sections=sections, years=years)
 
@@ -170,7 +174,7 @@ def admin_teacher():
         FROM Users
         JOIN TeacherProfile ON Users.id = TeacherProfile.user_id
     """)
-    teachers = db.session.execute(query).fetchall()
+    teachers = db.session.execute(query).mappings().all()
     return render_template("admin/teacher/list.html", teachers=teachers)
 
 @app.route("/admin/teacher/add", methods=["POST", "GET"])
@@ -189,7 +193,7 @@ def admin_teacher_add():
 
         # Get existing course to avoid duplicate
         if is_exist(db, school_id, "school_id", "TeacherProfile"):
-            return apology(message="It exist")
+            return apology(409,"The school id already exist")
 
         # Add user in db
         user = add_user(db, first, second, last, email, school_id, gender, "student")
@@ -203,8 +207,8 @@ def admin_teacher_add():
         return redirect(url_for("admin_teacher_add"))
 
     else:
-        departments = db.session.execute(text("SELECT * FROM Department")).fetchall()
-        lvls = db.session.execute(text("SELECT * FROM EducationLevel")).fetchall()
+        departments = db.session.execute(text("SELECT * FROM Department")).mappings().all()
+        lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
         return render_template("admin/teacher/add_form.html", departments=departments, lvls=lvls)
 
 
@@ -223,7 +227,7 @@ def admin_course_add():
 
         # Get existing course to avoid duplicate
         if is_exist(db, course_name, "name", "Course"):
-            return apology(message="It exist")
+            return apology(409, "The course name already exist.")
 
         # Append to the courses
         add_course(db, course_name, lvl_id)
