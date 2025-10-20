@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Department list
+{% endblock %}
+
+{% block main %}
+<a href="{{ url_for('admin_department_add') }}">Admin add page</a>
+<h1>This is the department list</h1>
+<ul>
+    {% for d in departments %}
+        <li>{{ d.name }}</li>    
+    {% endfor %}
+</ul>
+
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Add Department form
+{% endblock %}
+
+{% block main %}
+
+<h1>This is the department add form</h1>
+<form action="{{ url_for('admin_department_add') }}" method="POST">
+    <input type="text" name="name" placeholder="department name">
+    <select name="lvl_id" id="">
+        {% for lvl in lvls %}
+        <option value="{{ lvl.id }}">{{ lvl.name }}</option>
+        {% endfor %}
+    </select>
+    <button>Submit</button>
+</form>
+
+{% endblock %}

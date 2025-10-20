@@ -91,7 +91,7 @@ def admin():
     return render_template("admin/dashboard.html", name=session["first_name"])
 
 
-# ADMIN STUDENT LIST
+# Student(admin side)
 @app.route("/admin/student")
 def admin_student():
     query = text("""
@@ -158,7 +158,7 @@ def admin_student_add():
 
         return render_template("admin/student/add_form.html", education_lvls=education_lvls, courses=courses, sections=sections, years=years)
 
-# ADMIN TEACHER LIST
+# Teacher (admin side)
 @app.route("/admin/teacher")
 def admin_teacher():
     query = text("""
@@ -190,10 +190,14 @@ def admin_teacher_add():
         # convert school id to email
         email = f"{school_id}@holycross.edu.ph"
 
-
         # Get existing course to avoid duplicate
-        if is_exist(db, school_id, "school_id", "TeacherProfile"):
+        if is_exist(db, school_id, "school_id", "Users"):
             return apology(409,"The school id already exist")
+        
+        # First, second, and last name is already existing
+        if is_exist(db, first, "first_name", "Users") and is_exist(db, second, "middle_name", "Users") and is_exist(db, last, "last_name", "Users"):
+            return apology(409, "The name already exist.")
+
 
         # Add user in db
         user = add_user(db, first, second, last, email, school_id, gender, "student")
@@ -212,6 +216,7 @@ def admin_teacher_add():
         return render_template("admin/teacher/add_form.html", departments=departments, lvls=lvls)
 
 
+# course (Admin side)
 @app.route("/admin/course")
 def admin_course():
     courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
@@ -240,6 +245,32 @@ def admin_course_add():
             if lvl["name"] in ["Senior High", "College"]:
                 valid_course.append(int(lvl["id"]))
         return render_template("admin/course/add_form.html", lvls=ed_lvl,valid_course=valid_course)
+
+
+# Department (admin side)
+@app.route("/admin/department")
+def admin_department():
+    departments = db.session.execute(text("SELECT * FROM Department")).mappings().all()
+    return render_template("admin/department/list.html", departments=departments)
+
+@app.route("/admin/department/add", methods=["POST", "GET"])
+def admin_department_add():
+    if request.method == "POST":
+        name = request.form.get("name").title().strip()
+        lvl_id = request.form.get("lvl_id").title().strip()
+
+        # check if the name already exist
+        if is_exist(db, name, "name", "Department"):
+            return apology(409, "Department name already exist.")
+        
+        # Insert to the table
+        tmp = add_department(db, name, lvl_id)
+
+        return redirect(url_for("admin_department_add"))
+        
+    else:
+        lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+        return render_template("admin/department/add_form.html", lvls=lvls)
 
 
 # ==== TEACHER PAGES =====

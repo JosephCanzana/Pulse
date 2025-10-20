@@ -46,7 +46,7 @@ def add_user(db,f_name, s_name, l_name,
     })
     db.session.commit()
 
-    return db.session.execute(text("SELECT id FROM Users WHERE school_id = :school_id"), {"school_id" : school_id}).mappings().first()
+    return db.session.execute(text("SELECT id FROM Users WHERE school_id = :school_id LIMIT 1"), {"school_id" : school_id}).mappings().first()
 
 def assign_student_profile(db, user_id, ed_lvl, course_id, section_id, year_id):
     db.session.execute(text
@@ -63,7 +63,7 @@ def assign_student_profile(db, user_id, ed_lvl, course_id, section_id, year_id):
         }
     )
     db.session.commit()
-    return db.session.execute(text("SELECT * FROM StudentProfile WHERE user_id = :user_id"), {"user_id" : user_id}).mappings().first()
+    return db.session.execute(text("SELECT * FROM StudentProfile WHERE user_id = :user_id LIMIT 1"), {"user_id" : user_id}).mappings().first()
     
 
 def assign_teacher_profile(db, user_id, department_id, lvl_id):
@@ -90,5 +90,13 @@ def add_course(db, name, lvl_id):
                             "lvl_id": lvl_id
                             })
     db.session.commit()
-    return db.session.execute(text("SELECT id FROM Course WHERE education_level_id = :id"), {"id": lvl_id})
+    return db.session.execute(text("SELECT id FROM Course WHERE education_level_id = :id"), {"id": lvl_id}).mappings().first()
 
+def add_department(db, name, lvl_id):
+    db.session.execute(text("""INSERT INTO Department (name, education_level_id) 
+                            VALUES (:name, :lvl_id)"""),
+                            {"name": name,
+                            "lvl_id": lvl_id})
+    
+    db.session.commit()
+    return db.session.execute(text("SELECT id FROM Department WHERE name = :name"), {"name": name}).mappings().first()
