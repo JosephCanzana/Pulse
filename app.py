@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
-from helpers import encrypt_password, check_password, add_user, assign_student_profile
+from helpers import *
 
 # ==== APP SETUP ====
 app = Flask(__name__)
@@ -91,6 +91,7 @@ def admin():
     return render_template("admin/dashboard.html", name=session["first_name"])
 
 
+# ADMIN STUDENT LIST
 @app.route("/admin/student")
 def admin_student():
     query = text("""
@@ -109,9 +110,8 @@ def admin_student():
         WHERE Users.role = 'student'
     """)
     
-    students = db.session.execute(query).mappings().all()
+    students = db.session.execute(query).fetchall()
     return render_template("admin/student/list.html", students=students)
-
 
 
 @app.route("/admin/student/add", methods=["POST", "GET"])
@@ -128,6 +128,10 @@ def admin_student_add():
         # convert school id to email
         email = f"{school_id}@holycross.edu.ph"
 
+        # Get existing course to avoid duplicate
+        if is_exist(db, school_id, "school_id", "StudentProfile"):
+            return apology(message="It exist")
+
         # Add user in db
         user = add_user(db, first, second, last, email, school_id, gender, "student")
         user_id = user["id"]
@@ -143,12 +147,96 @@ def admin_student_add():
         return redirect(url_for("admin_student_add"))
 
     else: 
-        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel"))
-        courses = db.session.execute(text("SELECT * FROM Course"))
-        sections = db.session.execute(text("SELECT * FROM Section"))
-        years = db.session.execute(text("SELECT * FROM AcademicYear"))
+        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).fetchall()
+        courses = db.session.execute(text("SELECT * FROM Course")).fetchall()
+        sections = db.session.execute(text("SELECT * FROM Section")).fetchall()
+        years = db.session.execute(text("SELECT * FROM AcademicYear")).fetchall()
 
         return render_template("admin/student/add_form.html", education_lvls=education_lvls, courses=courses, sections=sections, years=years)
+
+# ADMIN TEACHER LIST
+@app.route("/admin/teacher")
+def admin_teacher():
+    query = text("""
+        SELECT 
+            Users.id AS user_id,
+            Users.first_name,
+            Users.last_name,
+            Users.email,
+            Users.school_id,
+            TeacherProfile.id AS profile_id,
+            TeacherProfile.education_level_id,
+            TeacherProfile.department_id
+        FROM Users
+        JOIN TeacherProfile ON Users.id = TeacherProfile.user_id
+    """)
+    teachers = db.session.execute(query).fetchall()
+    return render_template("admin/teacher/list.html", teachers=teachers)
+
+@app.route("/admin/teacher/add", methods=["POST", "GET"])
+def admin_teacher_add():
+    if request.method == "POST":
+        
+        # USER form part
+        first = request.form.get("first_name").title()
+        second = request.form.get("second_name").title()
+        last = request.form.get("last_name").title()
+        school_id = request.form.get("school_id")
+        gender = request.form.get("gender").title()
+        # convert school id to email
+        email = f"{school_id}@holycross.edu.ph"
+
+
+        # Get existing course to avoid duplicate
+        if is_exist(db, school_id, "school_id", "TeacherProfile"):
+            return apology(message="It exist")
+
+        # Add user in db
+        user = add_user(db, first, second, last, email, school_id, gender, "student")
+        user_id = user["id"]
+
+        # teacher profile form
+        department_id = request.form.get("department_id")
+        lvl_id = request.form.get("lvl_id")
+
+        assign_teacher_profile(db, user_id, department_id, lvl_id)
+        return redirect(url_for("admin_teacher_add"))
+
+    else:
+        departments = db.session.execute(text("SELECT * FROM Department")).fetchall()
+        lvls = db.session.execute(text("SELECT * FROM EducationLevel")).fetchall()
+        return render_template("admin/teacher/add_form.html", departments=departments, lvls=lvls)
+
+
+@app.route("/admin/course")
+def admin_course():
+    courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
+    return render_template("admin/course/list.html", courses=courses)
+
+@app.route("/admin/course/add", methods=["POST", "GET"])
+def admin_course_add():
+    if request.method == "POST":
+        
+        # Form getters
+        course_name = request.form.get("name").title().strip()
+        lvl_id = request.form.get("lvl_id").title().strip() 
+
+        # Get existing course to avoid duplicate
+        if is_exist(db, course_name, "name", "Course"):
+            return apology(message="It exist")
+
+        # Append to the courses
+        add_course(db, course_name, lvl_id)
+
+        return redirect(url_for("admin_course_add"))
+    else:
+        ed_lvl = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+        valid_course = []
+        for lvl in ed_lvl:
+            if lvl["name"] in ["Senior High", "College"]:
+                valid_course.append(int(lvl["id"]))
+        return render_template("admin/course/add_form.html", lvls=ed_lvl,valid_course=valid_course)
+
 
 # ==== TEACHER PAGES =====
 
@@ -162,8 +250,6 @@ def teacher():
 @app.route("/student")
 def student():
     return render_template("student/dashboard.html", name=session["first_name"])
-
-
 
 
 if __name__ == "__main__": 

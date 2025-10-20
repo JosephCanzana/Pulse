@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Add Teacher Form
+{% endblock %}
+
+{% block main %}
+
+<h1>Add teacher</h1>
+<form action="{{ url_for('admin_teacher_add') }}" method="post">
+    <!-- USER form part -->
+    <input type="text" name="school_id" placeholder="school-id">
+    <input type="text" name="first_name" placeholder="First name">
+    <input type="text" name="second_name" placeholder="Second name">
+    <input type="text" name="last_name" placeholder="Last name">
+    <!-- gender -->
+    <select name="gender" required>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+    </select>
+
+    <select name="lvl_id" id="">
+        {% for lvl in lvls %}
+        <option value="{{ lvl.id }}">{{ lvl.name }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="department_id" id="">
+        {% for department in departments %}
+        <option value="{{ department.id }}">{{ department.name }}</option>
+        {% endfor %}
+    </select>
+
+    <button>submit</button>
+</form>
+
+{% endblock %}

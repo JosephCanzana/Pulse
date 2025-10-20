@@ -40,6 +40,14 @@ CREATE TABLE IF NOT EXISTS Section (
         ON UPDATE CASCADE ON DELETE SET NULL
 );
 
+-- department table
+CREATE TABLE IF NOT EXISTS Department (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    education_level_id INT NULL,
+    FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
+);
+
 -- Subject table
 CREATE TABLE IF NOT EXISTS Subject (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -86,9 +94,14 @@ CREATE TABLE IF NOT EXISTS StudentProfile (
 CREATE TABLE IF NOT EXISTS TeacherProfile (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    department VARCHAR(100),
+    department_id INT,
+    education_level_id INT,
     FOREIGN KEY (user_id) REFERENCES Users(id)
-        ON UPDATE CASCADE ON DELETE CASCADE
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    FOREIGN KEY (department_id) REFERENCES Department(id)
+        ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 -- Class table
@@ -182,5 +195,23 @@ INSERT INTO Subject (Name, education_level_id) VALUES
 
 
 
+-- Departments for Elementary and Junior High (basic subjects grouped)
+INSERT INTO Department (name, education_level_id) VALUES
+('General Education Department', 1),
+('General Education Department', 2);
 
+-- Departments for Senior High
+INSERT INTO Department (name, education_level_id) VALUES
+('STEM Department', 3),
+('ABM Department', 3),
+('Humanities and Social Sciences Department', 3),
+('Technical-Vocational Department', 3);
+
+-- Departments for College
+INSERT INTO Department (name, education_level_id) VALUES
+('Computer Science Department', 4),
+('Information Technology Department', 4),
+('Hotel Management Department', 4),
+('Business Administration Department', 4),
+('General Education Department', 4);
 

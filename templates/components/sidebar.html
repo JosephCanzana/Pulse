@@ -10,13 +10,16 @@
             <a href="{{ url_for('admin') }}" class="btn-side-bar-collapsed">
                 <span class="material-symbols-outlined">home</span>
             </a>
-            <a href="{{ url_for('admin_student') }}" class="btn-side-bar-collapsed">
+            <a href="{{ url_for('admin_teacher') }}" class="btn-side-bar-collapsed">
                 <span class="material-symbols-outlined">school</span>
             </a>
-            <a href="#" class="btn-side-bar-collapsed">
+            <a href="{{ url_for('admin_student') }}" class="btn-side-bar-collapsed">
                 <span class="material-symbols-outlined">group</span>
             </a>
             <a href="#" class="btn-side-bar-collapsed">
+                <span class="material-symbols-outlined">groups_3</span>
+            </a>
+            <a href="{{ url_for('admin_course') }}" class="btn-side-bar-collapsed">
                 <span class="material-symbols-outlined">menu_book</span>
             </a>
             <a href="#" class="btn-side-bar-collapsed">
@@ -79,16 +82,21 @@
                 <span class="material-symbols-outlined">home</span>
                 <span class="ml-4">Dashboard</span> 
             </a>
-            <a href="#" class="btn-side-bar-expand">
+            <a href="{{ url_for('admin_teacher') }}" class="btn-side-bar-expand">
                 <span class="material-symbols-outlined">school</span>
                 <span class="ml-4">Teachers</span> 
                 
             </a>
-            <a href="#" class="btn-side-bar-expand">
+            <a href="{{ url_for('admin_student') }}" class="btn-side-bar-expand">
                 <span class="material-symbols-outlined">group</span>
                 <span class="ml-4">Students</span> 
             </a>
             
+            <a href="#" class="btn-side-bar-expand">
+                <span class="material-symbols-outlined">groups_3</span>
+                <span class="ml-4">Department</span> 
+            </a>
+
             <a href="#" class="btn-side-bar-expand">
                 <span class="material-symbols-outlined">menu_book</span>
                 <span class="ml-4">Courses</span> 

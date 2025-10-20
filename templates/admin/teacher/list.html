@@ -5,8 +5,33 @@
 {% endblock %}
 
 {% block main %}
-<h1>Dashboard Admin</h1>
-<h2>Hello {{ session.get('first_name').capitalize() }}!</h2>
-<h2>Your DB Id: {{ session.get("user_id") }}</h2>
+<!-- TODO: edit css styling(make it better) -->
+ <div class="flex items-center justify-center flex-col">
+   <a href="{{ url_for('admin_teacher_add') }}" class="rounded-full border-1 m-2 border-blue-600 p-3">Add page</a>
+   <h1 class="m-2">Teacher list</h1>
+   <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>School ID</th>
+          <th>Education Level</th>
+          <th>Department</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in teachers %}
+        <tr>
+          <td>{{ t.first_name }} {{ t.last_name }}</td>
+          <td>{{ t.email }}</td>
+          <td>{{ t.school_id }}</td>
+          <td>{{ t.education_level_id }}</td>
+          <td>{{ t.department_id }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+ </div>
 
 {% endblock %}

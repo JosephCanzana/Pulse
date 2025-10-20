@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Course list
+{% endblock %}
+
+{% block main %}
+<a href="{{ url_for('admin_course_add') }}">Add course page</a>
+<h1>Course list</h1>
+<table>
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Education Level</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in courses %}
+        <tr>
+          {% if c.name != 'None' %}
+          <td>{{ c.name }}</td>
+          <td>{{ c.education_level_year }}</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+  </table>
+
+{% endblock %}
