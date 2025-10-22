@@ -9,50 +9,66 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
 
-<body class="flex flex-col min-h-screen bg-[var(--clr-bg)]">
+<body class="relative flex flex-col min-h-screen bg-[var(--clr-bg)] overflow-x-hidden">
+
+    <!-- Glowing Corner Backgrounds -->
+    <div class="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+        <!-- Top-left glow -->
+        <div class="absolute top-0 left-0 w-[400px] h-[400px] rounded-full 
+                    bg-[var(--clr-glow-primary)] blur-[200px] opacity-60 animate-pulse-slow"></div>
+        <!-- Bottom-right glow -->
+        <div class="absolute bottom-0 right-0 w-[450px] h-[450px] rounded-full 
+                    bg-[var(--clr-glow-tertiary)] blur-[220px] opacity-55 animate-pulse"></div>
+    </div>
+
     <!-- LANDING PAGE NON-LOGGED IN USERS -->
     {% if not session.get("user_id") %}
     
     {% include 'components/navbar_guest.html' %}
     
-    <!-- Wrapper of main contents to be movable -->
-    <div class="flex-1 transition-all duration-300 pl-60 pr-60" id="wrapper">        
-        <main
-            class="flex justify-center items-center w-full min-h-[calc(100vh-4.25rem)] bg-[var(--clr-bg)] text-[var(--clr-txt-primary)]"
-            >
-                {% block landing %}
-                {% endblock %}
-        </main>
-        <footer>
-            {% include 'components/footer_guest.html' %}
-        </footer>
-    </div>
-    {% else %}
-    
-    
-    <!-- LOGGED IN USERS -->
-    
-    <!-- sidebar -->
-    {% include 'components/sidebar.html' %}
-    
-    <!-- navbar -->
-    {% include 'components/navbar.html' %}
-    
-    <!--WRAPPER -->
-    <div class="flex-1 transition-all duration-450 ml-20" id="wrapper">    
-        <!-- MAIN  -->
-        <main class="w-full h-[100vh-4.25rem] bg-[var(--clr-bg)] text-[var(--clr-txt-primary)] pt-12 pl-12 pr-12">
-            {% block main %}
-            <!-- DONT PUT ANYTHING HERE! -->
+    <div class="flex-1 transition-all duration-300 px-6 md:px-40" id="wrapper">        
+        <main class="flex justify-center items-center w-full min-h-[calc(100vh-4.25rem)] text-[var(--clr-txt-primary)]">
+            {% block landing %}
             {% endblock %}
         </main>
-        <footer>
+    </div>
+
+    <footer>
+        {% block footer %}
+        {% endblock %}
+    </footer>
+
+    {% else %}
+    <!-- LOGGED IN USERS -->
+    
+    {% include 'components/sidebar.html' %}
+    {% include 'components/navbar.html' %}
+    
+    <div class="flex-1 transition-all duration-450 ml-20" id="wrapper">    
+        <main class="w-full min-h-[100vh-4.25rem] text-[var(--clr-txt-primary)] pt-12 px-12">
+            {% block main %}
+            {% endblock %}
+        </main>
+        <footer class="fixed flex bottom-0 items-center text-[var(--clr-txt-muted)] justify-center h-10 w-full">
             {% include 'components/footer.html' %}
         </footer>
     </div>
     {% endif %}
         
-    <!-- Side bar and theme simple script -->
     <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+
+    <!-- Subtle floating animation for glow -->
+    <style>
+      @keyframes pulse {
+        0%, 100% { opacity: 0.55; transform: scale(1); }
+        50% { opacity: 0.75; transform: scale(1.05); }
+      }
+      .animate-pulse-slow {
+        animation: pulse 10s ease-in-out infinite;
+      }
+      .animate-pulse {
+        animation: pulse 8s ease-in-out infinite;
+      }
+    </style>
 </body>
 </html>

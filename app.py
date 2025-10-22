@@ -18,6 +18,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 
 db = SQLAlchemy(app)
 # ==== GLOBAL VARIABLES ====
+DEFAULT_PASSWORD = "mcmY_1946"
 
 # TEST
 @app.route("/testdb")
@@ -32,32 +33,37 @@ def testdb():
 def index():
     return render_template("index.html")
 
-# LOGIN
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
 
-        
-        user = db.session.execute(text("SELECT * FROM Users WHERE email = :email"), {"email": email}).mappings().first()
+        # Query for user
+        user = db.session.execute(
+            text("SELECT * FROM Users WHERE email = :email"),
+            {"email": email}
+        ).mappings().first()
+
         if user is None:
-            # For debug
             return apology(404, message="User doesn't exist.")
         
-        # is the password same as the id.password
-        if password != user["password"]:
-            # For debug
-            return apology(401, message="Wrong Password.")
+        if password != user.password:
+            return apology(409, "Password is incorrect.")
+
+        if not user["is_verified"] or user["password"] == DEFAULT_PASSWORD:
+            session["school_id"] = user["school_id"]
+            return redirect(url_for("account_activation", school_id=user["school_id"]))
+    
         
-        # assign it to the current session
+        # Assign session variables
         session["user_id"] = user["id"]
         session["first_name"] = user["first_name"]
         session["middle_name"] = user["middle_name"]
         session["last_name"] = user["last_name"]
         session["role"] = user["role"]
 
-        # Redirect to the user's role
+        # Redirect based on role
         match session["role"]:
             case "admin":
                 return redirect(url_for("admin"))
@@ -66,12 +72,51 @@ def login():
             case "student":
                 return redirect(url_for("student"))
             case _:
-                return redirect(url_for("auth/login.html"))   
-            
-        cur.close()
+                return redirect(url_for("login"))
     
-    else:   
+    else:
         return render_template("auth/login.html")
+
+
+# ACCOUNT ACTIVATION ROUTE
+@app.route("/login/account_activation/<string:school_id>", methods=["GET", "POST"])
+def account_activation(school_id):
+    if request.method == "POST":
+        f_name = request.form.get("first_name").title().strip()
+        m_name = request.form.get("middle_name").title().strip()
+        l_name = request.form.get("last_name").title().strip()
+        new_pwd = request.form.get("password")
+
+        user = db.session.execute(
+            text("SELECT * FROM Users WHERE school_id = :school_id"),
+            {"school_id": school_id}
+        ).mappings().first()
+
+        if user is None:
+            return apology(404, "User not found.")
+
+        # Compare name inputs to stored data
+        if not (
+            user["first_name"] == f_name
+            and user["middle_name"] == m_name
+            and user["last_name"] == l_name
+        ):
+            return apology(409, "It seems like your name is wrong!")
+        
+        if new_pwd == DEFAULT_PASSWORD:
+            return apology(409, "Default password is not valid!")
+
+        # Update password and set account as verified
+        db.session.execute(
+            text("UPDATE Users SET password = :password, is_verified = 1 WHERE school_id = :school_id"),
+            {"password": new_pwd, "school_id": school_id}
+        )
+        db.session.commit()
+
+        return redirect(url_for("login"))
+
+    else:
+        return render_template("auth/account_activation.html")
 
 # ABOUT
 @app.route("/about")
@@ -200,7 +245,7 @@ def admin_teacher_add():
 
 
         # Add user in db
-        user = add_user(db, first, second, last, email, school_id, gender, "student")
+        user = add_user(db, first, second, last, email, school_id, gender, "teacher")
         user_id = user["id"]
 
         # teacher profile form

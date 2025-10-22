@@ -1,60 +1,64 @@
 :root {
-  /* Brand / Accent colors */
-  --clr-primary: #2563EB;   
-  --clr-secondary: #3B82F6; 
-  --clr-tertiary: #60A5FA;  
-  
-  /* Background & surfaces */
-  --clr-bg: #F5F7FA;        
-  --clr-surface: #FFFFFF;  
-  --clr-surface-alt: #F9FAFB;
-  
-  /* Text colors */
-  --clr-txt-primary: #111827;
-  --clr-txt-secondary: #475569;
-  --clr-txt-muted: #64748B;   
-  --clr-txt-hover: #1D4ED8;   
+  --clr-primary: #1E40AF;
+  --clr-secondary: #2563EB;
+  --clr-tertiary: #60A5FA;
 
-  /* Borders & dividers */
-  --clr-border: #E5E7EB;      
-  --clr-border-strong: #D1D5DB;
+  --clr-bg: #EEF2F8;
+  --clr-surface: #FFFFFF;
+  --clr-surface-alt: #F1F5F9;
 
-  /* Feedback colors */
+  --clr-txt-primary: #0F172A;
+  --clr-txt-secondary: #334155;
+  --clr-txt-muted: #64748B;
+  --clr-txt-hover: #1D4ED8;
+
+  --clr-border: #CBD5E1;
+  --clr-border-strong: #94A3B8;
+
   --clr-success: #16A34A;
   --clr-error: #DC2626;
   --clr-warning: #EAB308;
   --clr-info: #2563EB;
 
+  --clr-glass-light: rgba(255, 255, 255, 0.721);
+  --clr-glass-border: rgba(185, 185, 185, 0.5);
+  --clr-glass-dark: rgba(0, 0, 0, 0.08);
+
+  --clr-glow-primary: rgba(27, 94, 237, 0.603);
+  --clr-glow-tertiary: rgba(71, 136, 215, 0.604);
 }
 
 [data-theme="dark"] {
-  /* Brand / Accent */
   --clr-primary: #60A5FA;
   --clr-secondary: #3B82F6;
   --clr-tertiary: #1D4ED8;
 
-  /* Background & surfaces */
-  --clr-bg: #0F172A;           
-  --clr-surface: #1E293B;     
-  --clr-surface-alt: #273549; 
+  --clr-bg: #0F172A;
+  --clr-surface: #1E293B;
+  --clr-surface-alt: #273549;
 
-  /* Text colors */
   --clr-txt-primary: #F8FAFC;
   --clr-txt-secondary: #CBD5E1;
   --clr-txt-muted: #94A3B8;
   --clr-txt-hover: #93C5FD;
 
-  /* Borders & dividers */
   --clr-border: #334155;
   --clr-border-strong: #475569;
 
-  /* Feedback */
   --clr-success: #22C55E;
   --clr-error: #F87171;
   --clr-warning: #FBBF24;
   --clr-info: #60A5FA;
 
+  --clr-glass-light: rgba(255, 255, 255, 0.08);
+  --clr-glass-border: rgba(255, 255, 255, 0.12);
+  --clr-glass-dark: rgba(0, 0, 0, 0.4);
+
+  --clr-glow-primary: rgba(96, 165, 250, 0.25);
+  --clr-glow-tertiary: rgba(147, 197, 253, 0.25);
 }
+
+
 /* Local fonts for ease of use */
 @font-face {
   font-family: 'Roboto';

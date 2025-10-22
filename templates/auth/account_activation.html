@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  Account Activation
+{% endblock %}
+
+{% block landing %}
+<div class="flex flex-col md:flex-row w-full h-full text-[var(--clr-txt-primary)] transition-colors duration-300">
+
+  <!-- LEFT SIDE -->
+  <div class="hidden md:flex flex-1 items-center justify-center p-12">
+    <div class="text-center max-w-lg">
+      <h2 class="font-[LLPIXEL3] text-7xl text-[var(--clr-primary)] mb-6">Let's get started!</h2>
+      <p class="text-[var(--clr-txt-secondary)] text-xl leading-relaxed">
+        Welcome! Let's activate your account to get access to Pulse.
+      </p>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="flex flex-1 items-center justify-center px-6 py-12">
+    <div class="w-full max-w-md bg-[var(--clr-surface)] shadow-[0_0_25px_rgba(0,0,0,0.05)] rounded-2xl p-10 border border-[var(--clr-border)] transition-colors duration-300">
+      <h1 class="text-4xl font-semibold text-center mb-8 text-[var(--clr-primary)]">Activate Your Account</h1>
+
+      <!-- Activation Form -->
+      <form 
+        action="{{ url_for('account_activation', school_id=session['school_id']) }}" 
+        method="post" 
+        class="flex flex-col gap-3"
+        autocomplete="off"
+        onsubmit="return validatePassword(event)"
+      >
+
+        <input 
+          type="text" 
+          name="first_name" 
+          placeholder="First Name" 
+          class="txt-input-box text-lg"
+          required
+        >
+        <input 
+          type="text" 
+          name="middle_name" 
+          placeholder="Middle Name (optional)" 
+          class="txt-input-box text-lg"
+        >
+        <input 
+          type="text" 
+          name="last_name" 
+          placeholder="Last Name" 
+          class="txt-input-box text-lg"
+          required
+        >
+
+        <input 
+          type="password" 
+          name="password" 
+          placeholder="Create a New Password" 
+          class="txt-input-box text-lg"
+          id="password"
+          minlength="8"
+          required
+        >
+
+        <small id="passwordHelp" class="text-sm text-[var(--clr-txt-secondary)] text-center mt-1">
+          Must be at least 8 characters long.
+        </small>
+
+        <input 
+          type="submit"
+          value="Activate Account" 
+          class="btn-submit"
+        >
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+  {% include 'components/footer.html' %}
+{% endblock %}

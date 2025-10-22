@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS Users (
     email VARCHAR(100) UNIQUE NOT NULL,
     school_id VARCHAR(50),
     gender ENUM('Male','Female','Other'),
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
     password VARCHAR(255) NOT NULL DEFAULT 'mcmY_1946',
     role ENUM('admin','teacher','student') NOT NULL
 );
@@ -137,9 +138,9 @@ CREATE TABLE IF NOT EXISTS ClassStudent (
 
 -- Insert default admin user
 INSERT INTO Users 
-    (first_name, middle_name, last_name, email, school_id, gender, password, role) 
+    (first_name, middle_name, last_name, email, school_id, gender, password, role, is_verified) 
 VALUES 
-    ('Admin', 'A', 'User', 'administrator@holycross.edu.ph', 'LMS001', 'Other', 'adminpassword', 'admin');
+    ('Admin', 'A', 'User', 'administrator@holycross.edu.ph', 'LMS001', 'Other', 'adminpassword', 'admin', 1);
 
 -- Education level, Year, Course
 

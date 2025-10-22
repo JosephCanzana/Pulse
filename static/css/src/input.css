@@ -1,27 +1,32 @@
 @import "tailwindcss";
 @import "./my-theme.css";
 
+  html {
+    scroll-behavior: smooth;
+  }
+
 /* Text input */
 .txt-input-box {
-  @apply w-full px-4 py-2 rounded-xl 
-  bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)]
-  border border-[var(--clr-border)]
-  focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
-  transition-all duration-200;
+  @apply w-full text-lg px-5 py-3 rounded-xl 
+  bg-[var(--clr-glass-light)] backdrop-blur-md text-[var(--clr-txt-primary)] 
+  placeholder-[var(--clr-txt-muted)] border border-[var(--clr-glass-border)] 
+  focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)] transition-all;
 }
 
 /* Submit button */
 .btn-submit {
-  @apply w-full py-2.5 mt-2 rounded-xl font-medium
-  bg-[var(--clr-primary)] text-[var(--clr-bg)]
-  hover:bg-[var(--clr-secondary)] active:bg-[var(--clr-tertiary)]
-  transition-all duration-200 ease-in-out
-  cursor-pointer;
+  @apply mt-2 py-3 text-lg rounded-xl 
+  bg-gradient-to-r from-[var(--clr-primary)] to-[var(--clr-tertiary)] 
+  text-white font-medium 
+  shadow-[0_0_8px_var(--clr-glow-primary)] 
+  hover:shadow-[0_0_15px_var(--clr-glow-tertiary)] 
+  hover:scale-[1.015] 
+  transition-all duration-300 cursor-pointer;
 }
 
 
 .btn-nav{
-  @apply mr-2 ml-2 text-sm font-normal text-center text-[var(--clr-txt-primary)]
+  @apply mr-3 ml-3 text-base font-normal text-center text-[var(--clr-txt-primary)]
   hover:text-[var(--clr-txt-hover)]
   transition-all ease-in-out duration-200
 }
