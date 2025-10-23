@@ -136,7 +136,7 @@ def login():
     return render_template("auth/login.html")
 
 
-# ACCOUNT ACTIVATION ROUTE
+# ACCOUNT ACTIVATION ROUTE!
 @app.route("/login/account_activation/<string:school_id>", methods=["GET", "POST"])
 @login_required
 def account_activation(school_id):
@@ -170,7 +170,7 @@ def account_activation(school_id):
             text("UPDATE Users SET password = :password, is_verified = 1 WHERE school_id = :school_id"),
             {"password": hashed_pwd, "school_id": school_id}
         )
-        db.session.commit()
+        db.session.commit() 
 
         user_obj = User(
             user["id"], user["email"], user["first_name"],
