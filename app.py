@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import text
 from helpers import *
 
@@ -17,14 +18,59 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 db = SQLAlchemy(app)
+
+
+# ==== LOGIN SETUP ====
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+
+# ==== User class ====
+class User(UserMixin):
+    def __init__(self, id, email, first_name, middle_name, last_name, role, school_id, is_verified):
+        self.id = id
+        self.email = email
+        self.first_name = first_name
+        self.middle_name = middle_name
+        self.last_name = last_name
+        self.role = role
+        self.school_id = school_id
+        self.is_verified = is_verified
+
+    @property
+    def activated(self):
+        return self.is_verified
+    
+    def get_id(self):
+        return str(self.id)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    user = db.session.execute(
+        text("SELECT * FROM Users WHERE id = :id"),
+        {"id": user_id}
+    ).mappings().first()
+    
+    if user:
+        return User(
+            user["id"], user["email"], user["first_name"],
+            user["middle_name"], user["last_name"],
+            user["role"], user["school_id"], user["is_verified"]
+        )
+    return None
+
+
+
 # ==== GLOBAL VARIABLES ====
 DEFAULT_PASSWORD = "mcmY_1946"
 
 # TEST
 @app.route("/testdb")
 def testdb():
-    tables = db.session.execute(text("SHOW TABLES"))
-    return {"tables": tables}
+    tables = db.session.execute(text("SHOW TABLES")).fetchall()
+    return {"tables": [t[0] for t in tables]}
 
 # ==== GENERAL PAGES ====
 
@@ -33,57 +79,69 @@ def testdb():
 def index():
     return render_template("index.html")
 
+
+# ==== LOGIN ====
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
 
-        # Query for user
+        # Query user by email
         user = db.session.execute(
             text("SELECT * FROM Users WHERE email = :email"),
             {"email": email}
         ).mappings().first()
 
         if user is None:
-            return apology(404, message="User doesn't exist.")
-        
-        if password != user.password:
+            return apology(404, "User doesn't exist.")
+
+        if not check_password(password, user["password"]):
             return apology(409, "Password is incorrect.")
 
-        if not user["is_verified"] or user["password"] == DEFAULT_PASSWORD:
-            session["school_id"] = user["school_id"]
-            return redirect(url_for("account_activation", school_id=user["school_id"]))
-    
-        
-        # Assign session variables
-        session["user_id"] = user["id"]
-        session["first_name"] = user["first_name"]
-        session["middle_name"] = user["middle_name"]
-        session["last_name"] = user["last_name"]
-        session["role"] = user["role"]
+        # Create Flask-Login user object
+        user_obj = User(
+            user["id"], user["email"], user["first_name"],
+            user["middle_name"], user["last_name"],
+            user["role"], user["school_id"], user["is_verified"]
+        )
 
-        # Redirect based on role
-        match session["role"]:
-            case "admin":
-                return redirect(url_for("admin"))
-            case "teacher":
-                return redirect(url_for("teacher"))
-            case "student":
-                return redirect(url_for("student"))
-            case _:
-                return redirect(url_for("login"))
-    
-    else:
-        return render_template("auth/login.html")
+        # Check if activation is required
+        if not user["is_verified"] or user["password"] == DEFAULT_PASSWORD:
+            login_user(user_obj)
+            session.update({
+                "school_id": user["school_id"],
+                "role": user["role"]
+            })
+            return redirect(url_for("account_activation", school_id=user["school_id"]))
+
+        # Normal login
+        login_user(user_obj)
+        session.update({
+            "first_name": user["first_name"],
+            "middle_name": user["middle_name"],
+            "last_name": user["last_name"],
+            "role": user["role"]
+        })
+
+        # Redirect by role
+        role = session.get("role")
+        if role == "admin":
+            return redirect(url_for("admin"))
+        elif role == "teacher":
+            return redirect(url_for("teacher"))
+        else:
+            return redirect(url_for("student"))
+
+    return render_template("auth/login.html")
 
 
 # ACCOUNT ACTIVATION ROUTE
 @app.route("/login/account_activation/<string:school_id>", methods=["GET", "POST"])
+@login_required
 def account_activation(school_id):
     if request.method == "POST":
-        f_name = request.form.get("first_name").title().strip()
-        m_name = request.form.get("middle_name").title().strip()
+        f_name = request.form.get("first_name").title().strip() 
         l_name = request.form.get("last_name").title().strip()
         new_pwd = request.form.get("password")
 
@@ -98,22 +156,43 @@ def account_activation(school_id):
         # Compare name inputs to stored data
         if not (
             user["first_name"] == f_name
-            and user["middle_name"] == m_name
             and user["last_name"] == l_name
         ):
             return apology(409, "It seems like your name is wrong!")
         
         if new_pwd == DEFAULT_PASSWORD:
             return apology(409, "Default password is not valid!")
+        
+        hashed_pwd = encrypt_password(new_pwd)
 
         # Update password and set account as verified
         db.session.execute(
             text("UPDATE Users SET password = :password, is_verified = 1 WHERE school_id = :school_id"),
-            {"password": new_pwd, "school_id": school_id}
+            {"password": hashed_pwd, "school_id": school_id}
         )
         db.session.commit()
 
-        return redirect(url_for("login"))
+        user_obj = User(
+            user["id"], user["email"], user["first_name"],
+            user["middle_name"], user["last_name"],
+            user["role"], user["school_id"], user["is_verified"]
+        )
+
+        # Normal login
+        login_user(user_obj)
+        session.update({
+            "first_name": user["first_name"],
+            "middle_name": user["middle_name"],
+            "last_name": user["last_name"],
+            "role": user["role"]
+        })
+
+        if session["role"] == "admin":
+            return redirect(url_for("admin")) 
+        elif session["role"] == "teacher":
+            return redirect(url_for("teacher")) 
+        else:
+            return redirect(url_for("student"))
 
     else:
         return render_template("auth/account_activation.html")
@@ -125,19 +204,28 @@ def about():
 
 # LOGOUT
 @app.route("/logout", methods=["POST"])
+@login_required
 def logout():
+    logout_user()
     session.clear()
     return redirect(url_for("index"))
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    return redirect(url_for("login"))
+
 
 # ==== ADMIN PAGES =====
 
 @app.route("/admin")
+@login_required
 def admin():
     return render_template("admin/dashboard.html", name=session["first_name"])
 
 
 # Student(admin side)
 @app.route("/admin/student")
+@login_required
 def admin_student():
     query = text("""
         SELECT 
@@ -160,6 +248,7 @@ def admin_student():
 
 
 @app.route("/admin/student/add", methods=["POST", "GET"])
+@login_required
 def admin_student_add():
     if request.method == "POST":
         # Form getters
@@ -205,6 +294,7 @@ def admin_student_add():
 
 # Teacher (admin side)
 @app.route("/admin/teacher")
+@login_required
 def admin_teacher():
     query = text("""
         SELECT 
@@ -263,11 +353,13 @@ def admin_teacher_add():
 
 # course (Admin side)
 @app.route("/admin/course")
+@login_required
 def admin_course():
     courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
     return render_template("admin/course/list.html", courses=courses)
 
 @app.route("/admin/course/add", methods=["POST", "GET"])
+@login_required
 def admin_course_add():
     if request.method == "POST":
         
@@ -294,11 +386,13 @@ def admin_course_add():
 
 # Department (admin side)
 @app.route("/admin/department")
+@login_required
 def admin_department():
     departments = db.session.execute(text("SELECT * FROM Department")).mappings().all()
     return render_template("admin/department/list.html", departments=departments)
 
 @app.route("/admin/department/add", methods=["POST", "GET"])
+@login_required
 def admin_department_add():
     if request.method == "POST":
         name = request.form.get("name").title().strip()
@@ -321,6 +415,7 @@ def admin_department_add():
 # ==== TEACHER PAGES =====
 
 @app.route("/teacher")
+@login_required
 def teacher():
     return render_template("teacher/dashboard.html", name=session["first_name"])
 
@@ -328,6 +423,7 @@ def teacher():
 # ==== STUDENT PAGES =====
 
 @app.route("/student")
+@login_required
 def student():
     return render_template("student/dashboard.html", name=session["first_name"])
 
