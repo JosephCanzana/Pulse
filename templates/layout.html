@@ -22,7 +22,7 @@
     </div>
 
     <!-- LANDING PAGE NON-LOGGED IN USERS -->
-    {% if not session.get("user_id") %}
+    {% if not current_user.is_authenticated or not current_user.activated %}
     
     {% include 'components/navbar_guest.html' %}
     
@@ -55,7 +55,9 @@
     </div>
     {% endif %}
         
+    {% include 'components/confirm.html' %}
     <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
     <!-- Subtle floating animation for glow -->
     <style>

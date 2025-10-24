@@ -24,54 +24,24 @@
 
       <!-- Activation Form -->
       <form 
-        action="{{ url_for('account_activation', school_id=session['school_id']) }}" 
-        method="post" 
-        class="flex flex-col gap-3"
-        autocomplete="off"
-        onsubmit="return validatePassword(event)"
+          action="{{ url_for('account_activation', school_id=session['school_id']) }}" 
+          method="post" 
+          class="flex flex-col gap-3"
+          autocomplete="off"
+          onsubmit="return openConfirmFormModal(event, this)"
       >
+          <input type="text" name="first_name" placeholder="First Name" class="txt-input-box text-lg" required>
+          <input type="text" name="last_name" placeholder="Last Name" class="txt-input-box text-lg" required>
+          <input type="password" name="password" placeholder="New Password" class="txt-input-box text-lg" id="password" minlength="8" required>
+          <input type="password" name="confirm_password" placeholder="Confirm New Password" class="txt-input-box text-lg" id="password" minlength="8" required>
 
-        <input 
-          type="text" 
-          name="first_name" 
-          placeholder="First Name" 
-          class="txt-input-box text-lg"
-          required
-        >
-        <input 
-          type="text" 
-          name="middle_name" 
-          placeholder="Middle Name (optional)" 
-          class="txt-input-box text-lg"
-        >
-        <input 
-          type="text" 
-          name="last_name" 
-          placeholder="Last Name" 
-          class="txt-input-box text-lg"
-          required
-        >
+          <small id="passwordHelp" class="text-sm text-[var(--clr-txt-secondary)] text-center mt-1">
+              Must be at least 8 characters long.
+          </small>
 
-        <input 
-          type="password" 
-          name="password" 
-          placeholder="Create a New Password" 
-          class="txt-input-box text-lg"
-          id="password"
-          minlength="8"
-          required
-        >
-
-        <small id="passwordHelp" class="text-sm text-[var(--clr-txt-secondary)] text-center mt-1">
-          Must be at least 8 characters long.
-        </small>
-
-        <input 
-          type="submit"
-          value="Activate Account" 
-          class="btn-submit"
-        >
+          <input type="submit" value="Activate Account" class="btn-submit">
       </form>
+
     </div>
   </div>
 </div>

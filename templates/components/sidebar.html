@@ -62,11 +62,12 @@
         <button class="btn-side-bar-collapsed theme-toggle">
             <span class="material-symbols-outlined">light_mode</span>
         </button>    
-        <form action="{{ url_for('logout') }}" method="post" class="btn-side-bar-collapsed">
-            <button class="material-symbols-outlined" id="logout-btn">
-                logout
-            </button>
-        </form>
+        <button 
+            class="btn-side-bar-collapsed"
+            type='button'
+            onclick='openConfirmModal("Confirm Logout", "Are you sure you want to log out?", "{{ url_for("logout") }}")'>
+            <span class="material-symbols-outlined">logout</span>
+        </button>
     </div>
 </div>
 
@@ -153,11 +154,17 @@
             <span class="material-symbols-outlined">light_mode</span>
             <span class="ml-4">Theme</span> 
         </button>
-        <form action="{{ url_for('logout') }}" method="post" class="btn-side-bar-expand">
-            <button class="material-symbols-outlined">
-                logout
-            </button>
-            <button class="ml-4" id="logout-btn">Logout</button> 
-        </form>
+        <!-- Expanded Sidebar Logout Button -->
+        <button type="button" 
+                class="btn-side-bar-expand flex items-center" 
+                onclick="openConfirmModal('Confirm Logout', 'Are you sure you want to log out?', '{{ url_for('logout') }}')">
+
+            <!-- Icon -->
+            <span class="material-symbols-outlined">logout</span>
+
+            <!-- Text -->
+            <span class="ml-4">Logout</span>
+        </button>
+
     </div>
 </div>
