@@ -4,12 +4,8 @@
   class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 animate-fadeIn"
 >
   <div
-    class="relative w-[22rem] max-w-[90%] rounded-3xl p-8 text-center shadow-2xl border overflow-hidden transition-all duration-300"
-    style="
-      background: var(--clr-glass-light);
-      border-color: var(--clr-glass-border);
-      backdrop-filter: blur(20px) saturate(180%);
-    "
+    class="relative w-[22rem] max-w-[90%] bg-[var(--clr-glass-light)] border-[var(--clr-glass-border)] rounded-3xl p-8 text-center shadow-2xl border overflow-hidden transition-all duration-300"
+    style="backdrop-filter: blur(20px) saturate(180%);"
   >
     <!-- Ambient glow background -->
     <div
@@ -21,16 +17,14 @@
     <div class="relative z-10">
       <h2
         id="confirm-modal-title"
-        class="text-2xl font-semibold mb-4 tracking-tight"
-        style="color: var(--clr-primary);"
+        class="text-2xl font-semibold text-[var(--clr-primary)] mb-4 tracking-tight"
       >
         Confirm Action
       </h2>
 
       <p
         id="confirm-modal-message"
-        class="text-sm leading-relaxed mb-8"
-        style="color: var(--clr-txt-secondary);"
+        class="text-sm leading-relaxed mb-8 text-[var(--clr-txt-secondary)]"
       >
         Are you sure you want to proceed?
       </p>
@@ -39,12 +33,7 @@
         <!-- Cancel Button -->
         <button
           id="confirm-modal-cancel"
-          class="px-6 py-2.5 rounded-xl font-medium border shadow-sm transition-all duration-300"
-          style="
-            border-color: var(--clr-border);
-            background: var(--clr-glass-dark);
-            color: var(--clr-txt-primary);
-          "
+          class="px-6 py-2.5 rounded-xl border-[var(--clr-border)] bg-[var(--clr-glass-dark)] text-[var(--clr-txt-primary)] font-medium border shadow-sm transition-all duration-300"
         >
           Cancel
         </button>
@@ -54,13 +43,8 @@
           <button
             type="submit"
             id="confirm-modal-submit"
-            class="px-6 py-2.5 rounded-xl font-medium shadow-md transition-all duration-300 border"
-            style="
-              border-color: var(--clr-primary)40;
-              background: var(--clr-primary)20;
-              color: var(--clr-txt-primary);
-              box-shadow: 0 0 8px var(--clr-primary)25;
-            "
+            class="px-6 py-3 rounded-lg border-[var(--clr-primary)] text-[var(--clr-txt-primary)] bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)] transition-all ease-in-out duration-300 font-medium"
+            style="box-shadow: 0 0 8px var(--clr-primary)25;"
           >
             Confirm
           </button>
