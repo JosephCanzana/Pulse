@@ -449,6 +449,41 @@ def admin_department_add():
         return render_template("admin/department/add_form.html", lvls=lvls)
 
 
+# Subjects (admin side)
+@app.route("/admin/subject")
+@login_required
+def admin_subject():
+    subjects = db.session.execute(text("SELECT * FROM Subject")).mappings().all()
+    return render_template("admin/subject/list.html", subjects=subjects)
+
+
+@app.route("/admin/subject/add", methods=["POST", "GET"])
+@login_required
+def admin_subject_add():
+    if request.method == "POST":
+        subject_name = request.form.get("name")
+        lvl = request.form.get("level")
+
+        if not subject_name or not lvl:
+            flash("Please fill up the form.", "info")
+            return redirect(url_for("admin_subject_add"))
+        
+        subject = db.session.execute(text("SELECT * FROM Subject WHERE name=:name and education_level_id=:lvl"), {"name":subject_name, "lvl":lvl}).fetchone()
+        if subject:
+            flash("The subject on that level already exist.", "info")
+            return redirect(url_for("admin_subject_add"))
+
+        db.session.execute(
+            text("INSERT INTO Subject (name, education_level_id) VALUES (:name, :lvl)"),
+            {"name": subject_name, "lvl": lvl}
+        )
+        db.session.commit()
+        flash("Subject added successfully!", "success")
+        return redirect(url_for("admin_subject_add"))
+    else:
+        lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+        return render_template("admin/subject/add_form.html", lvls=lvls)
+
 # ==== TEACHER PAGES =====
 
 @app.route("/teacher")

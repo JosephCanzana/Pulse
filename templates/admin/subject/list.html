@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Subject list
+{% endblock %}
+
+{% block main %}
+<a href="{{ url_for('admin_subject_add') }}">Subject add form</a>
+This is the subject list page
+<ul></ul>
+{% for s in subjects %}
+    <li>{{ s.name }}</li>
+{% endfor %}
+
+{% endblock %}

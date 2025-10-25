@@ -64,13 +64,13 @@ confirmModal.addEventListener("click", (e) => {
  * @param {Event} e - Form submit event
  * @param {HTMLFormElement} form - The form being submitted
  */
-function openConfirmFormModal(e, form) {
+function openConfirmFormModal(e, form, title, message) {
     e.preventDefault(); // Stop immediate submission
 
     // Optional: customize title and message dynamically
     openConfirmModal(
-        'Confirm Account Activation',
-        'Are you sure you want to activate your account?',
+        title,
+        message,
         form.action,
         form.method
     );

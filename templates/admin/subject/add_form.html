@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+  
+{% block title %}
+  Add Subject Form
+{% endblock %}
+
+{% block main %}
+This is the subject add form
+<form action="{{ url_for('admin_subject_add') }}"
+onsubmit="return openConfirmFormModal(event, this, 'Confirm subject add', 'Are you sure you want to add this subject?')"
+method="post">
+<input type="text" name="name" placeholder="subject name">
+<select name="level" id="">
+    {% for lvl in lvls %}
+    <option value="{{ lvl.id }}">{{ lvl.name }}</option>
+    {% endfor %}
+</select>
+<button>submit</button>
+</form>
+
+{% endblock %}

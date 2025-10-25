@@ -1,11 +1,11 @@
 <!-- Liquid Glass Confirmation Modal -->
 <div
   id="confirm-modal"
-  class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 animate-fadeIn"
+  class="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center hidden z-50 animate-fadeIn"
 >
   <div
-    class="relative w-[22rem] max-w-[90%] bg-[var(--clr-glass-light)] border-[var(--clr-glass-border)] rounded-3xl p-8 text-center shadow-2xl border overflow-hidden transition-all duration-300"
-    style="backdrop-filter: blur(20px) saturate(180%);"
+    class="relative w-[22rem] max-w-[90%] rounded-3xl p-8 text-center shadow-2xl border overflow-hidden transition-all duration-300
+           bg-[var(--clr-glass-light)] border-[var(--clr-glass-border)] backdrop-saturate-150"
   >
     <!-- Ambient glow background -->
     <div
@@ -33,7 +33,8 @@
         <!-- Cancel Button -->
         <button
           id="confirm-modal-cancel"
-          class="px-6 py-2.5 rounded-xl border-[var(--clr-border)] bg-[var(--clr-glass-dark)] text-[var(--clr-txt-primary)] font-medium border shadow-sm transition-all duration-300"
+          class="px-6 py-2.5 rounded-xl border bg-[var(--clr-glass-dark)] text-[var(--clr-txt-primary)]
+                 border-[var(--clr-border)] font-medium shadow-sm transition-all duration-300 hover:bg-[var(--clr-glass-light)]"
         >
           Cancel
         </button>
@@ -43,8 +44,10 @@
           <button
             type="submit"
             id="confirm-modal-submit"
-            class="px-6 py-3 rounded-lg border-[var(--clr-primary)] text-[var(--clr-txt-primary)] bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)] transition-all ease-in-out duration-300 font-medium"
-            style="box-shadow: 0 0 8px var(--clr-primary)25;"
+            class="px-6 py-3 rounded-lg border border-[var(--clr-primary)] 
+                   text-[var(--clr-txt-primary)] bg-[var(--clr-primary)]
+                   hover:bg-[var(--clr-secondary)] transition-all duration-300 font-medium
+                   shadow-[0_0_8px_var(--clr-primary)_/_25%] hover:shadow-[0_0_12px_var(--clr-secondary)_/_40%]"
           >
             Confirm
           </button>
@@ -54,13 +57,20 @@
 
     <!-- Outer Glow -->
     <div
-      class="absolute inset-0 rounded-3xl opacity-10 blur-3xl pointer-events-none"
-      style="background: var(--clr-primary);"
+      class="absolute inset-0 rounded-3xl bg-[var(--clr-primary)] opacity-10 blur-3xl pointer-events-none"
     ></div>
   </div>
 </div>
 
+<!-- ⚙️ Scoped Custom CSS (merge-safe with Tailwind) -->
 <style>
+/* Use an ID scope to prevent global conflicts */
+#confirm-modal {
+  --glow-hover: var(--clr-glow-primary);
+  --glow-active: var(--clr-glow-tertiary);
+}
+
+/* Keyframes should stay outside Tailwind */
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
@@ -69,35 +79,27 @@
   animation: fadeIn 0.25s ease-out;
 }
 
-/* Hover effects for both buttons */
+/* Button animations merged safely with Tailwind */
+#confirm-modal button {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 #confirm-modal button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 0 15px var(--clr-glow-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px var(--glow-hover);
 }
 #confirm-modal button:active {
-  transform: scale(0.96);
-  box-shadow: 0 0 8px var(--clr-glow-tertiary);
-}
-
-/* Cancel button hover color */
-#confirm-modal-cancel:hover {
-  background: var(--clr-glass-light);
-}
-
-/* Confirm button hover color */
-#confirm-modal-submit:hover {
-  background: var(--clr-secondary);
-  color: var(--clr-surface);
-  box-shadow: 0 0 18px var(--clr-secondary);
+  transform: scale(0.97);
+  box-shadow: 0 0 6px var(--glow-active);
 }
 </style>
 
+<!-- 🎯 JS -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("confirm-modal");
   const cancelBtn = document.getElementById("confirm-modal-cancel");
 
-  // Function to open modal (can be called globally)
+  // Open modal
   window.showConfirmModal = (title, message, formAction) => {
     document.getElementById("confirm-modal-title").textContent = title;
     document.getElementById("confirm-modal-message").textContent = message;
@@ -106,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => modal.classList.add("animate-fadeIn"), 10);
   };
 
-  // Close modal when cancel is clicked
+  // Close modal smoothly
   cancelBtn.addEventListener("click", () => {
     modal.classList.add("opacity-0", "pointer-events-none", "transition", "duration-200");
     setTimeout(() => modal.classList.add("hidden"), 200);
