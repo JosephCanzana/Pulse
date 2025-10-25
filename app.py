@@ -94,10 +94,11 @@ def login():
         ).mappings().first()
 
         if user is None:
-            return apology(404, "User doesn't exist.")
+            flash("User doesn't exist.", "Error")
+            return redirect(url_for("login"))
 
         if not check_password(password, user["password"]):
-            flash(("error", "Password is incorrect."))
+            flash("Password is incorrect.", "Error")
             return redirect(url_for("login"))
 
         # Create Flask-Login user object
@@ -145,24 +146,34 @@ def account_activation(school_id):
         f_name = request.form.get("first_name").title().strip() 
         l_name = request.form.get("last_name").title().strip()
         new_pwd = request.form.get("password")
+        c_pwd = request.form.get("confirm_password")
 
+        # Get the user info
         user = db.session.execute(
             text("SELECT * FROM Users WHERE school_id = :school_id"),
             {"school_id": school_id}
         ).mappings().first()
 
         if user is None:
-            return apology(404, "User not found.")
+            flash("User not found.", "error")
+            return redirect(url_for("account_activation",  school_id=school_id))
 
         # Compare name inputs to stored data
         if not (
             user["first_name"] == f_name
             and user["last_name"] == l_name
         ):
-            return apology(409, "It seems like your name is wrong!")
-        
+            flash("Name doesn't match.", "error")
+            return redirect(url_for("account_activation",  school_id=school_id))
+
+        # default password comparison
         if new_pwd == DEFAULT_PASSWORD:
-            return apology(409, "Default password is not valid!")
+            flash("Default password is not vaid", "error")
+            return redirect(url_for("account_activation",  school_id=school_id))
+        
+        if new_pwd != c_pwd:
+            flash("Your password don't match", "error")
+            return redirect(url_for("account_activation",  school_id=school_id))
         
         hashed_pwd = encrypt_password(new_pwd)
 
@@ -263,9 +274,15 @@ def admin_student_add():
         # convert school id to email
         email = f"{school_id}@holycross.edu.ph"
 
+        if first == None or last == None or school_id == None or gender == None:
+            flash("Please fill up form.", "info")
+            return redirect(url_for(admin_student_add))
+
         # Get existing student id to avoid duplicate
         if is_exist(db, school_id, "school_id", "Users"):
-            return apology(409, "The school id already exist.")
+            flash("The school id already exist", "info")
+            return redirect(url_for("admin_student_add"))
+
 
         # First, second, and last name is already existing
         if is_exist(db, first, "first_name", "Users") and is_exist(db, second, "middle_name", "Users") and is_exist(db, last, "last_name", "Users"):
@@ -327,14 +344,19 @@ def admin_teacher_add():
         # convert school id to email
         email = f"{school_id}@holycross.edu.ph"
 
+        if first == None or last == None or school_id == None or gender == None:
+            flash("Please fill up form.", "info")
+            return redirect(url_for(admin_teacher_add))
+        
         # Get existing course to avoid duplicate
         if is_exist(db, school_id, "school_id", "Users"):
-            return apology(409,"The school id already exist")
+            flash("The school id already exist.", "info")
+            return redirect(url_for(admin_teacher_add))
         
         # First, second, and last name is already existing
         if is_exist(db, first, "first_name", "Users") and is_exist(db, second, "middle_name", "Users") and is_exist(db, last, "last_name", "Users"):
-            return apology(409, "The name already exist.")
-
+            flash("The name already exist.", "info")
+            return redirect(url_for(admin_teacher_add))
 
         # Add user in db
         user = add_user(db, first, second, last, email, school_id, gender, "teacher")
@@ -369,9 +391,16 @@ def admin_course_add():
         course_name = request.form.get("name").title().strip()
         lvl_id = request.form.get("lvl_id").title().strip() 
 
+        # If input is none
+        if course_name == None and lvl_id == None:
+            flash("Please fill up form.", "info")
+            return redirect(url_for("admin_course_add"))
+
+
         # Get existing course to avoid duplicate
         if is_exist(db, course_name, "name", "Course"):
-            return apology(409, "The course name already exist.")
+            flash("The course name already exist.", "info")
+            return redirect(url_for(admin_course_add))
 
         # Append to the courses
         add_course(db, course_name, lvl_id)
@@ -400,9 +429,15 @@ def admin_department_add():
         name = request.form.get("name").title().strip()
         lvl_id = request.form.get("lvl_id").title().strip()
 
+        # Check if none
+        if name == None or lvl_id == None:
+            flash("Please fill up form.", "info")
+            return redirect(url_for("admin_department_add"))
+
         # check if the name already exist
         if is_exist(db, name, "name", "Department"):
-            return apology(409, "Department name already exist.")
+            flash("Department name alread exist", "info")
+            return redirect(url_for("admin_department_add"))
         
         # Insert to the table
         tmp = add_department(db, name, lvl_id)
