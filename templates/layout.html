@@ -40,7 +40,7 @@
 
     {% else %}
     <!-- LOGGED IN USERS -->
-    
+
     {% include 'components/sidebar.html' %}
     {% include 'components/navbar.html' %}
     
@@ -56,13 +56,14 @@
     {% endif %}
         
     {% include 'components/confirm.html' %}
+    {% include 'partials/_flash_modal.html' %}
     <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
+    
     <!-- Subtle floating animation for glow -->
     <style>
-      @keyframes pulse {
-        0%, 100% { opacity: 0.55; transform: scale(1); }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.55; transform: scale(1); }
         50% { opacity: 0.75; transform: scale(1.05); }
       }
       .animate-pulse-slow {

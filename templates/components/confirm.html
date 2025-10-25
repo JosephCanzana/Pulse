@@ -1,20 +1,140 @@
-<!-- Reusable Confirmation Modal - Themed & Bigger -->
-<div id="confirm-modal" class="fixed inset-0 bg-[var(--clr-bg)]/50 backdrop-blur-sm flex items-center justify-center hidden z-50">
-  <div class="bg-[var(--clr-surface)] rounded-3xl p-8 w-96 max-w-[90%] text-center shadow-lg shadow-[0_10px_30px_rgba(0,0,0,0.2)] border border-[var(--clr-surface-alt)]">
-    
-    <h2 id="confirm-modal-title" class="text-xl font-bold mb-5 text-[var(--clr-primary)]">Confirm Action</h2>
-    
-    <p id="confirm-modal-message" class="mb-8 text-[var(--clr-txt-primary)] text-base">Are you sure you want to proceed?</p>
-    
-    <div class="flex justify-around gap-4">
-      <button id="confirm-modal-cancel" class="px-6 py-3 rounded-lg bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)] hover:bg-[var(--clr-tertiary)] hover:text-white transition-colors font-medium">
-        Cancel
-      </button>
-      <form id="confirm-modal-form" method="post">
-        <button type="submit" id="confirm-modal-submit" class="px-6 py-3 rounded-lg bg-[var(--clr-primary)] text-white hover:bg-[var(--clr-secondary)] transition-colors font-medium">
-          Confirm
+<!-- Liquid Glass Confirmation Modal (Flash Modal Design Style) -->
+<div
+  id="confirm-modal"
+  class="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden z-50 animate-fadeIn"
+>
+  <div
+    class="relative w-[22rem] max-w-[90%] rounded-3xl p-8 text-center border shadow-2xl overflow-hidden transition-all duration-300"
+    style="
+      background: var(--clr-glass-light);
+      border-color: var(--clr-glass-border);
+      backdrop-filter: blur(20px) saturate(180%);
+    "
+  >
+    <!-- Soft radial glow -->
+    <div
+      class="absolute inset-0 rounded-3xl opacity-20 blur-3xl pointer-events-none"
+      style="background: radial-gradient(circle at top left, var(--clr-primary), transparent 70%);"
+    ></div>
+
+    <!-- Content -->
+    <div class="relative z-10 flex flex-col items-center text-center space-y-4">
+      <h2
+        id="confirm-modal-title"
+        class="text-2xl font-semibold tracking-tight drop-shadow-sm"
+        style="color: var(--clr-primary);"
+      >
+        Confirm Action
+      </h2>
+
+      <p
+        id="confirm-modal-message"
+        class="text-sm leading-relaxed max-w-xs"
+        style="color: var(--clr-txt-secondary);"
+      >
+        Are you sure you want to proceed?
+      </p>
+
+      <div class="flex justify-center gap-4 w-full mt-6">
+        <!-- Cancel Button -->
+        <button
+          id="confirm-modal-cancel"
+          class="w-full px-6 py-2.5 rounded-xl font-medium border shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2"
+          style="
+            border-color: var(--clr-border);
+            background: var(--clr-glass-dark);
+            color: var(--clr-txt-primary);
+            box-shadow: 0 0 8px var(--clr-border)25;
+          "
+        >
+          Cancel
         </button>
-      </form>
+
+        <!-- Confirm Button -->
+        <form id="confirm-modal-form" method="post" class="w-full m-0">
+          <button
+            type="submit"
+            id="confirm-modal-submit"
+            class="w-full px-6 py-2.5 rounded-xl font-medium border shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2"
+            style="
+              border-color: var(--clr-primary)40;
+              background: var(--clr-primary)20;
+              color: var(--clr-txt-primary);
+              box-shadow: 0 0 8px var(--clr-primary)25;
+            "
+          >
+            Confirm
+          </button>
+        </form>
+      </div>
     </div>
+
+    <!-- Ambient glow overlay -->
+    <div
+      class="absolute inset-0 rounded-3xl opacity-10 blur-3xl pointer-events-none"
+      style="background: var(--clr-primary);"
+    ></div>
   </div>
 </div>
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* Shared hover + active glow inspired by flash modal */
+#confirm-modal button:hover {
+  transform: translateY(-4px);
+  background: linear-gradient(
+    135deg,
+    var(--clr-glass-light) 0%,
+    var(--clr-glass-dark) 100%
+  );
+  box-shadow: 0 0 15px var(--clr-glow-primary);
+}
+#confirm-modal button:active {
+  transform: scale(0.96);
+  box-shadow: 0 0 8px var(--clr-glow-tertiary);
+}
+
+/* Confirm button color intensity */
+#confirm-modal-submit:hover {
+  background: var(--clr-primary);
+  color: var(--clr-surface);
+  box-shadow: 0 0 18px var(--clr-primary);
+}
+
+/* Cancel button subtle glow */
+#confirm-modal-cancel:hover {
+  background: var(--clr-glass-light);
+  box-shadow: 0 0 12px var(--clr-border);
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("confirm-modal");
+  const cancelBtn = document.getElementById("confirm-modal-cancel");
+
+  // Function to open modal dynamically
+  window.showConfirmModal = (title, message, formAction) => {
+    document.getElementById("confirm-modal-title").textContent = title;
+    document.getElementById("confirm-modal-message").textContent = message;
+    document.getElementById("confirm-modal-form").action = formAction;
+
+    modal.classList.remove("hidden");
+    setTimeout(() => modal.classList.add("animate-fadeIn"), 10);
+  };
+
+  // Smooth close transition
+  cancelBtn.addEventListener("click", () => {
+    modal.classList.add("opacity-0", "pointer-events-none", "transition", "duration-200");
+    setTimeout(() => modal.classList.add("hidden"), 200);
+    setTimeout(() => modal.classList.remove("opacity-0", "pointer-events-none"), 300);
+  });
+});
+</script>

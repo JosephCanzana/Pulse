@@ -1,3 +1,29 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const flashModal = document.getElementById("flashModal");
+  const flashOkBtn = document.getElementById("flashOkBtn");
+
+  if (flashModal && flashOkBtn) {
+    const closeModal = () => {
+      flashModal.classList.add("opacity-0");
+      // Wait for animation to complete before removing
+      setTimeout(() => {
+        flashModal.remove();
+      }, 200);
+    };
+
+    // Close modal when OK is clicked
+    flashOkBtn.addEventListener("click", closeModal);
+
+    // Close when clicking outside modal
+    flashModal.addEventListener("click", (e) => {
+      if (e.target === flashModal) {
+        closeModal();
+      }
+    });
+
+  }
+});
+
 
 // Reusable Confirmation Modal
 const confirmModal = document.getElementById("confirm-modal");

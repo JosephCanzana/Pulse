@@ -1,0 +1,112 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div 
+    id="flashModal"
+    class="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 animate-fadeIn"
+  >
+    <div
+      class="relative p-8 max-w-sm w-full rounded-3xl border shadow-2xl transition-all duration-300 overflow-hidden"
+      style="
+        background: var(--clr-glass-light);
+        border-color: var(--clr-glass-border);
+        backdrop-filter: blur(20px) saturate(180%);
+      "
+    >
+      {% for category, message in messages %}
+        {% set title = {
+          'error': 'Something went wrong',
+          'success': 'Success',
+          'warning': 'Warning',
+          'info': 'Information'
+        }[category] if category in ['error','success','warning','info'] else 'Notice' %}
+
+        {% set color = {
+          'error': 'var(--clr-error)',
+          'success': 'var(--clr-success)',
+          'warning': 'var(--clr-warning)',
+          'info': 'var(--clr-info)'
+        }[category] if category in ['error','success','warning','info'] else 'var(--clr-primary)' %}
+
+        <!-- Glass glow and depth -->
+        <div 
+          class="absolute inset-0 rounded-3xl opacity-20 blur-3xl pointer-events-none"
+          style="background: radial-gradient(circle at top left, {{ color }}, transparent 70%);"
+        ></div>
+
+        <!-- Content -->
+        <div class="relative z-10 text-center space-y-4 flex flex-col items-center">
+          <h1 
+            class="text-2xl font-semibold tracking-tight drop-shadow-sm"
+            style="color: {{ color }};"
+          >
+            {{ title }}
+          </h1>
+          <p 
+            class="text-sm leading-relaxed max-w-xs"
+            style="color: var(--clr-txt-secondary);"
+          >
+            {{ message }}
+          </p>
+        </div>
+      {% endfor %}
+
+      <button 
+        id="flashOkBtn"
+        class="mt-8 w-full px-6 py-2.5 rounded-xl font-medium border shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2"
+        style="
+          border-color: {{ color }}40;
+          background: {{ color }}20;
+          color: var(--clr-txt-primary);
+          box-shadow: 0 0 8px {{ color }}25;
+        "
+      >
+        OK
+      </button>
+
+      <!-- Ambient color glow -->
+      <div
+        class="absolute inset-0 rounded-3xl opacity-10 blur-3xl pointer-events-none"
+        style="background: {{ color }};"
+      ></div>
+    </div>
+  </div>
+  {% endif %}
+{% endwith %}
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}
+
+/* Button hover & active states */
+#flashModal button:hover {
+  transform: translateY(-4px);
+  background: linear-gradient(
+    135deg,
+    var(--clr-glass-light) 0%,
+    var(--clr-glass-dark) 100%
+  );
+  box-shadow: 0 0 15px var(--clr-glow-primary);
+}
+#flashModal button:active {
+  transform: scale(0.96);
+  box-shadow: 0 0 8px var(--clr-glow-tertiary);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('flashModal');
+  const btn = document.getElementById('flashOkBtn');
+  if (modal && btn) {
+    btn.addEventListener('click', () => {
+      modal.classList.add('opacity-0', 'pointer-events-none', 'transition', 'duration-200');
+      setTimeout(() => modal.remove(), 250);
+    });
+  }
+});
+</script>

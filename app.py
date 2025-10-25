@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import text
@@ -97,7 +97,8 @@ def login():
             return apology(404, "User doesn't exist.")
 
         if not check_password(password, user["password"]):
-            return apology(409, "Password is incorrect.")
+            flash(("error", "Password is incorrect."))
+            return redirect(url_for("login"))
 
         # Create Flask-Login user object
         user_obj = User(
@@ -268,7 +269,8 @@ def admin_student_add():
 
         # First, second, and last name is already existing
         if is_exist(db, first, "first_name", "Users") and is_exist(db, second, "middle_name", "Users") and is_exist(db, last, "last_name", "Users"):
-            return apology(409, "The name already exist.")
+            flash("Something went wrong", "info")
+            return redirect(url_for("admin_student_add"))
         
         # Add user in db
         user = add_user(db, first, second, last, email, school_id, gender, "student")
