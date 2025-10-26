@@ -9,24 +9,33 @@
  <div class="flex items-center justify-center flex-col">
    <a href="{{ url_for('admin_teacher_add') }}" class="rounded-full border-1 m-2 border-blue-600 p-3">Add page</a>
    <h1 class="m-2">Teacher list</h1>
-   <table>
-      <thead>
+   <table class="border-collapse border border-gray-400 text-sm">
+      <table class="border-collapse border border-gray-400 text-sm">
+      <thead class="bg-gray-100">
         <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>School ID</th>
-          <th>Education Level</th>
-          <th>Department</th>
+          <th class="border px-3 py-2">Name</th>
+          <th class="border px-3 py-2">Email</th>
+          <th class="border px-3 py-2">School ID</th>
+          <th class="border px-3 py-2">Education Level</th>
+          <th class="border px-3 py-2">Department</th>
+          <th class="border px-3 py-2">Account Status</th>
         </tr>
       </thead>
       <tbody>
         {% for t in teachers %}
-        <tr>
-          <td>{{ t.first_name }} {{ t.last_name }}</td>
-          <td>{{ t.email }}</td>
-          <td>{{ t.school_id }}</td>
-          <td>{{ t.education_level_id }}</td>
-          <td>{{ t.department_id }}</td>
+        <tr class="hover:bg-gray-50">
+          <td class="border px-3 py-2">{{ t.first_name }} {{ t.last_name }}</td>
+          <td class="border px-3 py-2">{{ t.email }}</td>
+          <td class="border px-3 py-2">{{ t.school_id }}</td>
+          <td class="border px-3 py-2">{{ t.education_level_name or 'N/A' }}</td>
+          <td class="border px-3 py-2">{{ t.department_name or 'N/A' }}</td>
+          <td class="border px-3 py-2">
+            {% if t.is_verified %}
+              <span class="text-green-600 font-medium">Activated</span>
+            {% else %}
+              <span class="text-red-600 font-medium">Not Activated</span>
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>

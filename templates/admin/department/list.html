@@ -1,16 +1,33 @@
 {% extends "layout.html" %}
-  
+
 {% block title %}
-  Department list
+  Department List
 {% endblock %}
 
 {% block main %}
-<a href="{{ url_for('admin_department_add') }}">Admin add page</a>
-<h1>This is the department list</h1>
-<ul>
-    {% for d in departments %}
-        <li>{{ d.name }}</li>    
-    {% endfor %}
-</ul>
+<div class="flex flex-col items-center justify-center">
+  <a href="{{ url_for('admin_department_add') }}" 
+     class="m-2 rounded-full border border-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition">
+     Add Department
+  </a>
 
+  <h1 class="m-2 text-xl font-semibold">Department List</h1>
+
+  <table class="border-collapse border border-gray-400 text-sm w-full max-w-3xl">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="border px-3 py-2">Department Name</th>
+        <th class="border px-3 py-2">Education Level</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in departments %}
+      <tr class="hover:bg-gray-50">
+        <td class="border px-3 py-2">{{ d.department_name }}</td>
+        <td class="border px-3 py-2">{{ d.education_level_name or 'N/A' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

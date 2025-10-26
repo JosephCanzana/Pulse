@@ -240,22 +240,30 @@ def admin():
 @login_required
 def admin_student():
     query = text("""
-        SELECT 
-            Users.id AS user_id,
-            Users.first_name,
-            Users.last_name,
-            Users.email,
-            Users.school_id,
-            StudentProfile.id AS profile_id,
-            StudentProfile.course_id,
-            StudentProfile.section_id,
-            StudentProfile.year_id
-        FROM Users
-        JOIN StudentProfile ON Users.id = StudentProfile.user_id
-        WHERE Users.role = 'student'
+    SELECT 
+        Users.id AS user_id,
+        Users.first_name,
+        Users.middle_name,
+        Users.last_name,
+        Users.email,
+        Users.school_id,
+        Users.is_verified,
+        StudentProfile.id AS profile_id,
+        EducationLevel.name AS education_level_name,
+        Course.name AS course_name,
+        Section.name AS section_name,
+        AcademicYear.name AS academic_year_name
+    FROM Users
+    JOIN StudentProfile ON Users.id = StudentProfile.user_id
+    LEFT JOIN EducationLevel ON StudentProfile.education_level_id = EducationLevel.id
+    LEFT JOIN Course ON StudentProfile.course_id = Course.id
+    LEFT JOIN Section ON StudentProfile.section_id = Section.id
+    LEFT JOIN AcademicYear ON StudentProfile.year_id = AcademicYear.id
+    WHERE Users.role = 'student'
+    ORDER BY Users.last_name, Users.first_name
     """)
-    
-    students = db.session.execute(query).fetchall()
+
+    students = db.session.execute(query).mappings().all()
     return render_template("admin/student/list.html", students=students)
 
 
@@ -316,18 +324,25 @@ def admin_student_add():
 @login_required
 def admin_teacher():
     query = text("""
-        SELECT 
-            Users.id AS user_id,
-            Users.first_name,
-            Users.last_name,
-            Users.email,
-            Users.school_id,
-            TeacherProfile.id AS profile_id,
-            TeacherProfile.education_level_id,
-            TeacherProfile.department_id
-        FROM Users
-        JOIN TeacherProfile ON Users.id = TeacherProfile.user_id
+    SELECT 
+        Users.id AS user_id,
+        Users.first_name,
+        Users.middle_name,
+        Users.last_name,
+        Users.email,
+        Users.school_id,
+        Users.is_verified,
+        TeacherProfile.id AS profile_id,
+        EducationLevel.name AS education_level_name,
+        Department.name AS department_name
+    FROM Users
+    JOIN TeacherProfile ON Users.id = TeacherProfile.user_id
+    LEFT JOIN EducationLevel ON TeacherProfile.education_level_id = EducationLevel.id
+    LEFT JOIN Department ON TeacherProfile.department_id = Department.id
+    WHERE Users.role = 'teacher'
+    ORDER BY Users.last_name, Users.first_name
     """)
+
     teachers = db.session.execute(query).mappings().all()
     return render_template("admin/teacher/list.html", teachers=teachers)
 
@@ -379,8 +394,19 @@ def admin_teacher_add():
 @app.route("/admin/course")
 @login_required
 def admin_course():
-    courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
+    query = text("""
+        SELECT
+            Course.id AS course_id,
+            Course.name AS course_name,
+            EducationLevel.name AS education_level_name
+        FROM Course
+        LEFT JOIN EducationLevel ON Course.education_level_id = EducationLevel.id
+        ORDER BY Course.name
+    """)
+
+    courses = db.session.execute(query).mappings().all()
     return render_template("admin/course/list.html", courses=courses)
+
 
 @app.route("/admin/course/add", methods=["POST", "GET"])
 @login_required
@@ -419,8 +445,19 @@ def admin_course_add():
 @app.route("/admin/department")
 @login_required
 def admin_department():
-    departments = db.session.execute(text("SELECT * FROM Department")).mappings().all()
+    query = text("""
+        SELECT
+            Department.id AS department_id,
+            Department.name AS department_name,
+            EducationLevel.name AS education_level_name
+        FROM Department
+        LEFT JOIN EducationLevel ON Department.education_level_id = EducationLevel.id
+        ORDER BY Department.name
+    """)
+
+    departments = db.session.execute(query).mappings().all()
     return render_template("admin/department/list.html", departments=departments)
+
 
 @app.route("/admin/department/add", methods=["POST", "GET"])
 @login_required
@@ -453,7 +490,17 @@ def admin_department_add():
 @app.route("/admin/subject")
 @login_required
 def admin_subject():
-    subjects = db.session.execute(text("SELECT * FROM Subject")).mappings().all()
+    query = text("""
+        SELECT
+            Subject.id AS subject_id,
+            Subject.name AS subject_name,
+            EducationLevel.name AS education_level_name
+        FROM Subject
+        LEFT JOIN EducationLevel ON Subject.education_level_id = EducationLevel.id
+        ORDER BY Subject.name
+    """)
+
+    subjects = db.session.execute(query).mappings().all()
     return render_template("admin/subject/list.html", subjects=subjects)
 
 

@@ -1,39 +1,51 @@
 {% extends "layout.html" %}
   
 {% block title %}
-  Student list
+  Student List
 {% endblock %}
 
 {% block main %}
-<!-- TODO: edit css styling(make it better) -->
- <div class="flex items-center justify-center flex-col">
-   <a href="{{ url_for('admin_student_add') }}" class="rounded-full border-1 m-2 border-blue-600 p-3">Add page</a>
-   <h1 class="m-2">Student list</h1>
-   <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>School ID</th>
-          <th>Course</th>
-          <th>Section</th>
-          <th>Year</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for s in students %}
-        <tr>
-          <td>{{ s.first_name }} {{ s.last_name }}</td>
-          <td>{{ s.email }}</td>
-          <td>{{ s.school_id }}</td>
-          <td>{{ s.course_id }}</td>
-          <td>{{ s.section_id }}</td>
-          <td>{{ s.year_id }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="flex flex-col items-center justify-center">
+  <a href="{{ url_for('admin_student_add') }}" 
+     class="m-2 rounded-full border border-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition">
+     Add Student
+  </a>
 
- </div>
+  <h1 class="m-2 text-xl font-semibold">Student List</h1>
 
+  <table class="border-collapse border border-gray-400 text-sm w-full max-w-5xl">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="border px-3 py-2">Name</th>
+        <th class="border px-3 py-2">Email</th>
+        <th class="border px-3 py-2">School ID</th>
+        <th class="border px-3 py-2">Education Level</th>
+        <th class="border px-3 py-2">Course</th>
+        <th class="border px-3 py-2">Section</th>
+        <th class="border px-3 py-2">Year</th>
+        <th class="border px-3 py-2">Account Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in students %}
+      <tr class="hover:bg-gray-50">
+        <td class="border px-3 py-2">{{ s.first_name }} {{ s.last_name }}</td>
+        <td class="border px-3 py-2">{{ s.email }}</td>
+        <td class="border px-3 py-2">{{ s.school_id }}</td>
+        <td class="border px-3 py-2">{{ s.education_level_name or 'N/A' }}</td>
+        <td class="border px-3 py-2">{{ s.course_name or 'N/A' }}</td>
+        <td class="border px-3 py-2">{{ s.section_name or 'N/A' }}</td>
+        <td class="border px-3 py-2">{{ s.academic_year_name or 'N/A' }}</td>
+        <td class="border px-3 py-2 text-center">
+          {% if s.is_verified %}
+            <span class="text-green-600 font-medium">Activated</span>
+          {% else %}
+            <span class="text-red-600 font-medium">Not Activated</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
