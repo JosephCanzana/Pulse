@@ -1,3 +1,50 @@
+// Show password
+document.addEventListener("DOMContentLoaded", () => {
+  const passwordFields = document.querySelectorAll('input[data-toggle="password"]');
+
+  passwordFields.forEach(field => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `
+      absolute right-3 top-1/2 -translate-y-1/2
+      text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]
+      transition duration-200
+    `;
+    btn.setAttribute("aria-label", "Show password");
+
+    // simple lock & unlock icons
+    const locked = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="icon-lock block">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    `;
+    const unlocked = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="icon-unlock hidden">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 9 0"></path>
+      </svg>
+    `;
+
+    btn.innerHTML = locked + unlocked;
+    field.parentElement.appendChild(btn);
+
+    btn.addEventListener("click", () => {
+      const isHidden = field.type === "password";
+      field.type = isHidden ? "text" : "password";
+
+      btn.querySelector(".icon-lock").classList.toggle("hidden", isHidden);
+      btn.querySelector(".icon-unlock").classList.toggle("hidden", !isHidden);
+      btn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+    });
+  });
+});
+
+// Flash modal
 document.addEventListener("DOMContentLoaded", () => {
   const flashModal = document.getElementById("flashModal");
   const flashOkBtn = document.getElementById("flashOkBtn");

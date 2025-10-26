@@ -32,8 +32,29 @@
       >
           <input type="text" name="first_name" placeholder="First Name" class="txt-input-box text-lg" required>
           <input type="text" name="last_name" placeholder="Last Name" class="txt-input-box text-lg" required>
-          <input type="password" name="password" placeholder="New Password" class="txt-input-box text-lg" id="password" minlength="8" required>
-          <input type="password" name="confirm_password" placeholder="Confirm New Password" class="txt-input-box text-lg" id="password" minlength="8" required>
+          <div class="relative">
+            <input 
+              type="password" 
+              name="new_password" 
+              placeholder="New Password" 
+              class="txt-input-box pr-10 text-lg"
+              data-toggle="password"
+              minlength="8"
+              required
+            >
+          </div>
+
+          <div class="relative">
+            <input 
+              type="password" 
+              name="confirm_password" 
+              placeholder="Confirm New Password" 
+              class="txt-input-box pr-10 text-lg"
+              data-toggle="password"
+              minlength="8"
+              required
+            >
+          </div>
 
           <small id="passwordHelp" class="text-sm text-[var(--clr-txt-secondary)] text-center mt-1">
               Must be at least 8 characters long.
