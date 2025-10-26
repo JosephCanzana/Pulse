@@ -7,7 +7,9 @@
 {% block main %}
 <!-- TODO:  add student profile -->
 <h1>Add Students</h1>
-<form action="{{ url_for('admin_student_add') }}" method="post" class="flex align-center items-center flex-col">
+<form action="{{ url_for('admin_student_add') }}" 
+onsubmit="return openConfirmFormModal(event, this, 'Add Students', 'Are you sure you want to add these student(s)?')"
+method="post" class="flex align-center items-center flex-col">
   <!-- USER form part -->
   <input type="text" name="school_id" placeholder="school-id">
   <input type="text" name="first_name" placeholder="First name">

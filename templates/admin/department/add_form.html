@@ -7,7 +7,8 @@
 {% block main %}
 
 <h1>This is the department add form</h1>
-<form action="{{ url_for('admin_department_add') }}" method="POST">
+<form action="{{ url_for('admin_department_add') }}" method="POST"
+onsubmit="return openConfirmFormModal(event, this, 'Add Department', 'Are you sure you want to add this department?')">
     <input type="text" name="name" placeholder="department name">
     <select name="lvl_id" id="">
         {% for lvl in lvls %}

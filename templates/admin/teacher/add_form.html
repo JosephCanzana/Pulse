@@ -7,12 +7,14 @@
 {% block main %}
 
 <h1>Add teacher</h1>
-<form action="{{ url_for('admin_teacher_add') }}" method="post">
+<form action="{{ url_for('admin_teacher_add') }}" method="post"
+onsubmit="return openConfirmFormModal(event, this, 'Add Teachers', 'Are you sure you want to add these teacher(s)?')"
+>
     <!-- USER form part -->
-    <input type="text" name="school_id" placeholder="school-id">
-    <input type="text" name="first_name" placeholder="First name">
+    <input type="text" name="school_id" placeholder="school-id" required>
+    <input type="text" name="first_name" placeholder="First name" required>
     <input type="text" name="second_name" placeholder="Second name">
-    <input type="text" name="last_name" placeholder="Last name">
+    <input type="text" name="last_name" placeholder="Last name" required>
     <!-- gender -->
     <select name="gender" required>
         <option value="Male">Male</option>
