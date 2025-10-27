@@ -18,13 +18,35 @@
       <tr>
         <th class="border px-3 py-2">Subject Name</th>
         <th class="border px-3 py-2">Education Level</th>
+        <th class="border px-3 py-2 text-center">Actions</th>
       </tr>
     </thead>
+
     <tbody>
       {% for s in subjects %}
-      <tr class="hover:bg-gray-50">
+      <tr class="hover:bg-gray-50 transition">
         <td class="border px-3 py-2">{{ s.subject_name }}</td>
         <td class="border px-3 py-2">{{ s.education_level_name or 'N/A' }}</td>
+
+        <td class="border px-3 py-2 text-center">
+          <!-- Edit -->
+          <a href="{{ url_for('admin_subject_edit', subject_id=s.id) }}" 
+             class="text-blue-600 hover:text-blue-800 font-medium mr-2">
+            Edit
+          </a>
+
+          <!-- Delete -->
+          <form action="{{ url_for('admin_delete') }}" 
+                method="POST" 
+                class="inline"
+                onsubmit="return openConfirmFormModal(event, this, 'Delete Subject', 'Are you sure you want to delete this subject?')">
+            <input type="hidden" name="id" value="{{ s.subject_id }}">
+            <input type="hidden" name="table" value="Subject">
+            <button type="submit" class="text-red-600 hover:text-red-800 font-medium">
+              Delete
+            </button>
+          </form>
+        </td>
       </tr>
       {% endfor %}
     </tbody>

@@ -3,9 +3,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy import text
 
 
+# APOLOGY FORM 
 def apology(num=400, message="Error occur"):
     return render_template("apology.html", message=message, error_code=num)
-
 
 def encrypt_password(password):
     # TODO: UNCOMMENT BEFORE FINALIZATION
@@ -25,6 +25,11 @@ def is_exist(db, find_value, table_value, table):
         return True
     return False
 
+
+def delete_table_row(db, table, row_id):
+    query = text(f"DELETE FROM {table} WHERE id = :row_id")
+    db.session.execute(query, {"row_id": row_id})
+    db.session.commit()
 
 def add_user(db,f_name, s_name, l_name, 
             email, school_id,

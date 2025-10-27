@@ -1,16 +1,24 @@
 {% extends "layout.html" %}
-  
+
 {% block title %}
-  Teacher list
+  Teacher List
 {% endblock %}
 
 {% block main %}
-<!-- TODO: edit css styling(make it better) -->
- <div class="flex items-center justify-center flex-col">
-   <a href="{{ url_for('admin_teacher_add') }}" class="rounded-full border-1 m-2 border-blue-600 p-3">Add page</a>
-   <h1 class="m-2">Teacher list</h1>
-   <table class="border-collapse border border-gray-400 text-sm">
-      <table class="border-collapse border border-gray-400 text-sm">
+<div class="flex flex-col items-center justify-center p-4">
+  <!-- Add Teacher Button -->
+  <a 
+    href="{{ url_for('admin_teacher_add') }}" 
+    class="rounded-full border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition px-4 py-2 mb-4"
+  >
+    Add Teacher
+  </a>
+
+  <h1 class="text-xl font-semibold mb-4">Teacher List</h1>
+
+  <!-- Table -->
+  <div class="overflow-x-auto w-full max-w-5xl">
+    <table class="border-collapse border border-gray-300 text-sm w-full">
       <thead class="bg-gray-100">
         <tr>
           <th class="border px-3 py-2">Name</th>
@@ -19,11 +27,12 @@
           <th class="border px-3 py-2">Education Level</th>
           <th class="border px-3 py-2">Department</th>
           <th class="border px-3 py-2">Account Status</th>
+          <th class="border px-3 py-2 text-center">Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for t in teachers %}
-        <tr class="hover:bg-gray-50">
+        <tr class="hover:bg-gray-50 transition">
           <td class="border px-3 py-2">{{ t.first_name }} {{ t.last_name }}</td>
           <td class="border px-3 py-2">{{ t.email }}</td>
           <td class="border px-3 py-2">{{ t.school_id }}</td>
@@ -36,11 +45,36 @@
               <span class="text-red-600 font-medium">Not Activated</span>
             {% endif %}
           </td>
+          <td class="border px-3 py-2 text-center space-x-2">
+            <!-- Edit Button -->
+            <a 
+              href="{{ url_for('admin_teacher_edit', teacher_id=t.id) }}" 
+              class="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Edit
+            </a>
+
+            <!-- Delete Form -->
+            <form 
+              action="{{ url_for('admin_delete') }}" 
+              method="POST" 
+              class="inline"
+              onsubmit="return openConfirmFormModal(event, this, 'Delete Teacher', 'Are you sure you want to delete this teacher?')"
+            >
+              <input type="hidden" name="id" value="{{ t.user_id }}">
+              <input type="hidden" name="table" value="Users">
+              <button 
+                type="submit" 
+                class="text-red-600 hover:text-red-800 font-medium"
+              >
+                Delete
+              </button>
+            </form>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-
- </div>
-
+  </div>
+</div>
 {% endblock %}

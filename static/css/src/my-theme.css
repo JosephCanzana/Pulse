@@ -1,9 +1,9 @@
 :root {
-  --clr-primary: #1E40AF;
+  --clr-primary: #1E3A8A;
   --clr-secondary: #2563EB;
   --clr-tertiary: #60A5FA;
 
-  --clr-bg: #EEF2F8;
+  --clr-bg: #F8FAFC;
   --clr-surface: #FFFFFF;
   --clr-surface-alt: #F1F5F9;
 
@@ -12,21 +12,22 @@
   --clr-txt-muted: #64748B;
   --clr-txt-hover: #1D4ED8;
 
-  --clr-border: #CBD5E1;
+  --clr-border: #E2E8F0;
   --clr-border-strong: #94A3B8;
 
-  --clr-success: #16A34A;
-  --clr-error: #DC2626;
-  --clr-warning: #EAB308;
-  --clr-info: #2563EB;
+  --clr-success: #22C55E;
+  --clr-error: #EF4444;
+  --clr-warning: #FACC15;
+  --clr-info: #3B82F6;
 
-  --clr-glass-light: rgba(255, 255, 255, 0.39);
-  --clr-glass-border: rgba(185, 185, 185, 0.5);
-  --clr-glass-dark: rgba(0, 0, 0, 0.08);
+  --clr-glass-light: rgba(255, 255, 255, 0.3);
+  --clr-glass-border: rgba(255, 255, 255, 0.4);
+  --clr-glass-dark: rgba(0, 0, 0, 0.25);
 
-  --clr-glow-primary: rgba(27, 94, 237, 0.603);
-  --clr-glow-tertiary: rgba(71, 136, 215, 0.604);
+  --clr-glow-primary: rgba(37, 99, 235, 0.4);
+  --clr-glow-tertiary: rgba(96, 165, 250, 0.35);
 }
+
 
 [data-theme="dark"] {
   --clr-primary: #60A5FA;

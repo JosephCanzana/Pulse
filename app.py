@@ -61,10 +61,9 @@ def load_user(user_id):
         )
     return None
 
-
-
 # ==== GLOBAL VARIABLES ====
 DEFAULT_PASSWORD = "mcmY_1946"
+ADMIN_DELETABLE_ROWS = ("Users", "Subject", "Course", "Department")
 
 # TEST
 @app.route("/testdb")
@@ -319,6 +318,11 @@ def admin_student_add():
 
         return render_template("admin/student/add_form.html", education_lvls=education_lvls, courses=courses, sections=sections, years=years)
 
+@app.route("/admin/student/edit", methods=["POST", "GET"])
+@login_required
+def admin_student_edit():
+    return render_template("admin/student/edit_form.html")
+
 # Teacher (admin side)
 @app.route("/admin/teacher")
 @login_required
@@ -347,6 +351,7 @@ def admin_teacher():
     return render_template("admin/teacher/list.html", teachers=teachers)
 
 @app.route("/admin/teacher/add", methods=["POST", "GET"])
+@login_required
 def admin_teacher_add():
     if request.method == "POST":
         
@@ -388,6 +393,12 @@ def admin_teacher_add():
         departments = db.session.execute(text("SELECT * FROM Department")).mappings().all()
         lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
         return render_template("admin/teacher/add_form.html", departments=departments, lvls=lvls)
+
+
+@app.route("/admin/teacher/edit", methods=["POST", "GET"])
+@login_required
+def admin_teacher_edit():
+    return render_template("admin/teacher/edit_form.html")
 
 
 # course (Admin side)
@@ -440,6 +451,10 @@ def admin_course_add():
                 valid_course.append(int(lvl["id"]))
         return render_template("admin/course/add_form.html", lvls=ed_lvl,valid_course=valid_course)
 
+@app.route("/admin/course/edit", methods=["POST", "GET"])
+@login_required
+def admin_course_edit():
+    return render_template("admin/course/edit_form.html")
 
 # Department (admin side)
 @app.route("/admin/department")
@@ -485,6 +500,11 @@ def admin_department_add():
         lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
         return render_template("admin/department/add_form.html", lvls=lvls)
 
+@app.route("/admin/department/edit", methods=["POST", "GET"])
+@login_required
+def admin_department_edit():
+    return render_template("admin/department/edit_form.html")
+
 
 # Subjects (admin side)
 @app.route("/admin/subject")
@@ -502,7 +522,6 @@ def admin_subject():
 
     subjects = db.session.execute(query).mappings().all()
     return render_template("admin/subject/list.html", subjects=subjects)
-
 
 @app.route("/admin/subject/add", methods=["POST", "GET"])
 @login_required
@@ -529,7 +548,37 @@ def admin_subject_add():
         return redirect(url_for("admin_subject_add"))
     else:
         lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+        flash("Successfully Added.", "Success")
         return render_template("admin/subject/add_form.html", lvls=lvls)
+
+@app.route("/admin/subject/edit", methods=["POST", "GET"])
+@login_required
+def admin_subject_edit():
+    return render_template("admin/subject/edit_form.html")
+
+@app.route("/admin/delete", methods=["POST"])
+@login_required
+def admin_delete():
+    row_id = request.form.get("id")
+    table = request.form.get("table")
+
+    # Validate that both fields exist and have valid values
+    if not row_id or not table:
+        flash("Missing table or ID — cannot proceed with deletion.", "error")
+        return redirect(request.referrer)
+
+    if table not in ADMIN_DELETABLE_ROWS:
+        flash("The table your trying to delete is unavailable")
+        return redirect(request.referrer)
+
+    try:
+        delete_table_row(db, table, row_id)
+    except:
+        flash("Something went wrong.", "error")
+        return redirect(request.referrer)
+    flash("Successfully deleted the row.", "success")
+    return redirect(request.referrer)
+
 
 # ==== TEACHER PAGES =====
 
