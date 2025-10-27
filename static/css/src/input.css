@@ -78,9 +78,45 @@
 }
 
 
+/* Collapsed (icon only) */
+.btn-side-bar-collapsed-active {
+  @apply relative text-[var(--clr-primary)] font-medium;
+}
+
+.btn-side-bar-collapsed-active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;           
+  left: 25%;             
+  width: 50%;            
+  height: 2px;           
+  background: var(--clr-primary);
+  border-radius: 1px;    
+  transition: all 0.3s ease-in-out;
+}
+
+/* Expanded (icon + text) */
+.btn-side-bar-expanded-active {
+  @apply relative text-[var(--clr-primary)] font-medium;
+}
+
+.btn-side-bar-expanded-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 2;
+  width: 80%;           
+  height: 3px;          
+  background: var(--clr-primary);
+  border-radius: 2px;   
+  transition: all 0.3s ease-in-out;
+}
+
+
 .txt-input{
   @apply p-2 
   mr-1 ml-1 mt-1 mb-1 
   bg-[var(--clr-txt-muted)] text-[var(--clr-txt-secondary)]
   rounded-xl
 }
+
