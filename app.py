@@ -108,7 +108,7 @@ def login():
         )
 
         # Check if activation is required
-        if not user["is_verified"] or user["password"] == DEFAULT_PASSWORD:
+        if not user["is_verified"]:
             login_user(user_obj)
             session.update({
                 "school_id": user["school_id"],
@@ -144,7 +144,7 @@ def account_activation(school_id):
     if request.method == "POST":
         f_name = request.form.get("first_name").title().strip() 
         l_name = request.form.get("last_name").title().strip()
-        new_pwd = request.form.get("password")
+        new_pwd = request.form.get("new_password")
         c_pwd = request.form.get("confirm_password")
 
         # Get the user info
@@ -171,6 +171,7 @@ def account_activation(school_id):
             return redirect(url_for("account_activation",  school_id=school_id))
         
         if new_pwd != c_pwd:
+            return apology(404, f"{new_pwd} - {c_pwd}")
             flash("Your password don't match", "error")
             return redirect(url_for("account_activation",  school_id=school_id))
         
@@ -318,10 +319,102 @@ def admin_student_add():
 
         return render_template("admin/student/add_form.html", education_lvls=education_lvls, courses=courses, sections=sections, years=years)
 
-@app.route("/admin/student/edit", methods=["POST", "GET"])
+
+@app.route("/admin/student/edit/<string:school_id>", methods=["POST", "GET"])
 @login_required
-def admin_student_edit():
-    return render_template("admin/student/edit_form.html")
+def admin_student_edit(school_id):
+    # GET the school id user
+    student = db.session.execute(text("""
+        SELECT u.id AS user_id, u.first_name, u.middle_name, u.last_name, 
+               u.school_id, u.gender, u.email, u.is_verified,
+               sp.education_level_id, sp.course_id, sp.section_id, sp.year_id
+        FROM Users u
+        JOIN StudentProfile sp ON u.id = sp.user_id
+        WHERE u.school_id = :school_id
+    """), {"school_id": school_id}).mappings().first()
+
+    if not student:
+        flash("Student not found.", "warning")
+        return redirect(url_for("admin_student"))  
+
+    if request.method == "POST":
+        # Form data
+        first = request.form.get("first_name").title()
+        second = request.form.get("second_name").title()
+        last = request.form.get("last_name").title()
+        gender = request.form.get("gender").title()
+        school_id_new = request.form.get("school_id")
+        education_lvl = request.form.get("education_lvl")
+        course_id = request.form.get("course")
+        section_id = request.form.get("section")
+        year_id = request.form.get("year")
+
+        # Email auto-update
+        new_email = f"{school_id_new}@holycross.edu.ph"
+
+        if not (first and last and gender and education_lvl and course_id and section_id and year_id):
+            flash("Some parameters are missing.", "warning")
+            return redirect(url_for("admin_student_edit", school_id=school_id))
+
+        # --- Update Users table ---
+        db.session.execute(text("""
+            UPDATE Users
+            SET first_name = :first,
+                middle_name = :second,
+                last_name = :last,
+                gender = :gender,
+                email = :email
+            WHERE school_id = :school_id
+        """), {
+            "first": first,
+            "second": second,
+            "last": last,
+            "gender": gender,
+            "email": new_email,
+            "school_id": school_id
+        })
+
+
+        # --- Update StudentProfile table ---
+        db.session.execute(text("""
+            UPDATE StudentProfile
+            SET education_level_id = :education_lvl,
+                course_id = :course_id,
+                section_id = :section_id,
+                year_id = :year_id
+            WHERE user_id = :user_id
+        """), {
+            "education_lvl": education_lvl,
+            "course_id": course_id,
+            "section_id": section_id,
+            "year_id": year_id,
+            "user_id": student["user_id"]
+        })
+
+        if school_id_new != school_id:
+            db.session.execute(text("UPDATE Users SET school_id = :new_id, email = :new_email WHERE school_id = :school_id"), {"new_id": school_id_new, "new_email": new_email, "school_id": school_id})
+
+
+        db.session.commit()
+        flash("Student record updated successfully.", "success")
+        return redirect(url_for("admin_student", school_id=school_id))
+
+    else:
+        # GET all needed information
+        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+        courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
+        sections = db.session.execute(text("SELECT * FROM Section")).mappings().all()
+        years = db.session.execute(text("SELECT * FROM AcademicYear")).mappings().all()
+
+        return render_template(
+            "admin/student/edit_form.html",
+            student=student,
+            education_lvls=education_lvls,
+            courses=courses,
+            sections=sections,
+            years=years
+        )
+
 
 # Teacher (admin side)
 @app.route("/admin/teacher")
@@ -577,6 +670,29 @@ def admin_delete():
         flash("Something went wrong.", "error")
         return redirect(request.referrer)
     flash("Successfully deleted the row.", "success")
+    return redirect(request.referrer)
+
+@app.route("/admin/reset", methods=["POST"])
+@login_required
+def admin_reset():
+    row_id = request.form.get("id")
+    table = request.form.get("table")
+
+    # Validate that both fields exist and have valid values
+    if not row_id or not table:
+        flash("Missing table or ID — cannot proceed with deletion.", "error")
+        return redirect(request.referrer)
+
+    if table not in ADMIN_DELETABLE_ROWS:
+        flash("The table your trying to reset is unavailable")
+        return redirect(request.referrer)
+
+    try:
+        reset_table_row(db, table, row_id)
+    except:
+        flash("Something went wrong.", "error")
+        return redirect(request.referrer)
+    flash("Successfully reset.", "success")
     return redirect(request.referrer)
 
 

@@ -48,7 +48,7 @@
 
         <td class="border px-3 py-2 text-center">
           <!-- Edit -->
-          <a href="{{ url_for('admin_student_edit', student_id=s.user_id) }}" 
+          <a href="{{ url_for('admin_student_edit', school_id=s.school_id) }}" 
              class="text-blue-600 hover:text-blue-800 font-medium mr-2">
             Edit
           </a>
@@ -64,6 +64,18 @@
               Delete
             </button>
           </form>
+          
+          <form action="{{ url_for('admin_reset') }}" 
+                method="POST" 
+                class="inline"
+                onsubmit="return openConfirmFormModal(event, this, 'Reset Student Sccount', 'Are you sure you want to reset password of this student?')">
+            <input type="hidden" name="id" value="{{ s.user_id }}">
+            <input type="hidden" name="table" value="Users">
+            <button type="submit" class="text-red-600 hover:text-red-800 font-medium">
+              Reset
+            </button>
+          </form>
+          
         </td>
       </tr>
       {% endfor %}

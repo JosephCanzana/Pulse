@@ -31,6 +31,22 @@ def delete_table_row(db, table, row_id):
     db.session.execute(query, {"row_id": row_id})
     db.session.commit()
 
+def reset_table_row(db, table, row_id):
+    if table != "Users":
+        raise ValueError("Reset operation is only allowed for the Users table.")
+    
+    DEFAULT_PASSWORD = "mcmY_1946"
+
+    query = text("""
+        UPDATE Users
+        SET password = :pwd,
+            is_verified = 0
+        WHERE id = :row_id
+    """)
+    db.session.execute(query, {"pwd": DEFAULT_PASSWORD, "row_id": row_id})
+    db.session.commit()
+
+
 def add_user(db,f_name, s_name, l_name, 
             email, school_id,
             gender, role):
