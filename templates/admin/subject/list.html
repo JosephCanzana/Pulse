@@ -5,6 +5,10 @@
 {% endblock %}
 
 {% block main %}
+<form action="{{ url_for('show_archive') }} method post">
+  <button>show_archive</button>
+</form>
+
 <div class="flex flex-col items-center justify-center">
   <a href="{{ url_for('admin_subject_add') }}" 
      class="m-2 rounded-full border border-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition">
@@ -30,7 +34,7 @@
 
         <td class="border px-3 py-2 text-center">
           <!-- Edit -->
-          <a href="{{ url_for('admin_subject_edit', subject_id=s.id) }}" 
+          <a href="{{ url_for('admin_subject_edit', id=s.subject_id) }}" 
              class="text-blue-600 hover:text-blue-800 font-medium mr-2">
             Edit
           </a>

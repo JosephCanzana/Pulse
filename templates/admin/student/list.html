@@ -5,6 +5,11 @@
 {% endblock %}
 
 {% block main %}
+<a href="{{ url_for('student_archive_switch') }}" 
+   class="rounded-full border border-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition">
+   {{ 'Show Active Students' if show_archive else 'Show Archived Students' }}
+</a>
+
 <div class="flex flex-col items-center justify-center">
   <a href="{{ url_for('admin_student_add') }}" 
      class="m-2 rounded-full border border-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition">

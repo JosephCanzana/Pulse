@@ -78,7 +78,6 @@ def testdb():
 def index():
     return render_template("index.html")
 
-
 # ==== LOGIN ====
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -239,7 +238,8 @@ def admin():
 @app.route("/admin/student")
 @login_required
 def admin_student():
-    query = text("""
+    show_archive = session.get("show_archive_student", False)
+    query = text(f"""
     SELECT 
         Users.id AS user_id,
         Users.first_name,
@@ -259,7 +259,7 @@ def admin_student():
     LEFT JOIN Course ON StudentProfile.course_id = Course.id
     LEFT JOIN Section ON StudentProfile.section_id = Section.id
     LEFT JOIN AcademicYear ON StudentProfile.year_id = AcademicYear.id
-    WHERE Users.role = 'student'
+    WHERE Users.role = 'student' and Users.status = {1 if show_archive else 0}
     ORDER BY Users.last_name, Users.first_name
     """)
 
@@ -414,13 +414,21 @@ def admin_student_edit(school_id):
             sections=sections,
             years=years
         )
+    
+@app.route("/admin/student/archive")
+@login_required
+def student_archive_switch():
+    # Toggle the archive visibility stored in session
+    session["show_archive_student"] = not session.get("show_archive_student", False)
+    return redirect(url_for("admin_student"))
 
 
 # Teacher (admin side)
 @app.route("/admin/teacher")
 @login_required
 def admin_teacher():
-    query = text("""
+    show_archive = session.get("show_archive_teacher", False)
+    query = text(f"""
     SELECT 
         Users.id AS user_id,
         Users.first_name,
@@ -429,6 +437,7 @@ def admin_teacher():
         Users.email,
         Users.school_id,
         Users.is_verified,
+        Users.status,
         TeacherProfile.id AS profile_id,
         EducationLevel.name AS education_level_name,
         Department.name AS department_name
@@ -436,7 +445,7 @@ def admin_teacher():
     JOIN TeacherProfile ON Users.id = TeacherProfile.user_id
     LEFT JOIN EducationLevel ON TeacherProfile.education_level_id = EducationLevel.id
     LEFT JOIN Department ON TeacherProfile.department_id = Department.id
-    WHERE Users.role = 'teacher'
+    WHERE Users.role = 'teacher' and Users.status = {1 if show_archive else 0}
     ORDER BY Users.last_name, Users.first_name
     """)
 
@@ -488,11 +497,103 @@ def admin_teacher_add():
         return render_template("admin/teacher/add_form.html", departments=departments, lvls=lvls)
 
 
-@app.route("/admin/teacher/edit", methods=["POST", "GET"])
+@app.route("/admin/teacher/edit/<string:school_id>", methods=["POST", "GET"])
 @login_required
-def admin_teacher_edit():
-    return render_template("admin/teacher/edit_form.html")
+def admin_teacher_edit(school_id):
+    # Get teacher info
+    teacher = db.session.execute(text("""
+        SELECT 
+            u.id AS user_id,
+            u.first_name, u.middle_name, u.last_name,
+            u.school_id, u.gender, u.email, u.is_verified,
+            tp.department_id, tp.education_level_id
+        FROM Users u
+        JOIN TeacherProfile tp ON u.id = tp.user_id
+        WHERE u.school_id = :school_id
+    """), {"school_id": school_id}).mappings().first()
 
+    if not teacher:
+        flash("Teacher not found.", "warning")
+        return redirect(url_for("admin_teacher"))
+
+    if request.method == "POST":
+        # Get form data
+        first = request.form.get("first_name").title()
+        second = request.form.get("second_name").title() if request.form.get("second_name") else None
+        last = request.form.get("last_name").title()
+        gender = request.form.get("gender").title()
+        school_id_new = request.form.get("school_id")
+        department_id = request.form.get("department_id")
+        lvl_id = request.form.get("lvl_id")
+        reset_account = request.form.get("reset_account") == "1"
+
+        new_email = f"{school_id_new}@holycross.edu.ph"
+
+        if not (first and last and gender and department_id and lvl_id):
+            flash("Please complete all required fields.", "warning")
+            return redirect(url_for("admin_teacher_edit", school_id=school_id))
+
+        # Update Users table
+        db.session.execute(text("""
+            UPDATE Users
+            SET first_name = :first,
+                middle_name = :second,
+                last_name = :last,
+                gender = :gender,
+                school_id = :new_school_id,
+                email = :email
+            WHERE id = :user_id
+        """), {
+            "first": first,
+            "second": second,
+            "last": last,
+            "gender": gender,
+            "new_school_id": school_id_new,
+            "email": new_email,
+            "user_id": teacher["user_id"]
+        })
+
+        # Update TeacherProfile
+        db.session.execute(text("""
+            UPDATE TeacherProfile
+            SET department_id = :department_id,
+                education_level_id = :lvl_id
+            WHERE user_id = :user_id
+        """), {
+            "department_id": department_id,
+            "lvl_id": lvl_id,
+            "user_id": teacher["user_id"]
+        })
+
+        # Reset account if triggered
+        if reset_account:
+            db.session.execute(text("""
+                UPDATE Users
+                SET password = :default_password, is_verified = FALSE
+                WHERE id = :user_id
+            """), {"default_password": DEFAULT_PASSWORD, "user_id": teacher["user_id"]})
+            flash("Teacher account has been reset.", "info")
+
+        db.session.commit()
+        flash("Teacher record updated successfully.", "success")
+        return redirect(url_for("admin_teacher"))
+
+    # GET mode - render form
+    departments = db.session.execute(text("SELECT * FROM Department")).mappings().all()
+    lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+
+    return render_template(
+        "admin/teacher/edit_form.html",
+        teacher=teacher,
+        departments=departments,
+        lvls=lvls
+    )
+
+@app.route("/admin/teacher/archive")
+@login_required
+def teacher_archive_switch():
+    session["show_archive_teacher"] = not session.get("show_archive_teacher", False)
+    return redirect(url_for("admin_teacher"))
 
 # course (Admin side)
 @app.route("/admin/course")
@@ -544,10 +645,33 @@ def admin_course_add():
                 valid_course.append(int(lvl["id"]))
         return render_template("admin/course/add_form.html", lvls=ed_lvl,valid_course=valid_course)
 
-@app.route("/admin/course/edit", methods=["POST", "GET"])
+@app.route("/admin/course/edit/<int:id>", methods=["GET", "POST"])
 @login_required
-def admin_course_edit():
-    return render_template("admin/course/edit_form.html")
+def admin_course_edit(id):
+    if request.method == "POST":
+        name = request.form.get("name").title().strip()
+        lvl_id = request.form.get("lvl_id")
+
+        query = text("UPDATE Course SET name = :name, education_level_id = :lvl_id WHERE id = :id")
+        db.session.execute(query, {"name": name, "lvl_id": lvl_id, "id": id})
+        db.session.commit()
+
+        flash("Course updated successfully!", "success")
+        return redirect(url_for("admin_course"))
+
+    # Fetch existing course info
+    query = text("""
+        SELECT Course.id AS course_id, Course.name AS course_name, EducationLevel.id AS education_level_id
+        FROM Course
+        LEFT JOIN EducationLevel ON Course.education_level_id = EducationLevel.id
+        WHERE Course.id = :id
+    """)
+    course = db.session.execute(query, {"id": id}).mappings().first()
+
+    lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+
+    return render_template("admin/course/edit_form.html", course=course, lvls=lvls)
+
 
 # Department (admin side)
 @app.route("/admin/department")
@@ -593,10 +717,39 @@ def admin_department_add():
         lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
         return render_template("admin/department/add_form.html", lvls=lvls)
 
-@app.route("/admin/department/edit", methods=["POST", "GET"])
+@app.route("/admin/department/edit/<int:id>", methods=["POST", "GET"])
 @login_required
-def admin_department_edit():
-    return render_template("admin/department/edit_form.html")
+def admin_department_edit(id):
+    if request.method == "POST":
+        name = request.form.get("name").title().strip()
+        lvl_id = request.form.get("lvl_id")
+
+        query = text("""
+            UPDATE Department
+            SET name = :name, education_level_id = :lvl_id
+            WHERE id = :id
+        """)
+        db.session.execute(query, {"name": name, "lvl_id": lvl_id, "id": id})
+        db.session.commit()
+
+        flash("Department updated successfully!", "success")
+        return redirect(url_for("admin_department"))
+
+    # Fetch existing department info
+    query = text("""
+        SELECT 
+            Department.id AS department_id, 
+            Department.name AS department_name, 
+            EducationLevel.id AS education_level_id
+        FROM Department
+        LEFT JOIN EducationLevel ON Department.education_level_id = EducationLevel.id
+        WHERE Department.id = :id
+    """)
+    department = db.session.execute(query, {"id": id}).mappings().first()
+
+    lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+
+    return render_template("admin/department/edit_form.html", department=department, lvls=lvls)
 
 
 # Subjects (admin side)
@@ -644,10 +797,44 @@ def admin_subject_add():
         flash("Successfully Added.", "Success")
         return render_template("admin/subject/add_form.html", lvls=lvls)
 
-@app.route("/admin/subject/edit", methods=["POST", "GET"])
+@app.route("/admin/subject/edit/<int:id>", methods=["POST", "GET"])
 @login_required
-def admin_subject_edit():
-    return render_template("admin/subject/edit_form.html")
+def admin_subject_edit(id):
+    if request.method == "POST":
+        name = request.form.get("name").strip().title()
+        lvl_id = request.form.get("lvl_id")
+
+        if not name or not lvl_id:
+            flash("Please fill up the form.", "info")
+            return redirect(url_for("admin_subject_edit", id=id))
+
+        # Update subject
+        query = text("""
+            UPDATE Subject
+            SET name = :name, education_level_id = :lvl_id
+            WHERE id = :id
+        """)
+        db.session.execute(query, {"name": name, "lvl_id": lvl_id, "id": id})
+        db.session.commit()
+
+        flash("Subject updated successfully!", "success")
+        return redirect(url_for("admin_subject"))
+
+    # Fetch current subject info
+    query = text("""
+        SELECT 
+            Subject.id AS subject_id, 
+            Subject.name AS subject_name, 
+            EducationLevel.id AS education_level_id
+        FROM Subject
+        LEFT JOIN EducationLevel ON Subject.education_level_id = EducationLevel.id
+        WHERE Subject.id = :id
+    """)
+    subject = db.session.execute(query, {"id": id}).mappings().first()
+
+    lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+
+    return render_template("admin/subject/edit_form.html", subject=subject, lvls=lvls)
 
 @app.route("/admin/delete", methods=["POST"])
 @login_required
