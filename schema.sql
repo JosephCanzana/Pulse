@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS Users (
     last_name VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     school_id VARCHAR(50),
-    status BOOLEAN NOT NULL DEFAULT FALSE,
+    status BOOLEAN NOT NULL DEFAULT TRUE,
     gender ENUM('Male','Female','Other'),
     is_verified BOOLEAN NOT NULL DEFAULT FALSE,
     password VARCHAR(255) NOT NULL DEFAULT 'mcmY_1946',

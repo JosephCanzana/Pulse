@@ -1,12 +1,142 @@
 {% extends "layout.html" %}
-  
-{% block title %}
-  Dashboard
-{% endblock %}
+
+{% block title %}Admin Dashboard{% endblock %}
 
 {% block main %}
-<h1>Dashboard Admin</h1>
-<h2>Hello {{ session.get('first_name').capitalize() }}!</h2>
-<h2>Your DB Id: {{ session.get("user_id") }}</h2>
+<div class="p-8 space-y-8">
 
+  <!-- Greeting -->
+  <h1 class="text-3xl font-bold text-[var(--clr-txt-primary)]">Welcome, {{ name }}!</h1>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {% set card_colors = [
+      'bg-gradient-to-r from-[var(--clr-primary)] to-[var(--clr-secondary)]',
+      'bg-gradient-to-r from-[var(--clr-success)] to-[var(--clr-success)]',
+      'bg-gradient-to-r from-[var(--clr-tertiary)] to-[var(--clr-info)]',
+      'bg-gradient-to-r from-[var(--clr-warning)] to-[var(--clr-warning)]'
+    ] %}
+    {% set icons = ['fa-user-graduate','fa-chalkboard-teacher','fa-book-open','fa-building'] %}
+    {% set totals = [total_students, total_teachers, total_courses, total_departments] %}
+    {% set titles = ['Total Students', 'Total Teachers', 'Courses', 'Departments'] %}
+
+    {% for i in range(4) %}
+    <div class="p-6 rounded-xl shadow-lg flex justify-between items-center {{ card_colors[i] }} text-white dark:text-white transition-colors duration-300">
+      <div>
+        <h2 class="text-2xl font-bold">{{ totals[i] }}</h2>
+        <p>{{ titles[i] }}</p>
+      </div>
+      <i class="fa {{ icons[i] }} text-4xl"></i>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Charts Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6 transition-colors duration-300">
+      <h3 class="font-bold mb-4 text-[var(--clr-txt-primary)]">Students per Course</h3>
+      <canvas id="studentsCourseChart"></canvas>
+    </div>
+    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6 transition-colors duration-300">
+      <h3 class="font-bold mb-4 text-[var(--clr-txt-primary)]">Teachers per Department</h3>
+      <canvas id="teachersDeptChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6 transition-colors duration-300">
+      <h3 class="font-bold mb-4 text-[var(--clr-txt-primary)]">Recent Students</h3>
+      <ul class="space-y-2 text-[var(--clr-txt-secondary)]">
+        {% for s in recent_students %}
+        <li class="flex justify-between border-b border-[var(--clr-border)] py-1">
+          <span>{{ s.first_name }} {{ s.middle_name }} {{ s.last_name }}</span>
+          <span class="text-[var(--clr-txt-muted)]">{{ s.school_id }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6 transition-colors duration-300">
+      <h3 class="font-bold mb-4 text-[var(--clr-txt-primary)]">Recent Teachers</h3>
+      <ul class="space-y-2 text-[var(--clr-txt-secondary)]">
+        {% for t in recent_teachers %}
+        <li class="flex justify-between border-b border-[var(--clr-border)] py-1">
+          <span>{{ t.first_name }} {{ t.middle_name }} {{ t.last_name }}</span>
+          <span class="text-[var(--clr-txt-muted)]">{{ t.school_id }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- Charts.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Convert CSS variable to RGB
+  function cssVarToRGB(varName) {
+    const rgb = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    return rgb;
+  }
+
+  function createGradient(ctx, colorVar1, colorVar2) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, cssVarToRGB(colorVar1));
+    gradient.addColorStop(1, cssVarToRGB(colorVar2));
+    return gradient;
+  }
+
+  const ctxStudents = document.getElementById('studentsCourseChart').getContext('2d');
+  const studentsGradient = createGradient(ctxStudents, '--clr-info', '--clr-tertiary');
+
+  new Chart(ctxStudents, {
+    type: 'bar',
+    data: {
+      labels: {{ students_per_course | map(attribute='course_name') | list | safe }},
+      datasets: [{
+        label: 'Students',
+        data: {{ students_per_course | map(attribute='student_count') | list | safe }},
+        backgroundColor: studentsGradient,
+        borderRadius: 10,
+        barThickness: 24
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: cssVarToRGB('--clr-txt-primary') } },
+        y: { ticks: { color: cssVarToRGB('--clr-txt-primary') } }
+      }
+    }
+  });
+
+  const ctxTeachers = document.getElementById('teachersDeptChart').getContext('2d');
+  const teachersGradient = createGradient(ctxTeachers, '--clr-success', '--clr-info');
+
+  new Chart(ctxTeachers, {
+    type: 'line',
+    data: {
+      labels: {{ teachers_per_dept | map(attribute='department_name') | list | safe }},
+      datasets: [{
+        label: 'Teachers',
+        data: {{ teachers_per_dept | map(attribute='teacher_count') | list | safe }},
+        backgroundColor: teachersGradient,
+        borderColor: cssVarToRGB('--clr-success'),
+        fill: true,
+        tension: 0.4,
+        pointRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: cssVarToRGB('--clr-txt-primary') } },
+        y: { ticks: { color: cssVarToRGB('--clr-txt-primary') } }
+      }
+    }
+  });
+</script>
 {% endblock %}

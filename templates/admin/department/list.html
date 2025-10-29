@@ -5,50 +5,67 @@
 {% endblock %}
 
 {% block main %}
-<div class="flex flex-col items-center justify-center">
+
+<!-- Page Header -->
+<div class="flex flex-wrap items-center justify-between mb-8 gap-3">
   <a href="{{ url_for('admin_department_add') }}" 
-     class="m-2 rounded-full border border-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition">
-     Add Department
+     class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
+    <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">add_circle</span>
+    Add Department
   </a>
+</div>
 
-  <h1 class="m-2 text-xl font-semibold">Department List</h1>
+<!-- Title -->
+<h1 class="text-2xl font-semibold mb-6 text-[var(--clr-txt-primary)]">
+  Department List
+</h1>
 
-  <table class="border-collapse border border-gray-400 text-sm w-full max-w-3xl">
-    <thead class="bg-gray-100">
+<!-- Glass Table Container -->
+<div class="overflow-x-auto rounded-3xl border border-[var(--clr-glass-border)] bg-[var(--clr-glass-light)] backdrop-blur-md shadow-xl ">
+  <table class="w-full border-collapse text-sm">
+    <thead class="bg-[var(--clr-surface-alt)]/70 text-[var(--clr-txt-secondary)]">
       <tr>
-        <th class="border px-3 py-2">Department Name</th>
-        <th class="border px-3 py-2">Education Level</th>
-        <th class="border px-3 py-2 text-center">Actions</th>
+        <th class="px-4 py-3 text-left">Department Name</th>
+        <th class="px-4 py-3 text-left">Education Level</th>
+        <th class="px-4 py-3 text-center">Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for d in departments %}
-      <tr class="hover:bg-gray-50 transition">
-        <td class="border px-3 py-2">{{ d.department_name }}</td>
-        <td class="border px-3 py-2">{{ d.education_level_name or 'N/A' }}</td>
+      <tr class="border-t border-[var(--clr-border)] hover:bg-[var(--clr-glass-border)]/40 transition-all">
+        <td class="px-4 py-3 whitespace-nowrap">{{ d.department_name }}</td>
+        <td class="px-4 py-3 whitespace-nowrap">{{ d.education_level_name or 'N/A' }}</td>
 
-        <td class="border px-3 py-2 text-center">
-          <!-- Edit -->
-          <a href="{{ url_for('admin_department_edit', id=d.department_id) }}" 
-             class="text-blue-600 hover:text-blue-800 font-medium mr-2">
-            Edit
-          </a>
+        <td class="px-4 py-3 text-center">
+          <div class="flex justify-center gap-2">
 
-          <!-- Delete -->
-          <form action="{{ url_for('admin_delete') }}" 
-                method="POST" 
-                class="inline"
-                onsubmit="return openConfirmFormModal(event, this, 'Delete Department', 'Are you sure you want to delete this department?')">
-            <input type="hidden" name="id" value="{{ d.department_id }}">
-            <input type="hidden" name="table" value="Department">
-            <button type="submit" class="text-red-600 hover:text-red-800 font-medium">
-              Delete
-            </button>
-          </form>
+            <!-- Edit -->
+            <a href="{{ url_for('admin_department_edit', id=d.department_id) }}" 
+               class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-txt-hover)] hover:bg-[var(--clr-glow-tertiary)]/10 hover:shadow-md transition-all">
+              <span class="material-symbols-rounded text-base">edit</span> 
+              Edit
+            </a>
+
+            <!-- Delete -->
+            <form action="{{ url_for('admin_delete') }}" 
+                  method="POST" 
+                  class="inline"
+                  onsubmit="return openConfirmFormModal(event, this, 'Delete Department', 'Are you sure you want to delete this department?')">
+              <input type="hidden" name="id" value="{{ d.department_id }}">
+              <input type="hidden" name="table" value="Department">
+              <button type="submit" 
+                      class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
+                <span class="material-symbols-rounded text-base">delete</span> 
+                Delete
+              </button>
+            </form>
+
+          </div>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
 {% endblock %}

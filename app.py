@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from sqlalchemy import text
+from sqlalchemy import text, func
 from helpers import *
 
 # ==== APP SETUP ====
@@ -231,7 +231,93 @@ def unauthorized():
 @app.route("/admin")
 @login_required
 def admin():
-    return render_template("admin/dashboard.html", name=session["first_name"])
+    # --- Summary Counts ---
+    total_students = db.session.execute(
+        text("SELECT COUNT(*) AS count FROM Users WHERE role='student' AND status=1")
+    ).scalar()
+
+    archived_students = db.session.execute(
+        text("SELECT COUNT(*) AS count FROM Users WHERE role='student' AND status=0")
+    ).scalar()
+
+    total_teachers = db.session.execute(
+        text("SELECT COUNT(*) AS count FROM Users WHERE role='teacher' AND status=1")
+    ).scalar()
+
+    archived_teachers = db.session.execute(
+        text("SELECT COUNT(*) AS count FROM Users WHERE role='teacher' AND status=0")
+    ).scalar()
+
+    total_courses = db.session.execute(
+        text("SELECT COUNT(*) AS count FROM Course")
+    ).scalar()
+
+    total_departments = db.session.execute(
+        text("SELECT COUNT(*) AS count FROM Department")
+    ).scalar()
+
+    total_subjects = db.session.execute(
+        text("SELECT COUNT(*) AS count FROM Subject")
+    ).scalar()
+
+    # --- Recent Activity ---
+    recent_students = db.session.execute(
+        text("""
+            SELECT first_name, middle_name, last_name, school_id 
+            FROM Users 
+            WHERE role='student' 
+            ORDER BY id DESC LIMIT 5
+        """)
+    ).mappings().all()
+
+    recent_teachers = db.session.execute(
+        text("""
+            SELECT first_name, middle_name, last_name, school_id 
+            FROM Users 
+            WHERE role='teacher' 
+            ORDER BY id DESC LIMIT 5
+        """)
+    ).mappings().all()
+
+    # --- Data for Charts ---
+    # Students per Course
+    students_per_course = db.session.execute(
+        text("""
+            SELECT c.name AS course_name, COUNT(s.id) AS student_count
+            FROM StudentProfile s
+            LEFT JOIN Course c ON s.course_id = c.id
+            GROUP BY c.name
+            ORDER BY student_count DESC
+        """)
+    ).mappings().all()
+
+    # Teachers per Department
+    teachers_per_dept = db.session.execute(
+        text("""
+            SELECT d.name AS department_name, COUNT(t.id) AS teacher_count
+            FROM TeacherProfile t
+            LEFT JOIN Department d ON t.department_id = d.id
+            GROUP BY d.name
+            ORDER BY teacher_count DESC
+        """)
+    ).mappings().all()
+
+    return render_template(
+        "admin/dashboard.html",
+        total_students=total_students,
+        archived_students=archived_students,
+        total_teachers=total_teachers,
+        archived_teachers=archived_teachers,
+        total_courses=total_courses,
+        total_departments=total_departments,
+        total_subjects=total_subjects,
+        recent_students=recent_students,
+        recent_teachers=recent_teachers,
+        students_per_course=students_per_course,
+        teachers_per_dept=teachers_per_dept,
+        name=session.get("first_name")
+    )
+
 
 
 # Student(admin side)
@@ -259,9 +345,9 @@ def admin_student():
     LEFT JOIN Course ON StudentProfile.course_id = Course.id
     LEFT JOIN Section ON StudentProfile.section_id = Section.id
     LEFT JOIN AcademicYear ON StudentProfile.year_id = AcademicYear.id
-    WHERE Users.role = 'student' and Users.status = {1 if show_archive else 0}
+    WHERE Users.role = 'student' {'AND Users.status = 1' if show_archive else ''}
     ORDER BY Users.last_name, Users.first_name
-    """)
+    """)    
 
     students = db.session.execute(query).mappings().all()
     return render_template("admin/student/list.html", students=students)
@@ -445,7 +531,7 @@ def admin_teacher():
     JOIN TeacherProfile ON Users.id = TeacherProfile.user_id
     LEFT JOIN EducationLevel ON TeacherProfile.education_level_id = EducationLevel.id
     LEFT JOIN Department ON TeacherProfile.department_id = Department.id
-    WHERE Users.role = 'teacher' and Users.status = {1 if show_archive else 0}
+    WHERE Users.role = 'teacher' {'and Users.status = 1' if show_archive else ''}
     ORDER BY Users.last_name, Users.first_name
     """)
 

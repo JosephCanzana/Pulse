@@ -5,91 +5,106 @@
 {% endblock %}
 
 {% block main %}
-<a href="{{ url_for('teacher_archive_switch') }}" 
-   class="rounded-full border border-blue-600 px-4 py-2 hover:bg-blue-600 hover:text-white transition">
-   {{ 'Show Active Teachers' if show_archive else 'Show Archived Teachers' }}
-</a>
 
-<div class="flex flex-col items-center justify-center p-4">
-  <!-- Add Teacher Button -->
-  <a 
-    href="{{ url_for('admin_teacher_add') }}" 
-    class="rounded-full border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition px-4 py-2 mb-4"
-  >
-    Add Teacher
+<!-- Page Header -->
+<div class="flex flex-wrap items-center justify-between mb-8 gap-3">
+  <a href="{{ url_for('teacher_archive_switch') }}" 
+     class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
+    <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">archive</span>
+    {{ 'Show Active Teachers' if show_archive else 'Show Archived Teachers' }}
   </a>
 
-  <h1 class="text-xl font-semibold mb-4">Teacher List</h1>
+  <a href="{{ url_for('admin_teacher_add') }}" 
+     class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
+    <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">person_add</span>
+    Add Teacher
+  </a>
+</div>
 
-  <!-- Table -->
-  <div class="overflow-x-auto w-full max-w-5xl">
-    <table class="border-collapse border border-gray-300 text-sm w-full">
-      <thead class="bg-gray-100">
-        <tr>
-          <th class="border px-3 py-2">Name</th>
-          <th class="border px-3 py-2">Email</th>
-          <th class="border px-3 py-2">School ID</th>
-          <th class="border px-3 py-2">Education Level</th>
-          <th class="border px-3 py-2">Department</th>
-          <th class="border px-3 py-2">Account Status</th>
-          <th class="border px-3 py-2 text-center">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for t in teachers %}
-        <tr class="hover:bg-gray-50 transition">
-          <td class="border px-3 py-2">{{ t.first_name }} {{ t.last_name }}</td>
-          <td class="border px-3 py-2">{{ t.email }}</td>
-          <td class="border px-3 py-2">{{ t.school_id }}</td>
-          <td class="border px-3 py-2">{{ t.education_level_name or 'N/A' }}</td>
-          <td class="border px-3 py-2">{{ t.department_name or 'N/A' }}</td>
-          <td class="border px-3 py-2">
-            {% if t.is_verified %}
-              <span class="text-green-600 font-medium">Activated</span>
-            {% else %}
-              <span class="text-red-600 font-medium">Not Activated</span>
-            {% endif %}
-          </td>
-          <td class="border px-3 py-2 text-center space-x-2">
-            <!-- Edit Button -->
-            <a 
-              href="{{ url_for('admin_teacher_edit', school_id=t.school_id) }}" 
-              class="text-blue-600 hover:text-blue-800 font-medium"
-            >
+<!-- Title -->
+<h1 class="text-2xl font-semibold mb-6 text-[var(--clr-txt-primary)]">
+  Teacher List
+</h1>
+
+<!-- Glass Table Container -->
+<div class="overflow-x-auto rounded-3xl border border-[var(--clr-glass-border)] bg-[var(--clr-glass-light)] backdrop-blur-md shadow-xl">
+  <table class="w-full border-collapse text-sm">
+    <thead class="bg-[var(--clr-surface-alt)]/70 text-[var(--clr-txt-secondary)]">
+      <tr>
+        <th class="px-4 py-3 text-left">Name</th>
+        <th class="px-4 py-3 text-left">Email</th>
+        <th class="px-4 py-3 text-left">School ID</th>
+        <th class="px-4 py-3 text-left">Education Level</th>
+        <th class="px-4 py-3 text-left">Department</th>
+        <th class="px-4 py-3 text-center">Account Status</th>
+        <th class="px-4 py-3 text-center">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in teachers %}
+      <tr class="border-t border-[var(--clr-border)] hover:bg-[var(--clr-glass-border)]/40 transition-all">
+        <td class="px-4 py-3 whitespace-nowrap">{{ t.first_name }} {{ t.last_name }}</td>
+        <td class="px-4 py-3 whitespace-nowrap">{{ t.email }}</td>
+        <td class="px-4 py-3 whitespace-nowrap">{{ t.school_id }}</td>
+        <td class="px-4 py-3 whitespace-nowrap">{{ t.education_level_name or 'N/A' }}</td>
+        <td class="px-4 py-3 whitespace-nowrap">{{ t.department_name or 'N/A' }}</td>
+        <td class="px-4 py-3 text-center">
+          {% if t.is_verified %}
+            <span class="text-[var(--clr-success)] font-medium flex items-center justify-center gap-1">
+              <span class="material-symbols-rounded text-sm">check_circle</span>
+              Activated
+            </span>
+          {% else %}
+            <span class="text-[var(--clr-error)] font-medium flex items-center justify-center gap-1">
+              <span class="material-symbols-rounded text-sm">cancel</span>
+              Not Activated
+            </span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-center">
+          <div class="flex justify-center gap-2">
+
+            <!-- Edit -->
+            <a href="{{ url_for('admin_teacher_edit', school_id=t.school_id) }}" 
+               class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-txt-hover)] hover:bg-[var(--clr-glow-tertiary)]/10 hover:shadow-md transition-all">
+              <span class="material-symbols-rounded text-base">edit</span> 
               Edit
             </a>
 
-            <!-- Delete Form -->
-            <form 
-              action="{{ url_for('admin_delete') }}" 
-              method="POST" 
-              class="inline"
-              onsubmit="return openConfirmFormModal(event, this, 'Delete Teacher', 'Are you sure you want to delete this teacher?')"
-            >
+            <!-- Delete -->
+            <form action="{{ url_for('admin_delete') }}" 
+                  method="POST" 
+                  class="inline"
+                  onsubmit="return openConfirmFormModal(event, this, 'Delete Teacher', 'Are you sure you want to delete this teacher?')">
               <input type="hidden" name="id" value="{{ t.user_id }}">
               <input type="hidden" name="table" value="Users">
-              <button 
-                type="submit" 
-                class="text-red-600 hover:text-red-800 font-medium"
-              >
+              <button type="submit" 
+                      class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
+                <span class="material-symbols-rounded text-base">delete</span> 
                 Delete
               </button>
             </form>
+
+            <!-- Reset -->
             <form action="{{ url_for('admin_reset') }}" 
                   method="POST" 
                   class="inline"
                   onsubmit="return openConfirmFormModal(event, this, 'Reset Teacher Account', 'Are you sure you want to reset password of this teacher?')">
               <input type="hidden" name="id" value="{{ t.user_id }}">
               <input type="hidden" name="table" value="Users">
-              <button type="submit" class="text-red-600 hover:text-red-800 font-medium">
+              <button type="submit" 
+                      class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-warning)] hover:bg-[var(--clr-warning)]/10 hover:shadow-md transition-all">
+                <span class="material-symbols-rounded text-base">refresh</span> 
                 Reset
-            </button>
+              </button>
             </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
+
 {% endblock %}
