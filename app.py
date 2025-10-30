@@ -319,38 +319,40 @@ def admin():
     )
 
 
-
-# Student(admin side)
+# Student (admin side)
 @app.route("/admin/student")
 @login_required
 def admin_student():
     show_archive = session.get("show_archive_student", False)
+    
     query = text(f"""
-    SELECT 
-        Users.id AS user_id,
-        Users.first_name,
-        Users.middle_name,
-        Users.last_name,
-        Users.email,
-        Users.school_id,
-        Users.is_verified,
-        StudentProfile.id AS profile_id,
-        EducationLevel.name AS education_level_name,
-        Course.name AS course_name,
-        Section.name AS section_name,
-        AcademicYear.name AS academic_year_name
-    FROM Users
-    JOIN StudentProfile ON Users.id = StudentProfile.user_id
-    LEFT JOIN EducationLevel ON StudentProfile.education_level_id = EducationLevel.id
-    LEFT JOIN Course ON StudentProfile.course_id = Course.id
-    LEFT JOIN Section ON StudentProfile.section_id = Section.id
-    LEFT JOIN AcademicYear ON StudentProfile.year_id = AcademicYear.id
-    WHERE Users.role = 'student' {'AND Users.status = 1' if show_archive else ''}
-    ORDER BY Users.last_name, Users.first_name
-    """)    
-
+        SELECT 
+            Users.id AS user_id,
+            Users.first_name,
+            Users.middle_name,
+            Users.last_name,
+            Users.email,
+            Users.school_id,
+            Users.is_verified,
+            StudentProfile.id AS profile_id,
+            EducationLevel.name AS education_level_name,
+            Course.name AS course_name,
+            Section.name AS section_name,
+            AcademicYear.name AS academic_year_name
+        FROM Users
+        JOIN StudentProfile ON Users.id = StudentProfile.user_id
+        LEFT JOIN EducationLevel ON StudentProfile.education_level_id = EducationLevel.id
+        LEFT JOIN Course ON StudentProfile.course_id = Course.id
+        LEFT JOIN Section ON StudentProfile.section_id = Section.id
+        LEFT JOIN AcademicYear ON StudentProfile.year_id = AcademicYear.id
+        WHERE Users.role = 'student'
+        AND Users.status = {0 if show_archive else 1}
+        ORDER BY Users.last_name, Users.first_name
+    """)
+    
     students = db.session.execute(query).mappings().all()
-    return render_template("admin/student/list.html", students=students)
+    return render_template("admin/student/list.html", students=students, show_archive=show_archive)
+
 
 
 @app.route("/admin/student/add", methods=["POST", "GET"])
@@ -370,7 +372,19 @@ def admin_student_add():
 
         if first == None or last == None or school_id == None or gender == None:
             flash("Please fill up form.", "info")
-            return redirect(url_for(admin_student_add))
+            return redirect(url_for("admin_student_add"))
+        
+
+        if len(school_id) != 8:
+            flash("The school id must be 8 digit.", "info")
+            return redirect(url_for("admin_student_add"))
+        
+        try:
+            school_id = int(school_id)
+        except (TypeError, ValueError):
+            flash("School ID must be an integer", "warning")
+            return redirect(url_for("admin_student_add"))
+
 
         # Get existing student id to avoid duplicate
         if is_exist(db, school_id, "school_id", "Users"):
@@ -392,6 +406,11 @@ def admin_student_add():
         course_id = request.form.get("course")
         section_id = request.form.get("section")
         year_id = request.form.get("year")
+
+        if not (education_lvl and course_id and section_id and year_id):
+            flash("Some fields are missing!", "warning")
+            return redirect(url_for("admin_student_add"))
+
 
         assign_student_profile(db,user_id,education_lvl,course_id,section_id, year_id)
 
@@ -500,7 +519,25 @@ def admin_student_edit(school_id):
             sections=sections,
             years=years
         )
-    
+
+@app.route("/admin/student/archive/<string:school_id>", methods=["POST", "GET"])
+def admin_student_archive(school_id):
+    # Toggle status (example: 1 = active, 0 = archived)
+    db.session.execute(
+        text("""
+            UPDATE Users
+            SET status = CASE 
+                WHEN status = 1 THEN 0
+                ELSE 1
+            END
+            WHERE school_id = :school_id
+        """),
+        {"school_id": school_id}
+    )
+    db.session.commit()
+    return redirect(url_for("admin_student"))
+
+
 @app.route("/admin/student/archive")
 @login_required
 def student_archive_switch():
@@ -515,28 +552,30 @@ def student_archive_switch():
 def admin_teacher():
     show_archive = session.get("show_archive_teacher", False)
     query = text(f"""
-    SELECT 
-        Users.id AS user_id,
-        Users.first_name,
-        Users.middle_name,
-        Users.last_name,
-        Users.email,
-        Users.school_id,
-        Users.is_verified,
-        Users.status,
-        TeacherProfile.id AS profile_id,
-        EducationLevel.name AS education_level_name,
-        Department.name AS department_name
-    FROM Users
-    JOIN TeacherProfile ON Users.id = TeacherProfile.user_id
-    LEFT JOIN EducationLevel ON TeacherProfile.education_level_id = EducationLevel.id
-    LEFT JOIN Department ON TeacherProfile.department_id = Department.id
-    WHERE Users.role = 'teacher' {'and Users.status = 1' if show_archive else ''}
-    ORDER BY Users.last_name, Users.first_name
+        SELECT 
+            Users.id AS user_id,
+            Users.first_name,
+            Users.middle_name,
+            Users.last_name,
+            Users.email,
+            Users.school_id,
+            Users.is_verified,
+            Users.status,
+            TeacherProfile.id AS profile_id,
+            EducationLevel.name AS education_level_name,
+            Department.name AS department_name
+        FROM Users
+        JOIN TeacherProfile ON Users.id = TeacherProfile.user_id
+        LEFT JOIN EducationLevel ON TeacherProfile.education_level_id = EducationLevel.id
+        LEFT JOIN Department ON TeacherProfile.department_id = Department.id
+        WHERE Users.role = 'teacher' 
+        AND Users.status = {0 if show_archive else 1}
+        ORDER BY Users.last_name, Users.first_name
     """)
 
     teachers = db.session.execute(query).mappings().all()
-    return render_template("admin/teacher/list.html", teachers=teachers)
+
+    return render_template("admin/teacher/list.html", teachers=teachers, show_archive=show_archive)
 
 @app.route("/admin/teacher/add", methods=["POST", "GET"])
 @login_required
@@ -554,17 +593,24 @@ def admin_teacher_add():
 
         if first == None or last == None or school_id == None or gender == None:
             flash("Please fill up form.", "info")
-            return redirect(url_for(admin_teacher_add))
+            return redirect(url_for("admin_teacher_add"))
         
+        try:
+            school_id = int(school_id)
+        except (TypeError, ValueError):
+            flash("School ID must be an integer", "warning")
+            return redirect(url_for('admin_teacher_add'))
+
+            
         # Get existing course to avoid duplicate
         if is_exist(db, school_id, "school_id", "Users"):
             flash("The school id already exist.", "info")
-            return redirect(url_for(admin_teacher_add))
+            return redirect(url_for("admin_teacher_add"))
         
         # First, second, and last name is already existing
         if is_exist(db, first, "first_name", "Users") and is_exist(db, second, "middle_name", "Users") and is_exist(db, last, "last_name", "Users"):
             flash("The name already exist.", "info")
-            return redirect(url_for(admin_teacher_add))
+            return redirect(url_for("admin_teacher_add"))
 
         # Add user in db
         user = add_user(db, first, second, last, email, school_id, gender, "teacher")
@@ -675,6 +721,24 @@ def admin_teacher_edit(school_id):
         lvls=lvls
     )
 
+@app.route("/admin/teacher/archive/<string:school_id>", methods=["POST", "GET"])
+def admin_teacher_archive(school_id):
+    # Toggle status (example: 1 = active, 0 = archived)
+    db.session.execute(
+        text("""
+            UPDATE Users
+            SET status = CASE 
+                WHEN status = 1 THEN 0
+                ELSE 1
+            END
+            WHERE school_id = :school_id
+        """),
+        {"school_id": school_id}
+    )
+    db.session.commit()
+    return redirect(url_for("admin_teacher"))
+
+
 @app.route("/admin/teacher/archive")
 @login_required
 def teacher_archive_switch():
@@ -717,7 +781,7 @@ def admin_course_add():
         # Get existing course to avoid duplicate
         if is_exist(db, course_name, "name", "Course"):
             flash("The course name already exist.", "info")
-            return redirect(url_for(admin_course_add))
+            return redirect(url_for("admin_course_add"))
 
         # Append to the courses
         add_course(db, course_name, lvl_id)
@@ -842,18 +906,21 @@ def admin_department_edit(id):
 @app.route("/admin/subject")
 @login_required
 def admin_subject():
+    show_archive = session.get("show_archive_subject", False)
     query = text("""
-        SELECT
-            Subject.id AS subject_id,
-            Subject.name AS subject_name,
+        SELECT 
+            Subject.id,
+            Subject.name,
+            Subject.status,
             EducationLevel.name AS education_level_name
         FROM Subject
         LEFT JOIN EducationLevel ON Subject.education_level_id = EducationLevel.id
+        WHERE Subject.status = :status
         ORDER BY Subject.name
     """)
-
-    subjects = db.session.execute(query).mappings().all()
-    return render_template("admin/subject/list.html", subjects=subjects)
+    
+    subjects = db.session.execute(query, {"status": int(not show_archive)}).fetchall()
+    return render_template("admin/subject/list.html", subjects=subjects, show_archive=show_archive)
 
 @app.route("/admin/subject/add", methods=["POST", "GET"])
 @login_required
@@ -880,7 +947,6 @@ def admin_subject_add():
         return redirect(url_for("admin_subject_add"))
     else:
         lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
-        flash("Successfully Added.", "Success")
         return render_template("admin/subject/add_form.html", lvls=lvls)
 
 @app.route("/admin/subject/edit/<int:id>", methods=["POST", "GET"])
@@ -921,6 +987,36 @@ def admin_subject_edit(id):
     lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
 
     return render_template("admin/subject/edit_form.html", subject=subject, lvls=lvls)
+
+# Archive / Unarchive a Subject
+@app.route("/admin/subject/archive/<int:subject_id>", methods=["POST", "GET"])
+@login_required
+def admin_subject_archive(subject_id):
+    # Toggle status (1 = active, 0 = archived)
+    db.session.execute(
+        text("""
+            UPDATE Subject
+            SET status = CASE 
+                WHEN status = 1 THEN 0
+                ELSE 1
+            END
+            WHERE id = :subject_id
+        """),
+        {"subject_id": subject_id}
+    )
+    db.session.commit()
+    return redirect(url_for("admin_subject"))
+
+
+# Switch between showing archived and active subjects
+@app.route("/admin/subject/archive")
+@login_required
+def subject_archive_switch():
+    # Toggle visibility flag in session
+    session["show_archive_subject"] = not session.get("show_archive_subject", False)
+    return redirect(url_for("admin_subject"))
+
+
 
 @app.route("/admin/delete", methods=["POST"])
 @login_required

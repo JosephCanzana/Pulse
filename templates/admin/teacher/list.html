@@ -9,9 +9,16 @@
 <!-- Page Header -->
 <div class="flex flex-wrap items-center justify-between mb-8 gap-3">
   <a href="{{ url_for('teacher_archive_switch') }}" 
-     class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
-    <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">archive</span>
-    {{ 'Show Active Teachers' if show_archive else 'Show Archived Teachers' }}
+    class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 font-medium shadow-md hover:shadow-lg transition-all duration-300
+    {{ 'text-yellow-600 border-yellow-500 bg-yellow-100/80 hover:bg-yellow-200/80' if show_archive else 'text-[var(--clr-txt-primary)] hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)]' }}">
+    
+    <span class="material-symbols-rounded transition-colors duration-300">
+      {{ 'unarchive' if show_archive else 'archive' }}
+    </span>
+    
+    <span class="transition-colors duration-300">
+      {{ 'Showing Archived Teachers' if show_archive else 'Show Archived Teachers' }}
+    </span>
   </a>
 
   <a href="{{ url_for('admin_teacher_add') }}" 
@@ -43,7 +50,9 @@
     <tbody>
       {% for t in teachers %}
       <tr class="border-t border-[var(--clr-border)] hover:bg-[var(--clr-glass-border)]/40 transition-all">
-        <td class="px-4 py-3 whitespace-nowrap">{{ t.first_name }} {{ t.last_name }}</td>
+        <td class="px-4 py-3 whitespace-nowrap">
+          {{ t.first_name }} {{ t.last_name }}
+        </td>
         <td class="px-4 py-3 whitespace-nowrap">{{ t.email }}</td>
         <td class="px-4 py-3 whitespace-nowrap">{{ t.school_id }}</td>
         <td class="px-4 py-3 whitespace-nowrap">{{ t.education_level_name or 'N/A' }}</td>
@@ -71,33 +80,58 @@
               Edit
             </a>
 
-            <!-- Delete -->
-            <form action="{{ url_for('admin_delete') }}" 
-                  method="POST" 
-                  class="inline"
-                  onsubmit="return openConfirmFormModal(event, this, 'Delete Teacher', 'Are you sure you want to delete this teacher?')">
-              <input type="hidden" name="id" value="{{ t.user_id }}">
-              <input type="hidden" name="table" value="Users">
-              <button type="submit" 
-                      class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
-                <span class="material-symbols-rounded text-base">delete</span> 
-                Delete
-              </button>
-            </form>
+            {% if not show_archive %}
+              <!-- Archive -->
+              <form action="{{ url_for('admin_teacher_archive', school_id=t.school_id) }}" 
+                    method="POST"
+                    class="inline"
+                    onsubmit="return openConfirmFormModal(event, this, 'Archive Teacher', 'Are you sure you want to archive this teacher?')">
+                <button type="submit" 
+                        class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-yellow-600 hover:bg-yellow-100/60 hover:shadow-md transition-all">
+                  <span class="material-symbols-rounded text-base">archive</span> 
+                  Archive
+                </button>
+              </form>
+              <!-- Reset -->
+              <form action="{{ url_for('admin_reset') }}" 
+                    method="POST" 
+                    class="inline"
+                    onsubmit="return openConfirmFormModal(event, this, 'Reset Teacher Account', 'Are you sure you want to reset this password?')">
+                <input type="hidden" name="id" value="{{ t.user_id }}">
+                <input type="hidden" name="table" value="Users">
+                <button type="submit" 
+                        class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
+                  <span class="material-symbols-rounded text-base">refresh</span> 
+                  Reset
+                </button>
+              </form>
+            {% else %}
+              <!-- Unarchive -->
+              <form action="{{ url_for('admin_teacher_archive', school_id=t.school_id) }}" 
+                    method="POST"
+                    class="inline"
+                    onsubmit="return openConfirmFormModal(event, this, 'Unarchive Teacher', 'Do you want to unarchive this teacher?')">
+                <button type="submit" 
+                        class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-green-600 hover:bg-green-100/60 hover:shadow-md transition-all">
+                  <span class="material-symbols-rounded text-base">unarchive</span> 
+                  Unarchive
+                </button>
+              </form>
 
-            <!-- Reset -->
-            <form action="{{ url_for('admin_reset') }}" 
-                  method="POST" 
-                  class="inline"
-                  onsubmit="return openConfirmFormModal(event, this, 'Reset Teacher Account', 'Are you sure you want to reset password of this teacher?')">
-              <input type="hidden" name="id" value="{{ t.user_id }}">
-              <input type="hidden" name="table" value="Users">
-              <button type="submit" 
-                      class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-warning)] hover:bg-[var(--clr-warning)]/10 hover:shadow-md transition-all">
-                <span class="material-symbols-rounded text-base">refresh</span> 
-                Reset
-              </button>
-            </form>
+              <!-- Delete (only in archive mode) -->
+              <form action="{{ url_for('admin_delete') }}" 
+                    method="POST" 
+                    class="inline"
+                    onsubmit="return openConfirmFormModal(event, this, 'Delete Teacher', 'This will permanently delete the record. Continue?')">
+                <input type="hidden" name="id" value="{{ t.user_id }}">
+                <input type="hidden" name="table" value="Users">
+                <button type="submit" 
+                        class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
+                  <span class="material-symbols-rounded text-base">delete</span> 
+                  Delete
+                </button>
+              </form>
+            {% endif %}
 
           </div>
         </td>

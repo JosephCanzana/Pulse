@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS Department (
 -- Subject table
 CREATE TABLE IF NOT EXISTS Subject (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    status BOOLEAN NOT NULL DEFAULT TRUE,
     name VARCHAR(100) NOT NULL,
     education_level_id INT,
     FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)

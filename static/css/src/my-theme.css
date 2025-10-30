@@ -1,34 +1,42 @@
 :root {
-  --clr-primary: #1E3A8A;
-  --clr-secondary: #2563EB;
-  --clr-tertiary: #60A5FA;
+  /* Core Brand Colors */
+  --clr-primary: #1E40AF; /* deeper, richer blue for contrast */
+  --clr-secondary: #2563EB; 
+  --clr-tertiary: #3B82F6; 
 
-  --clr-bg: #F8FAFC;
-  --clr-surface: rgba(255, 255, 255, 0.9);
-  --clr-surface-alt: rgba(241, 245, 249, 0.9);
+  /* Backgrounds and Surfaces */
+  --clr-bg: #F1F5FB; /* slightly cooler white */
+  --clr-surface: #FFFFFF; /* strong contrast card layer */
+  --clr-surface-alt: #E2E8F0; /* clear distinction from surface */
 
+  /* Text */
   --clr-txt-primary: #0F172A;
   --clr-txt-secondary: #334155;
   --clr-txt-muted: #64748B;
-  --clr-txt-hover: #1D4ED8;
+  --clr-txt-hover: #1E3A8A;
 
-  --clr-border: rgba(226, 232, 240, 0.6);
-  --clr-border-strong: rgba(148, 163, 184, 0.4);
+  /* Borders */
+  --clr-border: rgba(203, 213, 225, 0.8);
+  --clr-border-strong: rgba(148, 163, 184, 0.7);
 
-  --clr-success: #22C55E;
-  --clr-error: #EF4444;
-  --clr-warning: #FACC15;
-  --clr-info: #3B82F6;
+  /* Semantic */
+  --clr-success: #16A34A;
+  --clr-error: #DC2626;
+  --clr-warning: #EAB308;
+  --clr-info: #2563EB;
 
-  --clr-glass-light: rgba(255, 255, 255, 0.35);
-  --clr-glass-border: rgba(144, 143, 143, 0.2);
-  --clr-glass-dark: rgba(0, 0, 0, 0.15);
-  
-  --clr-glow-primary: rgba(37, 99, 235, 0.35);
-  --clr-glow-tertiary: rgba(96, 165, 250, 0.3);
+  /* Glass + Effects */
+  --clr-glass-light: rgba(255, 255, 255, 0.55);
+  --clr-glass-border: rgba(200, 200, 200, 0.25);
+  --clr-glass-dark: rgba(0, 0, 0, 0.08);
 
-  --blur-background: blur(10px);
-  --blur-overlay: blur(5px);
+  /* Glow Accents */
+  --clr-glow-primary: rgba(37, 99, 235, 0.45);
+  --clr-glow-tertiary: rgba(96, 165, 250, 0.35);
+
+  /* Blur */
+  --blur-background: blur(12px);
+  --blur-overlay: blur(6px);
 }
 
 [data-theme="dark"] {

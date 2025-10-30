@@ -5,78 +5,79 @@ Edit Student
 {% endblock %}
 
 {% block main %}
+<div class="flex flex-col items-center justify-center min-h-screen bg-[var(--clr-bg)] py-10 px-6 font-sans transition-colors duration-300">
 
-<div class="flex flex-col items-center justify-center p-6">
-  <h1 class="text-2xl font-semibold mb-6 text-[var(--clr-txt-primary)]">
+  <!-- Page Title -->
+  <h1 class="text-3xl font-semibold mb-8 text-[var(--clr-txt-primary)] tracking-wide">
     Edit Student Information
   </h1>
 
-  <!-- MAIN FORM -->
+  <!-- Form Card -->
   <form 
     action="{{ url_for('admin_student_edit', school_id=student.school_id) }}" 
     method="POST"
     onsubmit="return openConfirmFormModal(event, this, 'Submit Update', 'Are you sure you want to update this student?')"
-    class="bg-[var(--clr-surface)] shadow-lg rounded-2xl p-8 w-full max-w-2xl space-y-6 border border-[var(--clr-glass-border)]">
+    class="w-full max-w-3xl bg-[var(--clr-surface)]/90 backdrop-blur-xl shadow-[0_0_25px_var(--clr-glow-primary)] rounded-3xl p-10 border border-[var(--clr-border)] transition-all duration-300 hover:shadow-[0_0_40px_var(--clr-glow-tertiary)]">
 
-    <!-- USER DETAILS -->
-    <section class="space-y-4">
-      <h2 class="text-lg font-medium text-[var(--clr-txt-primary)] border-b pb-2">
+    <!-- PERSONAL INFORMATION -->
+    <section class="space-y-4 mb-8">
+      <h2 class="text-xl font-medium text-[var(--clr-txt-primary)] border-b border-[var(--clr-border-strong)] pb-2">
         Personal Information
       </h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label class="block mb-1 font-medium">First Name</label>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium">First Name</label>
           <input type="text" name="first_name" value="{{ student.first_name }}" required
-                 class="w-full border rounded-lg p-2 bg-[var(--clr-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                 class="w-full border border-[var(--clr-border)] rounded-lg p-2.5 bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
         </div>
 
         <div>
-          <label class="block mb-1 font-medium">Middle Name</label>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium">Middle Name</label>
           <input type="text" name="second_name" value="{{ student.middle_name or '' }}"
-                 class="w-full border rounded-lg p-2 bg-[var(--clr-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                 class="w-full border border-[var(--clr-border)] rounded-lg p-2.5 bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
         </div>
 
         <div>
-          <label class="block mb-1 font-medium">Last Name</label>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium">Last Name</label>
           <input type="text" name="last_name" value="{{ student.last_name }}" required
-                 class="w-full border rounded-lg p-2 bg-[var(--clr-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                 class="w-full border border-[var(--clr-border)] rounded-lg p-2.5 bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
         </div>
 
         <div>
-          <label class="block mb-1 font-medium">School ID</label>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium">School ID</label>
           <input type="text" name="school_id" value="{{ student.school_id }}" required
-                 class="w-full border rounded-lg p-2 bg-[var(--clr-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                 class="w-full border border-[var(--clr-border)] rounded-lg p-2.5 bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
         </div>
 
         <div>
-          <label class="block mb-1 font-medium">Gender</label>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium">Gender</label>
           <select name="gender" required
-                  class="w-full border rounded-lg p-2 bg-[var(--clr-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                  class="w-full border border-[var(--clr-border)] rounded-lg p-2.5 bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
             <option value="Male" {% if student.gender == "Male" %}selected{% endif %}>Male</option>
             <option value="Female" {% if student.gender == "Female" %}selected{% endif %}>Female</option>
           </select>
         </div>
 
         <div>
-          <label class="block mb-1 font-medium">Email</label>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium">Email</label>
           <input type="email" value="{{ student.email }}" readonly
-                 class="w-full border rounded-lg p-2 bg-[var(--clr-surface-alt)] text-gray-500 cursor-not-allowed">
+                 class="w-full border border-[var(--clr-border)] rounded-lg p-2.5 bg-[var(--clr-surface-alt)] text-[var(--clr-txt-muted)] cursor-not-allowed">
         </div>
       </div>
     </section>
 
-    <!-- ACADEMIC INFO -->
-    <section class="space-y-4">
-      <h2 class="text-lg font-medium text-[var(--clr-txt-primary)] border-b pb-2">
+    <!-- ACADEMIC INFORMATION -->
+    <section class="space-y-4 mb-8">
+      <h2 class="text-xl font-medium text-[var(--clr-txt-primary)] border-b border-[var(--clr-border-strong)] pb-2">
         Academic Information
       </h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label class="block mb-1 font-medium">Education Level</label>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium">Education Level</label>
           <select name="education_lvl" required
-                  class="w-full border rounded-lg p-2 bg-[var(--clr-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                  class="w-full border border-[var(--clr-border)] rounded-lg p-2.5 bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
             {% for lvl in education_lvls %}
               <option value="{{ lvl.id }}" {% if lvl.id == student.education_level_id %}selected{% endif %}>
                 {{ lvl.name }}
@@ -86,9 +87,9 @@ Edit Student
         </div>
 
         <div>
-          <label class="block mb-1 font-medium">Course</label>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium">Course</label>
           <select name="course" required
-                  class="w-full border rounded-lg p-2 bg-[var(--clr-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                  class="w-full border border-[var(--clr-border)] rounded-lg p-2.5 bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
             {% for course in courses %}
               <option value="{{ course.id }}" {% if course.id == student.course_id %}selected{% endif %}>
                 {{ course.name }}
@@ -98,9 +99,9 @@ Edit Student
         </div>
 
         <div>
-          <label class="block mb-1 font-medium">Section</label>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium">Section</label>
           <select name="section" required
-                  class="w-full border rounded-lg p-2 bg-[var(--clr-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                  class="w-full border border-[var(--clr-border)] rounded-lg p-2.5 bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
             {% for section in sections %}
               <option value="{{ section.id }}" {% if section.id == student.section_id %}selected{% endif %}>
                 {{ section.name }}
@@ -110,9 +111,9 @@ Edit Student
         </div>
 
         <div>
-          <label class="block mb-1 font-medium">Year</label>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium">Year</label>
           <select name="year" required
-                  class="w-full border rounded-lg p-2 bg-[var(--clr-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                  class="w-full border border-[var(--clr-border)] rounded-lg p-2.5 bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
             {% for year in years %}
               <option value="{{ year.id }}" {% if year.id == student.year_id %}selected{% endif %}>
                 {{ year.name }}
@@ -123,26 +124,19 @@ Edit Student
       </div>
     </section>
 
-
-    <!-- hidden input to tell backend when reset is triggered -->
     <input type="hidden" id="reset_account_input" name="reset_account" value="0">
 
-    
-
     <!-- ACTION BUTTONS -->
-    <div class="flex justify-end items-center gap-3 pt-4 border-t border-[var(--clr-glass-border)]">
-        <a href="{{ url_for('admin_student') }}"
-                class="border border-gray-400 text-gray-700 px-5 py-2 rounded-full hover:bg-gray-100 transition">
-          Cancel
-        </a>
-      </form>
-
+    <div class="flex justify-end items-center gap-4 pt-6 border-t border-[var(--clr-border-strong)]">
+      <a href="{{ url_for('admin_student') }}"
+         class="px-5 py-2 rounded-full border border-[var(--clr-border)] text-[var(--clr-txt-secondary)] hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)] transition">
+        Cancel
+      </a>
       <button type="submit"
-              class="px-6 py-2 rounded-full bg-[var(--clr-primary)] text-white hover:bg-[var(--clr-secondary)] transition">
+              class="px-6 py-2.5 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-md hover:bg-[var(--clr-secondary)] hover:shadow-[0_0_15px_var(--clr-glow-primary)] transition-all duration-300">
         Save Changes
       </button>
     </div>
-
   </form>
 </div>
 {% endblock %}

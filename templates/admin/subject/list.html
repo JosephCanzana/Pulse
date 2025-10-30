@@ -8,14 +8,14 @@
 
 <!-- Page Header -->
 <div class="flex flex-wrap items-center justify-between mb-8 gap-3">
-  <form action="#" method="POST">
-    <button type="submit"
-      class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
-      <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">archive</span>
-      {{ 'Show Active Subjects' if show_archive else 'Show Archived Subjects' }}
-    </button>
-  </form>
+  <!-- Toggle Archive View -->
+  <a href="{{ url_for('subject_archive_switch') }}"
+    class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
+    <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">archive</span>
+    {{ 'Show Active Subjects' if show_archive else 'Show Archived Subjects' }}
+  </a>
 
+  <!-- Add New Subject -->
   <a href="{{ url_for('admin_subject_add') }}" 
      class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
     <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">add_circle</span>
@@ -25,7 +25,7 @@
 
 <!-- Title -->
 <h1 class="text-2xl font-semibold mb-6 text-[var(--clr-txt-primary)]">
-  Subject List
+  {{ 'Archived Subjects' if show_archive else 'Active Subjects' }}
 </h1>
 
 <!-- Glass Table Container -->
@@ -41,25 +41,47 @@
     <tbody>
       {% for s in subjects %}
       <tr class="border-t border-[var(--clr-border)] hover:bg-[var(--clr-glass-border)]/40 transition-all">
-        <td class="px-4 py-3 whitespace-nowrap">{{ s.subject_name }}</td>
+        <td class="px-4 py-3 whitespace-nowrap">{{ s.name }}</td>
         <td class="px-4 py-3 whitespace-nowrap">{{ s.education_level_name or 'N/A' }}</td>
 
         <td class="px-4 py-3 text-center">
           <div class="flex justify-center gap-2">
-            
+
             <!-- Edit -->
-            <a href="{{ url_for('admin_subject_edit', id=s.subject_id) }}" 
+            <a href="{{ url_for('admin_subject_edit', id=s.id) }}" 
                class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-txt-hover)] hover:bg-[var(--clr-glow-tertiary)]/10 hover:shadow-md transition-all">
               <span class="material-symbols-rounded text-base">edit</span> 
               Edit
             </a>
 
-            <!-- Delete -->
+            <!-- Archive / Unarchive -->
+            <form 
+              action="{{ url_for('admin_subject_archive', subject_id=s.id) }}" 
+              method="POST" 
+              class="inline"
+              onsubmit="return openConfirmFormModal(
+                event,
+                this,
+                '{{ 'Unarchive Subject' if show_archive else 'Archive Subject' }}',
+                '{{ 'Do you want to unarchive this subject?' if show_archive else 'Do you want to archive this subject?' }}'
+              )"
+            >
+              <button type="submit" 
+                      class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 {{ 'text-[var(--clr-success)] hover:bg-[var(--clr-success)]/10' if show_archive else 'text-[var(--clr-warning)] hover:bg-[var(--clr-warning)]/10' }} hover:shadow-md transition-all">
+                <span class="material-symbols-rounded text-base">
+                  {{ 'unarchive' if show_archive else 'archive' }}
+                </span> 
+                {{ 'Unarchive' if show_archive else 'Archive' }}
+              </button>
+            </form>
+
+            {% if show_archive %}
+            <!-- Delete (only visible in archive view) -->
             <form action="{{ url_for('admin_delete') }}" 
                   method="POST" 
                   class="inline"
-                  onsubmit="return openConfirmFormModal(event, this, 'Delete Subject', 'Are you sure you want to delete this subject?')">
-              <input type="hidden" name="id" value="{{ s.subject_id }}">
+                  onsubmit="return openConfirmFormModal(event, this, 'Delete Subject', 'Are you sure you want to delete this subject permanently?')">
+              <input type="hidden" name="id" value="{{ s.id }}">
               <input type="hidden" name="table" value="Subject">
               <button type="submit" 
                       class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
@@ -67,8 +89,15 @@
                 Delete
               </button>
             </form>
+            {% endif %}
 
           </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="3" class="text-center py-6 text-[var(--clr-txt-secondary)]">
+          No {{ 'archived' if show_archive else 'active' }} subjects found.
         </td>
       </tr>
       {% endfor %}

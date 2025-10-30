@@ -3,7 +3,7 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block main %}
-<div class="p-8 space-y-8">
+<div class="p-8 space-y-8 h-full w-full">
 
   <!-- Greeting -->
   <h1 class="text-3xl font-bold text-[var(--clr-txt-primary)]">Welcome, {{ name }}!</h1>
@@ -71,8 +71,8 @@
 
 </div>
 
-<!-- Charts.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
   // Convert CSS variable to RGB
   function cssVarToRGB(varName) {
