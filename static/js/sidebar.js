@@ -10,7 +10,7 @@ if (menuBtn && sidebarExpand && sidebarCollapsed && mainContent) {
     if (localStorage.getItem('sidebarOpen') === 'true') {
         sidebarExpand.classList.remove('-translate-x-full');
         sidebarCollapsed.classList.add('translate-y-full');
-        mainContent.classList.add('ml-60');
+        mainContent.classList.add('md:ml-60');
     }
     
     // NAVBAR COLLAPSED
@@ -21,13 +21,13 @@ if (menuBtn && sidebarExpand && sidebarCollapsed && mainContent) {
             // Closing sidebar
             sidebarExpand.classList.add('-translate-x-full');
             sidebarCollapsed.classList.remove('translate-y-full'); 
-            mainContent.classList.remove('ml-60');
+            mainContent.classList.remove('md:ml-60');
             localStorage.setItem('sidebarOpen', false);
         } else {
             // Opening sidebar
             sidebarExpand.classList.remove('-translate-x-full');
             sidebarCollapsed.classList.add('translate-y-full');
-            mainContent.classList.add('ml-60');
+            mainContent.classList.add('md:ml-60');
             localStorage.setItem('sidebarOpen', true);
         }
     });

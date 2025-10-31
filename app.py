@@ -170,7 +170,6 @@ def account_activation(school_id):
             return redirect(url_for("account_activation",  school_id=school_id))
         
         if new_pwd != c_pwd:
-            return apology(404, f"{new_pwd} - {c_pwd}")
             flash("Your password don't match", "error")
             return redirect(url_for("account_activation",  school_id=school_id))
         

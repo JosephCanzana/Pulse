@@ -50,8 +50,7 @@
 }
 
 .side-bar-container{
-  @apply fixed top-17 flex flex-col items-center justify-between pt-5 pb-5
-  text-[var(--clr-txt-primary)]
+  @apply fixed top-17 flex-col items-center justify-between pt-5 pb-5 text-[var(--clr-txt-primary)];
 }
 
 .btn-side-bar-collapsed{

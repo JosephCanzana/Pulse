@@ -1,8 +1,9 @@
 <div class="relative">
   <!-- COLLAPSED SIDEBAR -->
+
   <div
     id="sidebar-collapsed"
-    class="side-bar-container fixed left-0 -mt-2 top-[3.75rem] h-[calc(100vh-3.75rem)] w-20 
+    class="side-bar-container hidden sm:flex fixed left-0 -mt-2 top-[3.75rem] h-[calc(100vh-3.75rem)] w-20 
            z-30 bg-[var(--clr-glass-light)] border-r border-[var(--clr-glass-border)]
            backdrop-blur-md shadow-md shadow-[var(--clr-glass-dark)]
            transition-transform duration-500 ease-in-out"
@@ -54,7 +55,6 @@
           </a>
         {% endif %}
       </div>
-
       <!-- BOTTOM LINKS -->
       <div class="flex flex-col items-center mb-3 space-y-2">
         <a href="{{ url_for('about') }}" class="btn-side-bar-collapsed {% if request.path == url_for('about') %}btn-side-bar-collapsed-active{% endif %}">
@@ -74,7 +74,7 @@
   <!-- EXPANDED SIDEBAR -->
   <div
     id="sidebar-expand"
-    class="side-bar-container fixed left-0 -mt-3 top-[3.75rem] h-[calc(100vh-3.75rem)] w-60 
+    class="side-bar-container hidden sm:flex fixed left-0 -mt-3 top-[3.75rem] h-[calc(100vh-3.75rem)] w-60 
            z-40 bg-[var(--clr-glass-light)] border-r border-[var(--clr-glass-border)]
            backdrop-blur-md shadow-lg shadow-[var(--clr-glass-dark)]
            transform -translate-x-full transition-transform duration-500 ease-in-out"

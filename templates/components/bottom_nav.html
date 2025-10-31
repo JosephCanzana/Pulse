@@ -1,0 +1,136 @@
+<!-- BOTTOM NAVIGATION BAR (Mobile Only) -->
+<div class="sm:hidden fixed bottom-0 left-0 w-full pl-5 pr-5 bg-[var(--clr-glass-light)] backdrop-blur-md border-t border-[var(--clr-glass-border)] shadow-inner z-50">
+  <div class="flex justify-between items-center px-4 py-2">
+    
+    <!-- Home / Dashboard -->
+    {% if session.get('role') == 'admin' %}
+      <a href="{{ url_for('admin') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin') %}text-[var(--clr-primary)]{% endif %}">
+        <span class="material-symbols-outlined">home</span>
+        <span class="text-xs mt-1">Home</span>
+      </a>
+      <a href="{{ url_for('admin_teacher') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin_teacher') %}text-[var(--clr-primary)]{% endif %}">
+        <span class="material-symbols-outlined">school</span>
+        <span class="text-xs mt-1">Teachers</span>
+      </a>
+      <a href="{{ url_for('admin_student') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin_student') %}text-[var(--clr-primary)]{% endif %}">
+        <span class="material-symbols-outlined">group</span>
+        <span class="text-xs mt-1">Students</span>
+      </a>
+    {% elif session.get('role') == 'teacher' %}
+      <a href="{{ url_for('teacher') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('teacher') %}text-[var(--clr-primary)]{% endif %}">
+        <span class="material-symbols-outlined">home</span>
+        <span class="text-xs mt-1">Home</span>
+      </a>
+      <a href="#" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
+        <span class="material-symbols-outlined">menu_book</span>
+        <span class="text-xs mt-1">Subjects</span>
+      </a>
+    {% else %}
+      <a href="{{ url_for('student') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('student') %}text-[var(--clr-primary)]{% endif %}">
+        <span class="material-symbols-outlined">home</span>
+        <span class="text-xs mt-1">Home</span>
+      </a>
+      <a href="#" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
+        <span class="material-symbols-outlined">book</span>
+        <span class="text-xs mt-1">Subjects</span>
+      </a>
+    {% endif %}
+
+    <!-- Menu Button -->
+    <button id="mobile-menu-button" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] focus:outline-none">
+      <span class="material-symbols-outlined">menu</span>
+      <span class="text-xs mt-1">Menu</span>
+    </button>
+  </div>
+</div>
+
+<!-- FULL SCREEN MOBILE MENU -->
+<div id="mobile-menu" class="fixed inset-0 bg-[var(--clr-surface)] z-50 transform translate-y-full transition-transform duration-500 ease-in-out overflow-y-auto">
+  <div class="flex flex-col h-full">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center p-4 border-b border-[var(--clr-border)]">
+      <h2 class="text-xl font-semibold text-[var(--clr-primary)]">Menu</h2>
+      <button id="mobile-menu-close" class="text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Menu Links -->
+    <div class="flex-1 p-4 space-y-4">
+      {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('admin') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">home</span> Dashboard
+        </a>
+        <a href="{{ url_for('admin_teacher') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">school</span> Teachers
+        </a>
+        <a href="{{ url_for('admin_student') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">group</span> Students
+        </a>
+        <a href="{{ url_for('admin_department') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">groups_3</span> Department
+        </a>
+        <a href="{{ url_for('admin_course') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">menu_book</span> Courses
+        </a>
+        <a href="{{ url_for('admin_subject') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">category</span> Subjects
+        </a>
+      {% elif session.get('role') == 'teacher' %}
+        <a href="{{ url_for('teacher') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">home</span> Dashboard
+        </a>
+        <a href="#" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">menu_book</span> Subjects
+        </a>
+      {% else %}
+        <a href="{{ url_for('student') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">home</span> Dashboard
+        </a>
+        <a href="#" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">book</span> Subjects
+        </a>
+        <a href="#" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">format_list_bulleted</span> Submissions
+        </a>
+        <a href="#" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">workspace_premium</span> Grades
+        </a>
+      {% endif %}
+
+      <!-- Utilities -->
+      <div class="mt-6 border-t border-[var(--clr-border)] pt-4 space-y-2">
+        <a href="{{ url_for('about') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">info</span> About
+        </a>
+        <button class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm theme-toggle w-full text-left text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">light_mode</span> Toggle Theme
+        </button>
+        <button 
+          onclick="
+            document.getElementById('mobile-menu').classList.add('translate-y-full'); 
+            setTimeout(() => openConfirmModal('Confirm Logout', 'Are you sure you want to log out?', '{{ url_for('logout') }}'), 300);
+          " 
+          class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm w-full text-left text-[var(--clr-txt-primary)]"
+        >
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">logout</span> Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const menuButton = document.getElementById('mobile-menu-button');
+  const menu = document.getElementById('mobile-menu');
+  const menuClose = document.getElementById('mobile-menu-close');
+
+  menuButton.addEventListener('click', () => {
+    menu.classList.remove('translate-y-full');
+  });
+
+  menuClose.addEventListener('click', () => {
+    menu.classList.add('translate-y-full');
+  });
+</script>
