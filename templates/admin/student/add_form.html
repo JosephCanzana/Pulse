@@ -15,7 +15,7 @@
   <!-- Form -->
   <form
     id="studentForm"
-    action="{{ url_for('admin_student_add') }}"
+    action="{{ url_for('admin.student_add') }}"
     method="post"
     onsubmit="return openConfirmFormModal(event, this, 'Add Students', 'Are you sure you want to add these student?')"
     class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full"
@@ -54,9 +54,10 @@
 
     <!-- Right Column -->
     <div class="flex flex-col gap-4">
+      <!-- Education Level -->
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
-        <select name="education_lvl" class="input-field">
+        <select name="education_lvl" id="educationSelect" class="input-field" required>
           <option value="" disabled selected>Select education level</option>
           {% for lvl in education_lvls %}
             <option value="{{ lvl.id }}">{{ lvl.name }}</option>
@@ -64,41 +65,22 @@
         </select>
       </div>
 
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Course</label>
-        <select name="course" class="input-field">
-          <option value="" disabled selected>Select course</option>
-          {% for course in courses %}
-            <option value="{{ course.id }}">{{ course.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
+      <!-- Section -->
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section</label>
-        <select name="section" class="input-field">
-          <option value="" disabled selected>Select section</option>
-          {% for section in sections %}
-            <option value="{{ section.id }}">{{ section.name }}</option>
-          {% endfor %}
+        <select name="section" id="sectionSelect" class="input-field" required data-selected="">
+          <option value="" disabled selected>Search and select a section</option>
         </select>
-      </div>
-
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Year</label>
-        <select name="year" class="input-field">
-          <option value="" disabled selected>Select year</option>
-          {% for year in years %}
-            <option value="{{ year.id }}">{{ year.name }}</option>
-          {% endfor %}
-        </select>
+        <p class="mt-1 text-xs text-[var(--clr-txt-muted)]">Type the year, course, or section name to find the section.</p>
       </div>
     </div>
+
+
 
     <!-- Buttons -->
     <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
       <!-- Go Back -->
-      <a type="button" href="{{ url_for('admin_student') }}"
+      <a type="button" href="{{ url_for('admin.student') }}"
               class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
                      hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
                      transition-all duration-200">
@@ -125,4 +107,37 @@
     </div>
   </form>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet"/>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const educationSelect = document.getElementById("educationSelect");
+
+  const sectionSelect = new TomSelect("#sectionSelect", {
+    valueField: "id",
+    labelField: "text",
+    searchField: ["text"],
+    create: false,
+    placeholder: "Search and select a section...",
+    load: function(query, callback) {
+      const education_level_id = educationSelect.value;
+      if (!education_level_id) return callback();
+
+      fetch(`/admin/api/sections/search?education_level_id=${education_level_id}&q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => callback(data))
+        .catch(() => callback());
+    }
+  });
+
+  // Refresh sections when education level changes
+  educationSelect.addEventListener("change", () => {
+    sectionSelect.clearOptions();
+    sectionSelect.clear(true);
+  });
+});
+</script>
+
 {% endblock %}

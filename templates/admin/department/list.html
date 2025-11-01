@@ -8,7 +8,7 @@
 
 <!-- Page Header -->
 <div class="flex flex-wrap items-center justify-between mb-8 gap-3">
-  <a href="{{ url_for('admin_department_add') }}" 
+  <a href="{{ url_for('admin.department_add') }}" 
      class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
     <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">add_circle</span>
     Add Department
@@ -40,14 +40,14 @@
           <div class="flex justify-center gap-2">
 
             <!-- Edit -->
-            <a href="{{ url_for('admin_department_edit', id=d.department_id) }}" 
+            <a href="{{ url_for('admin.department_edit', id=d.department_id) }}" 
                class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-txt-hover)] hover:bg-[var(--clr-glow-tertiary)]/10 hover:shadow-md transition-all">
               <span class="material-symbols-rounded text-base">edit</span> 
               Edit
             </a>
 
             <!-- Delete -->
-            <form action="{{ url_for('admin_delete') }}" 
+            <form action="{{ url_for('admin.delete') }}" 
                   method="POST" 
                   class="inline"
                   onsubmit="return openConfirmFormModal(event, this, 'Delete Department', 'Are you sure you want to delete this department?')">

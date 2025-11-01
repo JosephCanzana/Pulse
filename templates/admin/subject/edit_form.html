@@ -15,7 +15,7 @@
   <!-- Form -->
   <form
     id="editSubjectForm"
-    action="{{ url_for('admin_subject_edit', id=subject.subject_id) }}"
+    action="{{ url_for('admin.subject_edit', id=subject.subject_id) }}"
     method="post"
     onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this subject?')"
     class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full"
@@ -55,7 +55,7 @@
     <!-- Buttons -->
     <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
       <!-- Go Back -->
-      <a href="{{ url_for('admin_subject') }}"
+      <a href="{{ url_for('admin.subject') }}"
          class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
                 hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
                 transition-all duration-200">

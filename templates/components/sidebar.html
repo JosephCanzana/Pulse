@@ -13,25 +13,25 @@
       <div class="flex flex-col items-center pt-3 space-y-2">
 
         {% if session.get('role') == 'admin' %}
-          <a href="{{ url_for('admin') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin') %}btn-side-bar-collapsed-active{% endif %}">
+          <a href="{{ url_for('admin.dashboard') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.dashboard') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">home</span>
           </a>
-          <a href="{{ url_for('admin_teacher') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin_teacher') %}btn-side-bar-collapsed-active{% endif %}">
+          <a href="{{ url_for('admin.teacher') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.teacher') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">school</span>
           </a>
-          <a href="{{ url_for('admin_student') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin_student') %}btn-side-bar-collapsed-active{% endif %}">
+          <a href="{{ url_for('admin.student') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.student') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">group</span>
           </a>
-          <a href="{{ url_for('admin_section') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin_section') %}btn-side-bar-collapsed-active{% endif %}">
+          <a href="{{ url_for('admin.section') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.section') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">diversity_3</span>
           </a>
-          <a href="{{ url_for('admin_department') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin_department') %}btn-side-bar-collapsed-active{% endif %}">
+          <a href="{{ url_for('admin.department') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.department') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">hive</span>
           </a>
-          <a href="{{ url_for('admin_course') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin_course') %}btn-side-bar-collapsed-active{% endif %}">
+          <a href="{{ url_for('admin.course') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.course') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">menu_book</span>
           </a>
-          <a href="{{ url_for('admin_subject') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin_subject') %}btn-side-bar-collapsed-active{% endif %}">
+          <a href="{{ url_for('admin.subject') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.subject') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">category</span>
           </a>
 
@@ -87,25 +87,25 @@
       <div class="flex flex-col items-start pt-3 space-y-1">
 
         {% if session.get('role') == 'admin' %}
-          <a href="{{ url_for('admin') }}" class="btn-side-bar-expand {% if request.path == url_for('admin') %}btn-side-bar-expanded-active{% endif %}">
+          <a href="{{ url_for('admin.dashboard') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.dashboard') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">home</span><span class="ml-4">Dashboard</span>
           </a>
-          <a href="{{ url_for('admin_teacher') }}" class="btn-side-bar-expand {% if request.path == url_for('admin_teacher') %}btn-side-bar-expanded-active{% endif %}">
+          <a href="{{ url_for('admin.teacher') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.teacher') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">school</span><span class="ml-4">Teachers</span>
           </a>
-          <a href="{{ url_for('admin_student') }}" class="btn-side-bar-expand {% if request.path == url_for('admin_student') %}btn-side-bar-expanded-active{% endif %}">
+          <a href="{{ url_for('admin.student') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.student') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">group</span><span class="ml-4">Students</span>
           </a>
-          <a href="{{ url_for('admin_section') }}" class="btn-side-bar-expand {% if request.path == url_for('admin_section') %}btn-side-bar-expanded-active{% endif %}">
+          <a href="{{ url_for('admin.section') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.section') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">diversity_3</span><span class="ml-4">Section</span>
           </a>
-          <a href="{{ url_for('admin_department') }}" class="btn-side-bar-expand {% if request.path == url_for('admin_department') %}btn-side-bar-expanded-active{% endif %}">
+          <a href="{{ url_for('admin.department') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.department') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">hive</span><span class="ml-4">Department</span>
           </a>
-          <a href="{{ url_for('admin_course') }}" class="btn-side-bar-expand {% if request.path == url_for('admin_course') %}btn-side-bar-expanded-active{% endif %}">
+          <a href="{{ url_for('admin.course') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.course') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">menu_book</span><span class="ml-4">Courses</span>
           </a>
-          <a href="{{ url_for('admin_subject') }}" class="btn-side-bar-expand {% if request.path == url_for('admin_subject') %}btn-side-bar-expanded-active{% endif %}">
+          <a href="{{ url_for('admin.subject') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.subject') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">category</span><span class="ml-4">Subjects</span>
           </a>
 
