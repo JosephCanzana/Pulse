@@ -4,15 +4,15 @@
     
     <!-- Home / Dashboard -->
     {% if session.get('role') == 'admin' %}
-      <a href="{{ url_for('admin') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin') %}text-[var(--clr-primary)]{% endif %}">
+      <a href="{{ url_for('admin.dashboard') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin.dashboard') %}text-[var(--clr-primary)]{% endif %}">
         <span class="material-symbols-outlined">home</span>
         <span class="text-xs mt-1">Home</span>
       </a>
-      <a href="{{ url_for('admin_teacher') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin_teacher') %}text-[var(--clr-primary)]{% endif %}">
+      <a href="{{ url_for('admin.teacher') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin.teacher') %}text-[var(--clr-primary)]{% endif %}">
         <span class="material-symbols-outlined">school</span>
         <span class="text-xs mt-1">Teachers</span>
       </a>
-      <a href="{{ url_for('admin_student') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin_student') %}text-[var(--clr-primary)]{% endif %}">
+      <a href="{{ url_for('admin.student') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin.student') %}text-[var(--clr-primary)]{% endif %}">
         <span class="material-symbols-outlined">group</span>
         <span class="text-xs mt-1">Students</span>
       </a>
@@ -59,22 +59,22 @@
     <!-- Menu Links -->
     <div class="flex-1 p-4 space-y-4">
       {% if session.get('role') == 'admin' %}
-        <a href="{{ url_for('admin') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+        <a href="{{ url_for('admin.dashboard') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">home</span> Dashboard
         </a>
-        <a href="{{ url_for('admin_teacher') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+        <a href="{{ url_for('admin.teacher') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">school</span> Teachers
         </a>
-        <a href="{{ url_for('admin_student') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+        <a href="{{ url_for('admin.student') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">group</span> Students
         </a>
-        <a href="{{ url_for('admin_department') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+        <a href="{{ url_for('admin.department') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">groups_3</span> Department
         </a>
-        <a href="{{ url_for('admin_course') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+        <a href="{{ url_for('admin.course') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">menu_book</span> Courses
         </a>
-        <a href="{{ url_for('admin_subject') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+        <a href="{{ url_for('admin.subject') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">category</span> Subjects
         </a>
       {% elif session.get('role') == 'teacher' %}

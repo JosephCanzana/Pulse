@@ -15,7 +15,7 @@
   <!-- Form -->
   <form
     id="teacherForm"
-    action="{{ url_for('admin_teacher_add') }}"
+    action="{{ url_for('admin.teacher_add') }}"
     method="post"
     onsubmit="return openConfirmFormModal(event, this, 'Add Teacher', 'Are you sure you want to add this teacher?')"
     class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full"
@@ -78,7 +78,7 @@
     <!-- Buttons -->
     <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
       <!-- Go Back -->
-      <a type="button" href="{{ url_for('admin_teacher') }}"
+      <a type="button" href="{{ url_for('admin.teacher') }}"
               class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
                      hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
                      transition-all duration-200">
