@@ -1,17 +1,17 @@
 <!-- NAVBAR -->
-<nav class="sticky top-0 w-full h-17 z-50 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] pl-4 pr-7 drop-shadow-black shadow-2xs">
+<nav class="sticky top-0 w-full h-15 z-50 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] sm:pl-4 sm:pr-4 pl-4 pr-7 drop-shadow-black shadow-2xs">
     
 <!-- LEFT SIDE -->
     <div class="flex items-center justify-center mp-0.5 ">
-        <button id="menu-btn" class="btn-side-bar w-12 h-12 flex items-center justify-center mt-2 mb-2 rounded-xl hover:bg-[var(--clr-primary)] hover:text-[var(--clr-bg)] transition">
+        <button id="menu-btn" class="hidden sm:flex btn-side-bar w-12 h-12 flex items-center justify-center mt-2 mb-2 rounded-xl hover:bg-[var(--clr-primary)] hover:text-[var(--clr-bg)] transition">
             <span class="material-symbols-outlined">menu</span>
         </button>
         <!-- LOGO -->
-        <div class="flex items-center justify-center mr-5 ml-5">
-            <a href="{{ url_for('student') }}" class="flex  items-center justify-center w-[2.2rem] h-[2.2rem] border-2 rounded-full border-[var(--clr-border)]">
-                <img src="{{ url_for('static', filename='images/pulse.svg') }}" alt="Pulse">
+        <div class="flex items-center justify-center mr-5 ml-7">
+            <a href="#" class="flex items-center justify-center w-9 h-9 border border-[var(--clr-border)] rounded-full bg-[var(--clr-surface-alt)] hover:shadow-[0_0_10px_var(--clr-glow-primary)] transition-all duration-300">
+            <img src="{{ url_for('static', filename='images/pulse.png') }}" alt="Pulse" class="w-6 h-6">
             </a>
-            <h1 class="font-normal ml-1 text-3xl text-center text-[var(--clr-primary)] font-[LLPIXEL3] text-shadow-black/30">
+            <h1 class="font-normal ml-2 text-2xl text-center text-[var(--clr-primary)] font-[LLPIXEL3] text-shadow-black/30">
                 Pulse
             </h1>
         </div>

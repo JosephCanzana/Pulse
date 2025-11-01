@@ -1,53 +1,52 @@
 {% extends "layout.html" %}
 
 {% block title %}
-  Add Students
+  Edit Student
 {% endblock %}
 
 {% block main %}
 <section class="w-full h-full flex flex-col justify-center px-10">
   <!-- Header -->
   <header class="text-center mb-4">
-    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Add Students</h1>
-    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">Fill out the details to register a new student.</p>
+    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Edit Student Information</h1>
+    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">Update the details to modify this student’s record.</p>
   </header>
 
   <!-- Form -->
   <form
-    id="studentForm"
-    action="{{ url_for('admin.student_add') }}"
+    id="editStudentForm"
+    action="{{ url_for('admin.student_edit', school_id=student.school_id) }}"
     method="post"
-    onsubmit="return openConfirmFormModal(event, this, 'Add Students', 'Are you sure you want to add these student?')"
+    onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this student?')"
     class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full"
   >
     <!-- Left Column -->
     <div class="flex flex-col gap-4">
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">School ID</label>
-        <input type="text" name="school_id" placeholder="Enter school ID" class="input-field" />
+        <input type="text" name="school_id" value="{{ student.school_id }}" required class="input-field" />
       </div>
 
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">First Name</label>
-        <input type="text" name="first_name" placeholder="Enter first name" class="input-field" />
+        <input type="text" name="first_name" value="{{ student.first_name }}" required class="input-field" />
       </div>
 
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Middle Name</label>
-        <input type="text" name="second_name" placeholder="Enter second name" class="input-field" />
+        <input type="text" name="second_name" value="{{ student.middle_name or '' }}" class="input-field" />
       </div>
 
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Last Name</label>
-        <input type="text" name="last_name" placeholder="Enter last name" class="input-field" />
+        <input type="text" name="last_name" value="{{ student.last_name }}" required class="input-field" />
       </div>
 
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Gender</label>
         <select name="gender" required class="input-field">
-          <option value="" disabled selected>Select gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
+          <option value="Male" {% if student.gender == 'Male' %}selected{% endif %}>Male</option>
+          <option value="Female" {% if student.gender == 'Female' %}selected{% endif %}>Female</option>
         </select>
       </div>
     </div>
@@ -56,71 +55,66 @@
     <div class="flex flex-col gap-4">
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
-        <select name="education_lvl" class="input-field">
-          <option value="" disabled selected>Select education level</option>
+        <select name="education_lvl" required class="input-field">
           {% for lvl in education_lvls %}
-            <option value="{{ lvl.id }}">{{ lvl.name }}</option>
+            <option value="{{ lvl.id }}" {% if lvl.id == student.education_level_id %}selected{% endif %}>{{ lvl.name }}</option>
           {% endfor %}
         </select>
       </div>
 
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Course</label>
-        <select name="course" class="input-field">
-          <option value="" disabled selected>Select course</option>
+        <select name="course" required class="input-field">
           {% for course in courses %}
-            <option value="{{ course.id }}">{{ course.name }}</option>
+            <option value="{{ course.id }}" {% if course.id == student.course_id %}selected{% endif %}>{{ course.name }}</option>
           {% endfor %}
         </select>
       </div>
 
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section</label>
-        <select name="section" class="input-field">
-          <option value="" disabled selected>Select section</option>
+        <select name="section" required class="input-field">
           {% for section in sections %}
-            <option value="{{ section.id }}">{{ section.name }}</option>
+            <option value="{{ section.id }}" {% if section.id == student.section_id %}selected{% endif %}>{{ section.name }}</option>
           {% endfor %}
         </select>
       </div>
 
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Year</label>
-        <select name="year" class="input-field">
-          <option value="" disabled selected>Select year</option>
+        <select name="year" required class="input-field">
           {% for year in years %}
-            <option value="{{ year.id }}">{{ year.name }}</option>
+            <option value="{{ year.id }}" {% if year.id == student.year_id %}selected{% endif %}>{{ year.name }}</option>
           {% endfor %}
         </select>
       </div>
+
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Email</label>
+        <input type="email" value="{{ student.email }}" readonly class="input-field text-[var(--clr-txt-muted)] cursor-not-allowed" />
+      </div>
     </div>
+
+    <!-- Hidden Field -->
+    <input type="hidden" id="reset_account_input" name="reset_account" value="0">
 
     <!-- Buttons -->
     <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
       <!-- Go Back -->
-      <a type="button" href="{{ url_for('admin.student') }}"
-              class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
-                     hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
-                     transition-all duration-200">
+      <a href="{{ url_for('admin.student') }}"
+         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
+                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
+                transition-all duration-200">
         ← Go Back
       </a>
 
-      <!-- Restore -->
-      <button type="button" onclick="restoreLastEntry('#studentForm', 'lastStudentForm')"
-              class="px-6 py-2 rounded-lg text-[var(--clr-primary)] text-sm font-medium border border-[var(--clr-primary)]
-                     hover:bg-[var(--clr-primary)] hover:text-white
-                     transition-all duration-200">
-        Restore Last Entry
-      </button>
-
-      <!-- Submit -->
+      <!-- Save Changes -->
       <button type="submit"
-       
               class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
                      bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
                      shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
                      transition-all duration-200">
-        Add Student
+        Save Changes
       </button>
     </div>
   </form>

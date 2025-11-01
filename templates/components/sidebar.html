@@ -1,155 +1,143 @@
+<div class="relative">
+  <!-- COLLAPSED SIDEBAR -->
 
-<!-- SIDEBAR COLLAPSED -->
-<div id="sidebar-collapsed"  class="side-bar-container fixed left-0 top-[4.25rem] h-[calc(100vh-4.25rem)] w-20 z-30 bg-[var(--clr-surface)] text-white transform transition-transform duration-300 ease-in-out">
-    <!-- PAGE LINKS -->
-    <!-- top buttons -->
-    <div class="flex justify-center items-center flex-col">
-        
-        <!-- ADMIN -->
+  <div
+    id="sidebar-collapsed"
+    class="side-bar-container hidden sm:flex fixed left-0 -mt-2 top-[3.75rem] h-[calc(100vh-3.75rem)] w-20 
+           z-30 bg-[var(--clr-glass-light)] border-r border-[var(--clr-glass-border)]
+           backdrop-blur-md shadow-md shadow-[var(--clr-glass-dark)]
+           transition-transform duration-500 ease-in-out"
+  >
+    <div class="flex flex-col justify-between h-full">
+      <!-- TOP LINKS -->
+      <div class="flex flex-col items-center pt-3 space-y-2">
+
         {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('admin') }}" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">home</span>
-            </a>
-            <a href="{{ url_for('admin_student') }}" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">school</span>
-            </a>
-            <a href="#" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">group</span>
-            </a>
-            <a href="#" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">menu_book</span>
-            </a>
-            <a href="#" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">category</span>
-            </a>
-            
-            <!-- TEACHER -->
+          <a href="{{ url_for('admin.dashboard') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.dashboard') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">home</span>
+          </a>
+          <a href="{{ url_for('admin.teacher') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.teacher') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">school</span>
+          </a>
+          <a href="{{ url_for('admin.student') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.student') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">group</span>
+          </a>
+          <a href="{{ url_for('admin.section') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.section') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">diversity_3</span>
+          </a>
+          <a href="{{ url_for('admin.department') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.department') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">hive</span>
+          </a>
+          <a href="{{ url_for('admin.course') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.course') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">menu_book</span>
+          </a>
+          <a href="{{ url_for('admin.subject') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.subject') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">category</span>
+          </a>
+
         {% elif session.get('role') == 'teacher' %}
-            <a href="{{ url_for('teacher') }}" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">home</span>
-            </a>
-            <a href="" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">menu_book</span>
-            </a>
-        
+          <a href="{{ url_for('teacher') }}" class="btn-side-bar-collapsed {% if request.path == url_for('teacher') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">home</span>
+          </a>
+          <a href="#" class="btn-side-bar-collapsed">
+            <span class="material-symbols-outlined">menu_book</span>
+          </a>
 
-        <!-- STUDENT -->
         {% else %}
-            <a href="{{ url_for('student') }}" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">home</span>
-            </a>
-            <a href="#" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">book</span>
-            </a>
-            <a href="#" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">format_list_bulleted</span>
-            </a>
-            <a href="#" class="btn-side-bar-collapsed">
-                <span class="material-symbols-outlined">workspace_premium</span>
-            </a>
-            
+          <a href="{{ url_for('student') }}" class="btn-side-bar-collapsed {% if request.path == url_for('student') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">home</span>
+          </a>
+          <a href="#" class="btn-side-bar-collapsed">
+            <span class="material-symbols-outlined">book</span>
+          </a>
+          <a href="#" class="btn-side-bar-collapsed">
+            <span class="material-symbols-outlined">format_list_bulleted</span>
+          </a>
+          <a href="#" class="btn-side-bar-collapsed">
+            <span class="material-symbols-outlined">workspace_premium</span>
+          </a>
         {% endif %}
-    </div>
-    
-    <!-- bottom buttons -->
-    <div class="flex flex-col justify-center items-center mb-2">
-        <a href="{{ url_for('about') }}" class="btn-side-bar-collapsed">
-            <span class="material-symbols-outlined">info</span>
+      </div>
+      <!-- BOTTOM LINKS -->
+      <div class="flex flex-col items-center mb-3 space-y-2">
+        <a href="{{ url_for('about') }}" class="btn-side-bar-collapsed {% if request.path == url_for('about') %}btn-side-bar-collapsed-active{% endif %}">
+          <span class="material-symbols-outlined">info</span>
         </a>
-        <button class="btn-side-bar-collapsed theme-toggle">
-            <span class="material-symbols-outlined">light_mode</span>
-        </button>    
-        <form action="{{ url_for('logout') }}" method="post" class="btn-side-bar-collapsed">
-            <button class="material-symbols-outlined" id="logout-btn">
-                logout
-            </button>
-        </form>
-    </div>
-</div>
-
-<!-- SIDEBAR SHOWED -->
-<div id="sidebar-expand" class="side-bar-container h-[calc(100vh-4.25rem)] w-60 z-40 bg-[var(--clr-surface)] text-white transform shadow-md shadow-black/30 -translate-x-full transition-transform duration-500">
-    
-    <!-- Expanded buttons -->
-    <div class="flex flex-col justify-center items-start">
-
-        <!-- ADMIN -->
-        {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('admin') }}" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">home</span>
-                <span class="ml-4">Dashboard</span> 
-            </a>
-            <a href="#" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">school</span>
-                <span class="ml-4">Teachers</span> 
-                
-            </a>
-            <a href="#" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">group</span>
-                <span class="ml-4">Students</span> 
-            </a>
-            
-            <a href="#" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">menu_book</span>
-                <span class="ml-4">Courses</span> 
-            </a>
-            
-            <a href="#" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">category</span>
-                <span class="ml-4">Subjects</span> 
-            </a>
-            
-            
-        <!-- TEACHER -->
-        {% elif session.get('role') == 'teacher' %}
-            <a href="{{ url_for('teacher') }}" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">home</span>
-                <span class="ml-4">Dashboard</span> 
-            </a>
-
-            <a href="#" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">menu_book</span>
-                <span class="ml-4">Subjects</span> 
-            </a>
-        
-        <!-- STUDENT -->
-        {% else %}
-            <a href="{{ url_for('student') }}" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">home</span>
-                <span class="ml-4">Dashboard</span> 
-            </a>
-
-            <a href="#" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">book</span>
-                <span class="ml-4">Subjects</span> 
-            </a>
-            <a href="#" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">format_list_bulleted</span>
-                <span class="ml-4">Submissions</span> 
-
-            </a>
-            <a href="#" class="btn-side-bar-expand">
-                <span class="material-symbols-outlined">workspace_premium</span>
-                <span class="ml-4">Grades</span> 
-            </a>
-        
-        {% endif %}
-    </div>
-    
-    <div class="flex flex-col justify-center items-start mb-2">
-        <a href="{{ url_for('about') }}" class="btn-side-bar-expand">
-            <span class="material-symbols-outlined">info</span>
-            <span class="ml-4">About</span> 
-        </a>
-        <button class="btn-side-bar-expand theme-toggle">
-            <span class="material-symbols-outlined">light_mode</span>
-            <span class="ml-4">Theme</span> 
+        <button class="btn-side-bar-collapsed theme-toggle"><span class="material-symbols-outlined">light_mode</span></button>
+        <button 
+          type="button"
+          class="btn-side-bar-collapsed"
+          onclick="openConfirmModal('Confirm Logout', 'Are you sure you want to log out?', '{{ url_for('logout') }}')">
+          <span class="material-symbols-outlined">logout</span>
         </button>
-        <form action="{{ url_for('logout') }}" method="post" class="btn-side-bar-expand">
-            <button class="material-symbols-outlined">
-                logout
-            </button>
-            <button class="ml-4" id="logout-btn">Logout</button> 
-        </form>
+      </div>
     </div>
+  </div>
+
+  <!-- EXPANDED SIDEBAR -->
+  <div
+    id="sidebar-expand"
+    class="side-bar-container hidden sm:flex fixed left-0 -mt-3 top-[3.75rem] h-[calc(100vh-3.75rem)] w-60 
+           z-40 bg-[var(--clr-glass-light)] border-r border-[var(--clr-glass-border)]
+           backdrop-blur-md shadow-lg shadow-[var(--clr-glass-dark)]
+           transform -translate-x-full transition-transform duration-500 ease-in-out"
+  >
+    <div class="flex flex-col justify-between h-full">
+      <!-- TOP LINKS -->
+      <div class="flex flex-col items-start pt-3 space-y-1">
+
+        {% if session.get('role') == 'admin' %}
+          <a href="{{ url_for('admin.dashboard') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.dashboard') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">home</span><span class="ml-4">Dashboard</span>
+          </a>
+          <a href="{{ url_for('admin.teacher') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.teacher') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">school</span><span class="ml-4">Teachers</span>
+          </a>
+          <a href="{{ url_for('admin.student') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.student') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">group</span><span class="ml-4">Students</span>
+          </a>
+          <a href="{{ url_for('admin.section') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.section') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">diversity_3</span><span class="ml-4">Section</span>
+          </a>
+          <a href="{{ url_for('admin.department') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.department') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">hive</span><span class="ml-4">Department</span>
+          </a>
+          <a href="{{ url_for('admin.course') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.course') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">menu_book</span><span class="ml-4">Courses</span>
+          </a>
+          <a href="{{ url_for('admin.subject') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.subject') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">category</span><span class="ml-4">Subjects</span>
+          </a>
+
+        {% elif session.get('role') == 'teacher' %}
+          <a href="{{ url_for('teacher') }}" class="btn-side-bar-expand {% if request.path == url_for('teacher') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">home</span><span class="ml-4">Dashboard</span>
+          </a>
+          <a href="#" class="btn-side-bar-expand"><span class="material-symbols-outlined">menu_book</span><span class="ml-4">Subjects</span></a>
+
+        {% else %}
+          <a href="{{ url_for('student') }}" class="btn-side-bar-expand {% if request.path == url_for('student') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">home</span><span class="ml-4">Dashboard</span>
+          </a>
+          <a href="#" class="btn-side-bar-expand"><span class="material-symbols-outlined">book</span><span class="ml-4">Subjects</span></a>
+          <a href="#" class="btn-side-bar-expand"><span class="material-symbols-outlined">format_list_bulleted</span><span class="ml-4">Submissions</span></a>
+          <a href="#" class="btn-side-bar-expand"><span class="material-symbols-outlined">workspace_premium</span><span class="ml-4">Grades</span></a>
+        {% endif %}
+      </div>
+
+      <!-- BOTTOM LINKS -->
+      <div class="flex flex-col items-start mb-3 space-y-1">
+        <a href="{{ url_for('about') }}" class="btn-side-bar-expand {% if request.path == url_for('about') %}btn-side-bar-expanded-active{% endif %}">
+          <span class="material-symbols-outlined">info</span><span class="ml-4">About</span>
+        </a>
+        <button class="btn-side-bar-expand theme-toggle"><span class="material-symbols-outlined">light_mode</span><span class="ml-4">Theme</span></button>
+        <button 
+          type="button"
+          class="btn-side-bar-expand"
+          onclick="openConfirmModal('Confirm Logout', 'Are you sure you want to log out?', '{{ url_for('logout') }}')">
+          <span class="material-symbols-outlined">logout</span><span class="ml-4">Logout</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

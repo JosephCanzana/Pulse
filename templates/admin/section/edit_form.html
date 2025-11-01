@@ -1,0 +1,163 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  Edit Section
+{% endblock %}
+
+{% block main %}
+<section class="w-full h-full flex flex-col justify-center px-10">
+  <!-- Header -->
+  <header class="text-center mb-4">
+    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Edit Section</h1>
+    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">
+      Update the details to modify this section’s record.
+    </p>
+  </header>
+
+  <!-- Form -->
+  <form
+    id="editSectionForm"
+    action="{{ url_for('admin.section_edit', section_id=section.id) }}"
+    method="post"
+    onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this section?')"
+    class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full"
+  >
+    <!-- Left Column -->
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section Name</label>
+        <input
+          type="text"
+          name="name"
+          value="{{ section.name }}"
+          required
+          class="input-field"
+        />
+      </div>
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Academic Year</label>
+        <input
+          type="text"
+          name="academic_year"
+          value="{{ section.academic_year }}"
+          required
+          class="input-field"
+        />
+      </div>
+        <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Teacher (optional)</label>
+        <input
+            type="text"
+            id="teacherInput"
+            name="teacher_name"
+            placeholder="Type to search teacher (or leave empty)"
+            list="teachersList"
+            class="input-field"
+            value="{{ current_teacher_name }}"
+        />
+        <datalist id="teachersList">
+            {% for teacher in teachers %}
+            <option value="{{ teacher.first_name }} {{ teacher.middle_name }} {{ teacher.last_name }}" data-id="{{ teacher.id }}"></option>
+            {% endfor %}
+        </datalist>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
+        <select id="education_lvl" name="education_lvl_id" required class="input-field">
+          <option value="" disabled>Select education level</option>
+          {% for lvl in education_lvls %}
+            <option value="{{ lvl.id }}"
+              {% if lvl.id == section.education_level_id %}selected{% endif %}>
+              {{ lvl.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Course</label>
+        <select id="course" name="course_id" class="input-field">
+          <option value="" disabled selected>Select a course,or skip if not applicable.</option>
+          {% for course in courses %}
+            <option value="{{ course.id }}" data-education="{{ course.education_level_id or '' }}"
+              {% if course.id == section.course_id %}selected{% endif %}>
+              {{ course.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Year Level</label>
+        <select id="year" name="year_id" required class="input-field">
+          <option value="" disabled selected>Select year level</option>
+          {% for y in years %}
+            <option value="{{ y.id }}" data-education="{{ y.education_level_id or '' }}"
+              {% if y.id == section.year_id %}selected{% endif %}>
+              {{ y.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
+      <a href="{{ url_for('admin.section') }}"
+         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
+                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
+                transition-all duration-200">
+        ← Go Back
+      </a>
+
+      <button type="submit"
+              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
+                     bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
+                     transition-all duration-200">
+        Save Changes
+      </button>
+    </div>
+  </form>
+</section>
+
+<!-- JS: filter courses/years based on selected education level -->
+<script>
+function filterOptions() {
+  const eduId = document.getElementById('education_lvl').value;
+  const courseOptions = document.querySelectorAll('#course option[data-education]');
+  const yearOptions = document.querySelectorAll('#year option[data-education]');
+
+  let hasCourse = false;
+  courseOptions.forEach(opt => {
+    if (!opt.dataset.education || opt.dataset.education === eduId) {
+      opt.style.display = '';
+      if(opt.value) hasCourse = true;
+    } else {
+      opt.style.display = 'none';
+    }
+  });
+  document.getElementById('course').value = hasCourse ? document.getElementById('course').value : '';
+
+  let hasYear = false;
+  yearOptions.forEach(opt => {
+    if (!opt.dataset.education || opt.dataset.education === eduId) {
+      opt.style.display = '';
+      if(opt.value) hasYear = true;
+    } else {
+      opt.style.display = 'none';
+    }
+  });
+  document.getElementById('year').value = hasYear ? document.getElementById('year').value : '';
+}
+
+document.getElementById('education_lvl').addEventListener('change', filterOptions);
+
+// Trigger on page load to apply initial filter
+window.addEventListener('DOMContentLoaded', filterOptions);
+</script>
+{% endblock %}

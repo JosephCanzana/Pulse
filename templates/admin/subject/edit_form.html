@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  Edit Subject
+{% endblock %}
+
+{% block main %}
+<section class="w-full h-full flex flex-col justify-center px-10">
+  <!-- Header -->
+  <header class="text-center mb-4">
+    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Edit Subject Information</h1>
+    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">Modify the subject name or education level below.</p>
+  </header>
+
+  <!-- Form -->
+  <form
+    id="editSubjectForm"
+    action="{{ url_for('admin.subject_edit', id=subject.subject_id) }}"
+    method="post"
+    onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this subject?')"
+    class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full"
+  >
+    <!-- Hidden Subject ID -->
+    <input type="hidden" name="subject_id" value="{{ subject.subject_id }}">
+
+    <!-- Subject Name -->
+    <div class="flex flex-col gap-2">
+      <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Subject Name</label>
+      <input 
+        type="text"
+        name="name"
+        value="{{ subject.subject_name }}"
+        placeholder="Enter subject name"
+        class="input-field"
+        required
+      />
+    </div>
+
+    <!-- Education Level -->
+    <div class="flex flex-col gap-2">
+      <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
+      <select 
+        name="lvl_id"
+        required
+        class="input-field"
+      >
+        {% for lvl in lvls %}
+          <option value="{{ lvl.id }}" {% if lvl.id == subject.education_level_id %}selected{% endif %}>
+            {{ lvl.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Buttons -->
+    <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
+      <!-- Go Back -->
+      <a href="{{ url_for('admin.subject') }}"
+         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
+                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
+                transition-all duration-200">
+        ← Go Back
+      </a>
+
+      <!-- Save Changes -->
+      <button type="submit"
+              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
+                     bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
+                     transition-all duration-200">
+        Save Changes
+      </button>
+    </div>
+  </form>
+</section>
+{% endblock %}

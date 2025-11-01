@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  Add Course
+{% endblock %}
+
+{% block main %}
+<section class="w-full h-full flex flex-col justify-center px-10">
+  <!-- Header -->
+  <header class="text-center mb-4">
+    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Add Course</h1>
+    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">
+      Fill out the details to add a new course.
+    </p>
+  </header>
+
+  <!-- Form -->
+  <form
+    id="courseForm"
+    action="{{ url_for('admin.course_add') }}"
+    method="post"
+    onsubmit="return openConfirmFormModal(event, this, 'Add Course', 'Are you sure you want to add this course?')"
+    class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full"
+  >
+    <!-- Left Column -->
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Course Name</label>
+        <input
+          type="text"
+          name="name"
+          placeholder="Enter course name"
+          required
+          class="input-field"
+        />
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
+        <select name="lvl_id" required class="input-field">
+          <option value="" disabled selected>Select education level</option>
+          {% for lvl in lvls %}
+            {% if lvl.id in valid_course %}
+              <option value="{{ lvl.id }}">{{ lvl.name }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
+      <!-- Go Back -->
+      <a type="button" href="{{ url_for('admin.course') }}"
+              class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
+                     hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
+                     transition-all duration-200">
+        ← Go Back
+      </a>
+
+      <!-- Restore -->
+      <button type="button" onclick="restoreLastEntry('#courseForm', 'lastCourseForm')"
+              class="px-6 py-2 rounded-lg text-[var(--clr-primary)] text-sm font-medium border border-[var(--clr-primary)]
+                     hover:bg-[var(--clr-primary)] hover:text-white
+                     transition-all duration-200">
+        Restore Last Entry
+      </button>
+
+      <!-- Submit -->
+      <button type="submit"
+              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
+                     bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
+                     transition-all duration-200">
+        Add Course
+      </button>
+    </div>
+  </form>
+</section>
+
+{% endblock %}

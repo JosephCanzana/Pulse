@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS Course (
         ON UPDATE CASCADE ON DELETE SET NULL
 );
 
--- AcademicYear table
-CREATE TABLE IF NOT EXISTS AcademicYear (
+-- YearLevel table
+CREATE TABLE IF NOT EXISTS YearLevel (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     education_level_id INT,
@@ -28,25 +28,13 @@ CREATE TABLE IF NOT EXISTS AcademicYear (
         ON UPDATE CASCADE ON DELETE SET NULL
 );
 
--- Section table
-CREATE TABLE IF NOT EXISTS Section (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    education_level_id INT,
-    course_id INT,
-    FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
-        ON UPDATE CASCADE ON DELETE SET NULL,
-    FOREIGN KEY (course_id) REFERENCES Course(id)
-        ON UPDATE CASCADE ON DELETE SET NULL
-);
 
--- Subject table
-CREATE TABLE IF NOT EXISTS Subject (
+-- department table
+CREATE TABLE IF NOT EXISTS Department (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    education_level_id INT,
+    education_level_id INT NULL,
     FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
-        ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 -- Users table
@@ -57,9 +45,53 @@ CREATE TABLE IF NOT EXISTS Users (
     last_name VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     school_id VARCHAR(50),
+    status BOOLEAN NOT NULL DEFAULT TRUE,
     gender ENUM('Male','Female','Other'),
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
     password VARCHAR(255) NOT NULL DEFAULT 'mcmY_1946',
     role ENUM('admin','teacher','student') NOT NULL
+);
+
+
+-- TeacherProfile table
+CREATE TABLE IF NOT EXISTS TeacherProfile (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    department_id INT,
+    education_level_id INT,
+    FOREIGN KEY (user_id) REFERENCES Users(id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    FOREIGN KEY (department_id) REFERENCES Department(id)
+        ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+-- Section table
+CREATE TABLE IF NOT EXISTS Section (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    year_id INT,
+    course_id INT,
+    academic_year VARCHAR(20), 
+    teacher_id INT NULL,
+    status BOOLEAN NOT NULL DEFAULT TRUE,
+    FOREIGN KEY (year_id) REFERENCES YearLevel(id)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    FOREIGN KEY (course_id) REFERENCES Course(id)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    FOREIGN KEY (teacher_id) REFERENCES TeacherProfile(id)
+    ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- Subject table
+CREATE TABLE IF NOT EXISTS Subject (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    status BOOLEAN NOT NULL DEFAULT TRUE,
+    name VARCHAR(100) NOT NULL,
+    education_level_id INT,
+    FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
+        ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 -- StudentProfile table
@@ -78,17 +110,8 @@ CREATE TABLE IF NOT EXISTS StudentProfile (
         ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (section_id) REFERENCES Section(id)
         ON UPDATE CASCADE ON DELETE SET NULL,
-    FOREIGN KEY (year_id) REFERENCES AcademicYear(id)
+    FOREIGN KEY (year_id) REFERENCES YearLevel(id)
         ON UPDATE CASCADE ON DELETE SET NULL
-);
-
--- TeacherProfile table
-CREATE TABLE IF NOT EXISTS TeacherProfile (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    department VARCHAR(100),
-    FOREIGN KEY (user_id) REFERENCES Users(id)
-        ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -- Class table
@@ -107,7 +130,7 @@ CREATE TABLE IF NOT EXISTS Class (
         ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (section_id) REFERENCES Section(id)
         ON UPDATE CASCADE ON DELETE SET NULL,
-    FOREIGN KEY (year_id) REFERENCES AcademicYear(id)
+    FOREIGN KEY (year_id) REFERENCES YearLevel(id)
         ON UPDATE CASCADE ON DELETE SET NULL
 );
 
@@ -124,63 +147,119 @@ CREATE TABLE IF NOT EXISTS ClassStudent (
 
 -- Insert default admin user
 INSERT INTO Users 
-    (first_name, middle_name, last_name, email, school_id, gender, password, role) 
+    (first_name, middle_name, last_name, email, school_id, gender, password, role, is_verified) 
 VALUES 
-    ('Admin', 'A', 'User', 'administrator@holycross.edu.ph', 'LMS001', 'Other', 'adminpassword', 'admin');
+    ('Admin', 'A', 'User', 'Administrator@holycross.edu.ph', 'LMS001', 'Other', 'AdminPassword', 'admin', 1);
 
--- Education level, Year, Course
-
-INSERT INTO EducationLevel (Name) VALUES
+-- Insert Education Levels
+INSERT INTO EducationLevel (name) VALUES 
 ('Elementary'),
 ('Junior High'),
 ('Senior High'),
 ('College');
 
-INSERT INTO Course (Name, education_level_id) VALUES
-('None', 1), 
-('None', 2),
-('STEM', 3),
-('ABM', 3),
+-- Insert Courses
+INSERT INTO Course (name, education_level_id) VALUES
 ('Bachelor of Science in Computer Science', 4),
-('Associate in Computer Technology', 4),
-('Bachelor of Science in Hotel Management', 4);
+('Bachelor of Science in Hotel Management', 4),
+('Senior High School - STEM', 3),
+('Senior High School - ABM', 3);
 
-INSERT INTO Section (Name, education_level_id, course_id) VALUES
-('rose', 1, 1),
-('tree', 1, 1),
-('cecilia', 2, 1),
-('eagle', 2, 1),
-('A', 3, 1),
-('B', 3, 2),
-('A', 4, 1),
-('B', 4, 3),
-('B', 4, 4);
-
-INSERT INTO AcademicYear (name, education_level_id) VALUES
+-- Insert Year Levels
+-- Elementary (Grades 1-6)
+INSERT INTO YearLevel (name, education_level_id) VALUES
 ('Grade 1', 1),
 ('Grade 2', 1),
+('Grade 3', 1),
+('Grade 4', 1),
+('Grade 5', 1),
+('Grade 6', 1);
+
+-- Junior High (Grades 7-10)
+INSERT INTO YearLevel (name, education_level_id) VALUES
 ('Grade 7', 2),
 ('Grade 8', 2),
+('Grade 9', 2),
+('Grade 10', 2);
+
+-- Senior High (Grades 11-12)
+INSERT INTO YearLevel (name, education_level_id) VALUES
 ('Grade 11', 3),
-('Grade 12', 3),
+('Grade 12', 3);
+
+-- College (Years 1-4)
+INSERT INTO YearLevel (name, education_level_id) VALUES
 ('1st Year', 4),
-('2nd Year', 4);
+('2nd Year', 4),
+('3rd Year', 4),
+('4th Year', 4);
 
+-- Insert Sections
+INSERT INTO Section (name, year_id, course_id, academic_year, status) VALUES
+-- Elementary
+('Elem 1-A', 1, NULL, '2025-2026',1),
+('Elem 2-A', 2, NULL, '2025-2026',1),
+-- Junior High
+('JH 7-A', 7, NULL, '2025-2026',1),
+('JH 8-A', 8, NULL, '2025-2026',1),
+-- Senior High
+('STEM 11-A', 11, 3, '2025-2026',1),
+('ABM 12-B', 12, 4, '2025-2026',1),
+-- College
+('CS1-A', 13, 1, '2025-2026',1),
+('CS2-B', 14, 1, '2025-2026',1),
+('HM1-A', 13, 2, '2025-2026',1);
 
-INSERT INTO Subject (Name, education_level_id) VALUES
-('Math', 1),
+-- Insert Departments
+INSERT INTO Department (name, education_level_id) VALUES
+('Elementary Department', 1),
+('Junior High Department', 2),
+('Senior High Department', 3),
+('Computer Science', 4),
+('Hotel Management', 4);
+
+-- Insert Subjects
+-- Elementary
+INSERT INTO Subject (name, education_level_id) VALUES
 ('English', 1),
+('Mathematics', 1),
 ('Science', 1),
-('Math', 2),
+('Filipino', 1),
+('Araling Panlipunan', 1);
+
+-- Junior High
+INSERT INTO Subject (name, education_level_id) VALUES
 ('English', 2),
-('Biology', 2),
-('Math', 3),
-('English', 3),
+('Mathematics', 2),
+('Science', 2),
+('Filipino', 2),
+('Social Studies', 2);
+
+-- Senior High
+INSERT INTO Subject (name, education_level_id) VALUES
 ('Physics', 3),
-('Programming', 4),
-('Data Structures', 4);
+('Biology', 3),
+('Accounting', 3),
+('Business Math', 3);
 
+-- College
+INSERT INTO Subject (name, education_level_id) VALUES
+('Programming 1', 4),
+('Programming 2', 4),
+('Data Structures', 4),
+('Algorithms', 4),
+('Database Systems', 4);
 
+-- Insert teacher and student users
+INSERT INTO Users (first_name, middle_name, last_name, email, school_id, gender, password, role, is_verified, status) 
+VALUES 
+('Joseph', 'C', 'Canzana', '14462018@holycross.edu.ph', '14462018', 'Male', 'mcmY_1946', 'student', 1, 1), 
+('David', 'H', 'Malan', '42852005@holycross.edu.ph', '42852005', 'Male', 'mcmY_1946', 'teacher', 1, 1);
 
+-- Insert Teacher Profiles (David H Malan assumed id=3)
+INSERT INTO TeacherProfile (user_id, department_id, education_level_id) VALUES
+(3, 4, 4);
 
-
+-- Insert Student Profiles (Joseph C Canzana assumed id=2)
+INSERT INTO StudentProfile (user_id, education_level_id, course_id, section_id, year_id) VALUES
+(2, 4, 1, 7, 13);

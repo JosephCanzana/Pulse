@@ -9,7 +9,8 @@ if (menuBtn && sidebarExpand && sidebarCollapsed && mainContent) {
     // NAVBAR EXPANDED
     if (localStorage.getItem('sidebarOpen') === 'true') {
         sidebarExpand.classList.remove('-translate-x-full');
-        mainContent.classList.add('ml-60');
+        sidebarCollapsed.classList.add('translate-y-full');
+        mainContent.classList.add('md:ml-60');
     }
     
     // NAVBAR COLLAPSED
@@ -20,20 +21,17 @@ if (menuBtn && sidebarExpand && sidebarCollapsed && mainContent) {
             // Closing sidebar
             sidebarExpand.classList.add('-translate-x-full');
             sidebarCollapsed.classList.remove('translate-y-full'); 
-            mainContent.classList.remove('ml-60');
+            mainContent.classList.remove('md:ml-60');
             localStorage.setItem('sidebarOpen', false);
         } else {
             // Opening sidebar
             sidebarExpand.classList.remove('-translate-x-full');
             sidebarCollapsed.classList.add('translate-y-full');
-            mainContent.classList.add('ml-60');
+            mainContent.classList.add('md:ml-60');
             localStorage.setItem('sidebarOpen', true);
         }
     });
 }
-
-
-
 
 //Theme change
 const themeToggles = document.querySelectorAll('.theme-toggle');
@@ -77,3 +75,23 @@ themeToggles.forEach(btn => {
         }
     });
 });
+
+// Mobile Sidebar Toggle
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+
+if (mobileMenuBtn && sidebarExpand && sidebarCollapsed) {
+  mobileMenuBtn.addEventListener('click', () => {
+    const isOpen = !sidebarExpand.classList.contains('-translate-x-full');
+
+    if (isOpen) {
+      sidebarExpand.classList.add('-translate-x-full');
+      sidebarCollapsed.classList.remove('translate-y-full');
+      localStorage.setItem('sidebarOpen', false);
+    } else {
+      sidebarExpand.classList.remove('-translate-x-full');
+      sidebarCollapsed.classList.add('translate-y-full');
+      localStorage.setItem('sidebarOpen', true);
+    }
+  });
+}
+
