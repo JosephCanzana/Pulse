@@ -53,47 +53,27 @@
 
     <!-- Right Column -->
     <div class="flex flex-col gap-4">
+      <!-- Education Level -->
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
-        <select name="education_lvl" required class="input-field">
+        <select name="education_lvl" id="educationSelect" class="input-field" required>
+          <option value="" disabled selected>Select education level</option>
           {% for lvl in education_lvls %}
             <option value="{{ lvl.id }}" {% if lvl.id == student.education_level_id %}selected{% endif %}>{{ lvl.name }}</option>
           {% endfor %}
         </select>
       </div>
 
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Course</label>
-        <select name="course" required class="input-field">
-          {% for course in courses %}
-            <option value="{{ course.id }}" {% if course.id == student.course_id %}selected{% endif %}>{{ course.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
+      <!-- Section -->
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section</label>
-        <select name="section" required class="input-field">
-          {% for section in sections %}
-            <option value="{{ section.id }}" {% if section.id == student.section_id %}selected{% endif %}>{{ section.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Year</label>
-        <select name="year" required class="input-field">
-          {% for year in years %}
-            <option value="{{ year.id }}" {% if year.id == student.year_id %}selected{% endif %}>{{ year.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Email</label>
-        <input type="email" value="{{ student.email }}" readonly class="input-field text-[var(--clr-txt-muted)] cursor-not-allowed" />
+          <select name="section" id="sectionSelect" class="input-field" required data-selected="{{ student.section_id }}">
+            <option value="" disabled selected>Search and select a section</option>
+          </select>
+          <p class="mt-1 text-xs text-[var(--clr-txt-muted)]">Type the year, course, or section name to find the section.</p>
       </div>
     </div>
+
 
     <!-- Hidden Field -->
     <input type="hidden" id="reset_account_input" name="reset_account" value="0">

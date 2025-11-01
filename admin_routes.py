@@ -1,7 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, Blueprint
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from sqlalchemy import text, func
+from flask import Flask, render_template, request, redirect, url_for, session, flash, Blueprint, jsonify
+from flask_login import login_required
+from sqlalchemy import text
 from helpers import *
 from database import db
 
@@ -10,6 +9,51 @@ DEFAULT_PASSWORD = "mcmY_1946"
 ADMIN_DELETABLE_ROWS = ("Users", "Subject", "Course", "Department", "Section")
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+
+# =======================
+# API(AJAX)
+# =======================
+@admin_bp.route("/api/sections/search", methods=["GET"])
+@login_required
+def search_sections():
+    """
+    Search sections dynamically by education level, course, year, or section name.
+    Supports partial matches for easier search.
+    """
+    education_lvl = request.args.get("education_level_id")
+    query_text = request.args.get("q", "").strip()  # user search input
+
+    sql = """
+        SELECT Section.id, Section.name AS section_name,
+               Course.name AS course_name,
+               YearLevel.name AS year_name
+        FROM Section
+        LEFT JOIN Course ON Section.course_id = Course.id
+        LEFT JOIN YearLevel ON Section.year_id = YearLevel.id
+        WHERE 1=1
+    """
+    params = {}
+
+    if education_lvl:
+        sql += " AND YearLevel.education_level_id = :education_lvl"
+        params["education_lvl"] = education_lvl
+
+    if query_text:
+        sql += """ AND (
+            Section.name LIKE :q OR
+            Course.name LIKE :q OR
+            YearLevel.name LIKE :q
+        )"""
+        params["q"] = f"%{query_text}%"
+
+    sql += " ORDER BY Section.name ASC"
+
+    results = db.session.execute(text(sql), params).mappings().all()
+    # Return combined display text for easy searching
+    return jsonify([
+        {"id": r["id"], "text": f"{r['course_name']} - {r['year_name']} - {r['section_name']}"}
+        for r in results
+    ])
 
 @admin_bp.route("/")
 @login_required
@@ -191,70 +235,64 @@ def student():
 @login_required
 def student_add():
     if request.method == "POST":
-        # Form getters
-
-        # USER form part
         first = request.form.get("first_name").capitalize()
         second = request.form.get("second_name").capitalize()
         last = request.form.get("last_name").capitalize()
         school_id = request.form.get("school_id")
         gender = request.form.get("gender").capitalize()
-        # convert school id to email
         email = f"{school_id}@holycross.edu.ph"
 
-        if first == None or last == None or school_id == None or gender == None:
-            flash("Please fill up form.", "info")
+        if not all([first, last, school_id, gender]):
+            flash("Please fill up the form.", "info")
             return redirect(url_for("admin.student_add"))
-        
 
         if len(school_id) != 8:
-            flash("The school id must be 8 digit.", "info")
+            flash("The school ID must be 8 digits.", "info")
             return redirect(url_for("admin.student_add"))
-        
+
         try:
             school_id = int(school_id)
         except (TypeError, ValueError):
-            flash("School ID must be an integer", "warning")
+            flash("School ID must be an integer.", "warning")
             return redirect(url_for("admin.student_add"))
 
-
-        # Get existing student id to avoid duplicate
         if is_exist(db, school_id, "school_id", "Users"):
-            flash("The school id already exist", "info")
+            flash("The school ID already exists.", "info")
             return redirect(url_for("admin.student_add"))
 
-
-        # First, second, and last name is already existing
-        if is_exist(db, first, "first_name", "Users") and is_exist(db, second, "middle_name", "Users") and is_exist(db, last, "last_name", "Users"):
-            flash("Something went wrong", "info")
-            return redirect(url_for("admin.student_add"))
-        
-        # Add user in db
         user = add_user(db, first, second, last, email, school_id, gender, "student")
         user_id = user["id"]
 
-        # Student Profile form part
         education_lvl = request.form.get("education_lvl")
-        course_id = request.form.get("course")
         section_id = request.form.get("section")
-        year_id = request.form.get("year")
 
-        if not (education_lvl and course_id and section_id and year_id):
+        if not (education_lvl and section_id):
             flash("Some fields are missing!", "warning")
             return redirect(url_for("admin.student_add"))
 
+        # Auto-detect year and course from section
+        query = text("""
+            SELECT Section.course_id, Section.year_id
+            FROM Section
+            WHERE Section.id = :section_id
+        """)
+        section_info = db.session.execute(query, {"section_id": section_id}).mappings().first()
 
-        assign_student_profile(db,user_id,education_lvl,course_id,section_id, year_id)
+        course_id = section_info["course_id"] if section_info else None
+        year_id = section_info["year_id"] if section_info else None
 
+        assign_student_profile(db, user_id, education_lvl, course_id, section_id, year_id)
+
+        flash("Student added successfully!", "success")
         return redirect(url_for("admin.student_add"))
 
-    else: 
+    else:
         education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
-        courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
         sections = db.session.execute(text("SELECT * FROM Section")).mappings().all()
-        years = db.session.execute(text("SELECT * FROM YearLevel")).mappings().all()
 
-        return render_template("admin/student/add_form.html", education_lvls=education_lvls, courses=courses, sections=sections, years=years)
+        return render_template("admin/student/add_form.html",
+                               education_lvls=education_lvls,
+                               sections=sections)
 
 # Student edit
 @admin_bp.route("/student/edit/<string:school_id>", methods=["POST", "GET"])
