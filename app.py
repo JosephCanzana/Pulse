@@ -63,7 +63,7 @@ def load_user(user_id):
 
 # ==== GLOBAL VARIABLES ====
 DEFAULT_PASSWORD = "mcmY_1946"
-ADMIN_DELETABLE_ROWS = ("Users", "Subject", "Course", "Department")
+ADMIN_DELETABLE_ROWS = ("Users", "Subject", "Course", "Department", "Section")
 
 # TEST
 @app.route("/testdb")
@@ -141,8 +141,8 @@ def login():
 @login_required
 def account_activation(school_id):
     if request.method == "POST":
-        f_name = request.form.get("first_name").title().strip() 
-        l_name = request.form.get("last_name").title().strip()
+        f_name = request.form.get("first_name").capitalize().strip() 
+        l_name = request.form.get("last_name").capitalize().strip()
         new_pwd = request.form.get("new_password")
         c_pwd = request.form.get("confirm_password")
 
@@ -324,34 +324,33 @@ def admin():
 def admin_student():
     show_archive = session.get("show_archive_student", False)
     
-    query = text(f"""
-        SELECT 
-            Users.id AS user_id,
-            Users.first_name,
-            Users.middle_name,
-            Users.last_name,
-            Users.email,
-            Users.school_id,
-            Users.is_verified,
-            StudentProfile.id AS profile_id,
-            EducationLevel.name AS education_level_name,
-            Course.name AS course_name,
-            Section.name AS section_name,
-            AcademicYear.name AS academic_year_name
-        FROM Users
-        JOIN StudentProfile ON Users.id = StudentProfile.user_id
-        LEFT JOIN EducationLevel ON StudentProfile.education_level_id = EducationLevel.id
-        LEFT JOIN Course ON StudentProfile.course_id = Course.id
-        LEFT JOIN Section ON StudentProfile.section_id = Section.id
-        LEFT JOIN AcademicYear ON StudentProfile.year_id = AcademicYear.id
-        WHERE Users.role = 'student'
-        AND Users.status = {0 if show_archive else 1}
-        ORDER BY Users.last_name, Users.first_name
-    """)
-    
-    students = db.session.execute(query).mappings().all()
-    return render_template("admin/student/list.html", students=students, show_archive=show_archive)
+    query = text("""
+    SELECT 
+        Users.id AS user_id,
+        Users.first_name,
+        Users.middle_name,
+        Users.last_name,
+        Users.email,
+        Users.school_id,
+        Users.is_verified,
+        StudentProfile.id AS profile_id,
+        EducationLevel.name AS education_level_name,
+        Course.name AS course_name,
+        Section.name AS section_name,
+        YearLevel.name AS academic_year_name
+    FROM Users
+    JOIN StudentProfile ON Users.id = StudentProfile.user_id
+    LEFT JOIN EducationLevel ON StudentProfile.education_level_id = EducationLevel.id
+    LEFT JOIN Course ON StudentProfile.course_id = Course.id
+    LEFT JOIN Section ON StudentProfile.section_id = Section.id
+    LEFT JOIN YearLevel ON StudentProfile.year_id = YearLevel.id
+    WHERE Users.role = 'student'
+    AND Users.status = :status
+    ORDER BY Users.last_name, Users.first_name
+""")
 
+    students = db.session.execute(query, {"status": 0 if show_archive else 1}).mappings().all() 
+    return render_template("admin/student/list.html", students=students, show_archive=show_archive)
 
 
 @app.route("/admin/student/add", methods=["POST", "GET"])
@@ -361,11 +360,11 @@ def admin_student_add():
         # Form getters
 
         # USER form part
-        first = request.form.get("first_name").title()
-        second = request.form.get("second_name").title()
-        last = request.form.get("last_name").title()
+        first = request.form.get("first_name").capitalize()
+        second = request.form.get("second_name").capitalize()
+        last = request.form.get("last_name").capitalize()
         school_id = request.form.get("school_id")
-        gender = request.form.get("gender").title()
+        gender = request.form.get("gender").capitalize()
         # convert school id to email
         email = f"{school_id}@holycross.edu.ph"
 
@@ -419,7 +418,7 @@ def admin_student_add():
         education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
         courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
         sections = db.session.execute(text("SELECT * FROM Section")).mappings().all()
-        years = db.session.execute(text("SELECT * FROM AcademicYear")).mappings().all()
+        years = db.session.execute(text("SELECT * FROM YearLevel")).mappings().all()
 
         return render_template("admin/student/add_form.html", education_lvls=education_lvls, courses=courses, sections=sections, years=years)
 
@@ -443,10 +442,10 @@ def admin_student_edit(school_id):
 
     if request.method == "POST":
         # Form data
-        first = request.form.get("first_name").title()
-        second = request.form.get("second_name").title()
-        last = request.form.get("last_name").title()
-        gender = request.form.get("gender").title()
+        first = request.form.get("first_name").capitalize()
+        second = request.form.get("second_name").capitalize()
+        last = request.form.get("last_name").capitalize()
+        gender = request.form.get("gender").capitalize()
         school_id_new = request.form.get("school_id")
         education_lvl = request.form.get("education_lvl")
         course_id = request.form.get("course")
@@ -508,7 +507,7 @@ def admin_student_edit(school_id):
         education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
         courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
         sections = db.session.execute(text("SELECT * FROM Section")).mappings().all()
-        years = db.session.execute(text("SELECT * FROM AcademicYear")).mappings().all()
+        years = db.session.execute(text("SELECT * FROM YearLevel")).mappings().all()
 
         return render_template(
             "admin/student/edit_form.html",
@@ -582,11 +581,11 @@ def admin_teacher_add():
     if request.method == "POST":
         
         # USER form part
-        first = request.form.get("first_name").title()
-        second = request.form.get("second_name").title()
-        last = request.form.get("last_name").title()
+        first = request.form.get("first_name").capitalize()
+        second = request.form.get("second_name").capitalize()
+        last = request.form.get("last_name").capitalize()
         school_id = request.form.get("school_id")
-        gender = request.form.get("gender").title()
+        gender = request.form.get("gender").capitalize()
         # convert school id to email
         email = f"{school_id}@holycross.edu.ph"
 
@@ -649,10 +648,10 @@ def admin_teacher_edit(school_id):
 
     if request.method == "POST":
         # Get form data
-        first = request.form.get("first_name").title()
-        second = request.form.get("second_name").title() if request.form.get("second_name") else None
-        last = request.form.get("last_name").title()
-        gender = request.form.get("gender").title()
+        first = request.form.get("first_name").capitalize()
+        second = request.form.get("second_name").capitalize() if request.form.get("second_name") else None
+        last = request.form.get("last_name").capitalize()
+        gender = request.form.get("gender").capitalize()
         school_id_new = request.form.get("school_id")
         department_id = request.form.get("department_id")
         lvl_id = request.form.get("lvl_id")
@@ -744,6 +743,296 @@ def teacher_archive_switch():
     session["show_archive_teacher"] = not session.get("show_archive_teacher", False)
     return redirect(url_for("admin_teacher"))
 
+# Section
+# List Sections
+@app.route("/admin/section")
+@login_required
+def admin_section():
+    show_archive = session.get("show_archive_section", False)
+
+    query = text("""
+    SELECT 
+        Section.id AS section_id,
+        Section.name AS section_name,
+        Section.academic_year,
+        Course.name AS course_name,
+        YearLevel.name AS year_name,
+        EducationLevel.name AS education_level_name,
+        CONCAT(Users.first_name, ' ', IFNULL(Users.middle_name,''), ' ', Users.last_name) AS teacher_name
+    FROM Section
+    LEFT JOIN Course ON Section.course_id = Course.id
+    LEFT JOIN YearLevel ON Section.year_id = YearLevel.id
+    LEFT JOIN EducationLevel ON Course.education_level_id = EducationLevel.id
+    LEFT JOIN TeacherProfile ON Section.teacher_id = TeacherProfile.id
+    LEFT JOIN Users ON TeacherProfile.user_id = Users.id
+    WHERE Section.status = :status
+    ORDER BY Section.name
+""")
+
+
+    status = 0 if show_archive else 1  # 0 = archived, 1 = active
+    sections = db.session.execute(query, {"status": status}).mappings().all()
+    
+    return render_template(
+        "admin/section/list.html",
+        sections=sections,
+        show_archive=show_archive
+    )
+
+
+
+# Add Section
+@app.route("/admin/section/add", methods=["POST", "GET"])
+@login_required
+def admin_section_add():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip().capitalize()
+        academic_year = request.form.get("academic_year", "").strip()
+        ed_lvl_id = request.form.get("education_lvl_id")
+        course_id = request.form.get("course_id")
+        year_id = request.form.get("year_id")
+        teacher_name = request.form.get("teacher_name", "").strip()
+        teacher_id = None
+
+        # Convert ed_lvl_id and course_id to int if possible
+        try:
+            ed_lvl_id = int(ed_lvl_id)
+        except (TypeError, ValueError):
+            ed_lvl_id = None
+
+        try:
+            course_id = int(course_id) if course_id else None
+        except (TypeError, ValueError):
+            course_id = None
+
+        if not (name and academic_year and year_id and ed_lvl_id):
+            flash("All fields are required!", "warning")
+            return redirect(url_for("admin_section_add"))
+
+        # For SHS and College, course is required
+        if ed_lvl_id in [3, 4] and not course_id:
+            flash("Course is required for Senior High and College.", "warning")
+            return redirect(url_for("admin_section_add"))
+
+        # For Elementary and Junior High, course should be None
+        if ed_lvl_id in [1, 2]:
+            course_id = None
+
+
+        # Check duplicate section name in academic year
+        duplicate = db.session.execute(text("""
+            SELECT 1 FROM Section
+            WHERE name = :name AND academic_year = :academic_year 
+        """), {"name": name, "academic_year": academic_year}).first()
+
+        if duplicate:
+            flash("Section name already exists.", "info")
+            return redirect(url_for("admin_section_add"))
+
+        if teacher_name: 
+            teacher = db.session.execute(text("""
+                SELECT tp.id FROM TeacherProfile tp
+                JOIN Users u ON tp.user_id = u.id
+                WHERE CONCAT(u.first_name, ' ', u.middle_name, ' ', u.last_name) = :full_name
+                AND u.status = 1 AND u.role = 'teacher'
+            """), {"full_name": teacher_name}).first()
+            if teacher:
+                teacher_id = teacher.id
+            else:
+                flash("Teacher not found. Section will be created without a teacher.", "info")
+                return redirect(url_for("admin_section_add"))
+
+        # Insert into Section
+        db.session.execute(text("""
+            INSERT INTO Section (name, academic_year, course_id, year_id, teacher_id)
+            VALUES (:name, :academic_year, :course_id, :year_id, :teacher_id)
+        """), {
+            "name": name,
+            "academic_year": academic_year,
+            "course_id": course_id,
+            "year_id": year_id,
+            "teacher_id": teacher_id
+        })
+
+        db.session.commit()
+        flash("Section added successfully!", "success")
+        return redirect(url_for("admin_section_add"))
+
+
+    else:
+        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+        courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
+        years = db.session.execute(text("SELECT * FROM YearLevel")).mappings().all()
+        teachers = db.session.execute(
+        text("""
+            SELECT TeacherProfile.id, Users.first_name, Users.middle_name, Users.last_name
+            FROM TeacherProfile
+            JOIN Users ON TeacherProfile.user_id = Users.id
+            WHERE Users.status = 1 AND Users.role = 'teacher'
+            ORDER BY Users.last_name, Users.first_name
+        """)).mappings().all()
+        
+        return render_template("admin/section/add_form.html", courses=courses, years=years, education_lvls=education_lvls, teachers=teachers)
+
+
+# Edit Section
+@app.route("/admin/section/edit/<int:section_id>", methods=["POST", "GET"])
+@login_required
+def admin_section_edit(section_id):
+    section = db.session.execute(text("""
+        SELECT s.*, y.id AS year_id, y.name AS year_name, y.education_level_id, e.name AS education_level_name
+        FROM Section s
+        LEFT JOIN YearLevel y ON s.year_id = y.id
+        LEFT JOIN EducationLevel e ON y.education_level_id = e.id
+        WHERE s.id = :section_id
+    """), {"section_id": section_id}).mappings().first()
+
+    if not section:
+        flash("Section not found.", "warning")
+        return redirect(url_for("admin_section"))
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip().capitalize()
+        academic_year = request.form.get("academic_year", "").strip()
+        ed_lvl_id = request.form.get("education_lvl_id")
+        course_id = request.form.get("course_id")
+        year_id = request.form.get("year_id")
+        teacher_name = request.form.get("teacher_name", None).strip()
+        teacher_id = None
+
+        # Convert ed_lvl_id and course_id to int if possible
+        try:
+            ed_lvl_id = int(ed_lvl_id)
+        except (TypeError, ValueError):
+            ed_lvl_id = None
+
+        try:
+            course_id = int(course_id) if course_id else None
+        except (TypeError, ValueError):
+            course_id = None
+
+        # Validation
+        if not (name and academic_year and year_id and ed_lvl_id):
+            flash("All fields are required!", "warning")
+            return redirect(url_for("admin_section_edit", section_id=section_id))
+
+        if ed_lvl_id in [3, 4] and not course_id:
+            flash("Course is required for Senior High and College.", "warning")
+            return redirect(url_for("admin_section_edit", section_id=section_id))
+
+        if ed_lvl_id in [1, 2]:
+            course_id = None
+
+        # Check duplicate name excluding current section
+        duplicate = db.session.execute(text("""
+                SELECT 1 FROM Section
+                WHERE name = :name 
+                AND academic_year = :academic_year
+                AND id != :section_id
+            """), {"name": name, "academic_year": academic_year, "section_id": section_id}).first()
+
+
+        if duplicate:
+            flash("Section name already exists.", "info")
+            return redirect(url_for("admin_section_edit", section_id=section_id))
+        
+        if teacher_name: 
+            teacher = db.session.execute(text("""
+                SELECT tp.id FROM TeacherProfile tp
+                JOIN Users u ON tp.user_id = u.id
+                WHERE CONCAT(u.first_name, ' ', u.middle_name, ' ', u.last_name) = :full_name
+                AND u.status = 1 AND u.role = 'teacher'
+            """), {"full_name": teacher_name}).first()
+        
+            if teacher:
+                teacher_id = teacher.id
+            else:
+                flash("Teacher not found. Section will be created without a teacher.", "info")
+                return redirect(url_for("admin_section_add"))
+
+        # Update section
+        db.session.execute(text("""
+            UPDATE Section
+            SET name = :name,
+                academic_year = :academic_year,
+                course_id = :course_id,
+                year_id = :year_id,
+                teacher_id = :teacher_id
+            WHERE id = :section_id
+        """), {
+            "name": name,
+            "academic_year": academic_year,
+            "course_id": course_id,
+            "year_id": year_id,
+            "section_id": section_id,
+            "teacher_id": teacher_id
+        })
+        db.session.commit()
+        flash("Section updated successfully!", "success")
+        return redirect(url_for("admin_section"))
+    else:
+        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+        courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
+        years = db.session.execute(text("""
+            SELECT y.id, y.name, y.education_level_id, e.name AS education_level_name
+            FROM YearLevel y
+            LEFT JOIN EducationLevel e ON y.education_level_id = e.id
+        """)).mappings().all()
+
+        teachers = db.session.execute(
+        text("""
+            SELECT TeacherProfile.id, Users.first_name, Users.middle_name, Users.last_name
+            FROM TeacherProfile
+            JOIN Users ON TeacherProfile.user_id = Users.id
+            WHERE Users.status = 1 AND Users.role = 'teacher'
+            ORDER BY Users.last_name, Users.first_name
+        """)).mappings().all()
+
+        current_teacher_name = ""
+        if section['teacher_id']:
+            teacher = next((t for t in teachers if t['id'] == section['teacher_id']), None)
+            if teacher:
+                current_teacher_name = f"{teacher['first_name']} {teacher['middle_name']} {teacher['last_name']}"
+
+        return render_template(
+            "admin/section/edit_form.html",
+            section=section,
+            courses=courses,
+            years=years,
+            education_lvls=education_lvls,
+            teachers=teachers,
+            current_teacher_name=current_teacher_name
+        )
+
+
+
+# Toggle archive/unarchive a specific section
+@app.route("/admin/section/archive/<int:section_id>", methods=["POST", "GET"])
+@login_required
+def admin_section_archive(section_id):
+    db.session.execute(
+        text("""
+            UPDATE Section
+            SET status = CASE
+                WHEN status = 1 THEN 0
+                ELSE 1
+            END
+            WHERE id = :section_id
+        """),
+        {"section_id": section_id}
+    )
+    db.session.commit()
+    flash("Section archive status updated.", "success")
+    return redirect(url_for("admin_section"))
+
+# Toggle session flag to show archived sections in list
+@app.route("/admin/section/archive")
+@login_required
+def section_archive_switch():
+    session["show_archive_section"] = not session.get("show_archive_section", False)
+    return redirect(url_for("admin_section"))
+
+
 # course (Admin side)
 @app.route("/admin/course")
 @login_required
@@ -761,15 +1050,14 @@ def admin_course():
     courses = db.session.execute(query).mappings().all()
     return render_template("admin/course/list.html", courses=courses)
 
-
 @app.route("/admin/course/add", methods=["POST", "GET"])
 @login_required
 def admin_course_add():
     if request.method == "POST":
         
         # Form getters
-        course_name = request.form.get("name").title().strip()
-        lvl_id = request.form.get("lvl_id").title().strip() 
+        course_name = request.form.get("name").capitalize().strip()
+        lvl_id = request.form.get("lvl_id").capitalize().strip() 
 
         # If input is none
         if course_name == None and lvl_id == None:
@@ -785,6 +1073,7 @@ def admin_course_add():
         # Append to the courses
         add_course(db, course_name, lvl_id)
 
+        flash("Successfully added.", "success")
         return redirect(url_for("admin_course_add"))
     else:
         ed_lvl = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
@@ -798,7 +1087,7 @@ def admin_course_add():
 @login_required
 def admin_course_edit(id):
     if request.method == "POST":
-        name = request.form.get("name").title().strip()
+        name = request.form.get("name").capitalize().strip()
         lvl_id = request.form.get("lvl_id")
 
         query = text("UPDATE Course SET name = :name, education_level_id = :lvl_id WHERE id = :id")
@@ -820,7 +1109,6 @@ def admin_course_edit(id):
     lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
 
     return render_template("admin/course/edit_form.html", course=course, lvls=lvls)
-
 
 # Department (admin side)
 @app.route("/admin/department")
@@ -844,8 +1132,8 @@ def admin_department():
 @login_required
 def admin_department_add():
     if request.method == "POST":
-        name = request.form.get("name").title().strip()
-        lvl_id = request.form.get("lvl_id").title().strip()
+        name = request.form.get("name").capitalize().strip()
+        lvl_id = request.form.get("lvl_id").capitalize().strip()
 
         # Check if none
         if name == None or lvl_id == None:
@@ -870,7 +1158,7 @@ def admin_department_add():
 @login_required
 def admin_department_edit(id):
     if request.method == "POST":
-        name = request.form.get("name").title().strip()
+        name = request.form.get("name").capitalize().strip()
         lvl_id = request.form.get("lvl_id")
 
         query = text("""
@@ -952,7 +1240,7 @@ def admin_subject_add():
 @login_required
 def admin_subject_edit(id):
     if request.method == "POST":
-        name = request.form.get("name").strip().title()
+        name = request.form.get("name").strip().capitalize()
         lvl_id = request.form.get("lvl_id")
 
         if not name or not lvl_id:

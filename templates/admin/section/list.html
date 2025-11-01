@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  Section List
+{% endblock %}
+
+{% block main %}
+
+<!-- Page Header -->
+<div class="flex flex-wrap items-center justify-between mb-8 gap-3">
+  <!-- Archive/Unarchive Toggle -->
+  <a href="{{ url_for('section_archive_switch') }}" 
+    class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 font-medium shadow-md hover:shadow-lg transition-all duration-300
+    {{ 'text-yellow-600 border-yellow-500 bg-yellow-100/80 hover:bg-yellow-200/80' if show_archive else 'text-[var(--clr-txt-primary)] hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)]' }}">
+    
+    <span class="material-symbols-rounded transition-colors duration-300">
+      {{ 'unarchive' if show_archive else 'archive' }}
+    </span>
+    
+    <span class="transition-colors duration-300">
+      {{ 'Showing Archived Sections' if show_archive else 'Show Archived Sections' }}
+    </span>
+  </a>
+
+  <a href="{{ url_for('admin_section_add') }}" 
+     class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
+    <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">add_circle</span>
+    Add Section
+  </a>
+</div>
+
+<!-- Title -->
+<h1 class="text-2xl font-semibold mb-6 text-[var(--clr-txt-primary)]">
+  Section List
+</h1>
+
+<!-- Glass Table Container -->
+<div class="overflow-x-auto rounded-3xl border border-[var(--clr-glass-border)] bg-[var(--clr-glass-light)] backdrop-blur-md shadow-xl">
+  <table class="w-full border-collapse text-sm">
+    <thead class="bg-[var(--clr-surface-alt)]/70 text-[var(--clr-txt-secondary)]">
+      <tr>
+        <th class="px-4 py-3 text-left">Section Name</th>
+        <th class="px-4 py-3 text-left">Course</th>
+        <th class="px-4 py-3 text-left">Year</th>
+        <th class="px-4 py-3 text-left">Education Level</th>
+        <th class="px-4 py-3 text-left">Academic Year</th>
+        <th class="px-4 py-3 text-left">Teacher</th>
+        <th class="px-4 py-3 text-center">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in sections %}
+      <tr class="border-t border-[var(--clr-border)] hover:bg-[var(--clr-glass-border)]/40 transition-all">
+        <td class="px-4 py-3 whitespace-nowrap">{{ s.section_name }}</td>
+        <td class="px-4 py-3">{{ s.course_name or 'N/A' }}</td>
+        <td class="px-4 py-3">{{ s.year_name or 'N/A' }}</td>
+        <td class="px-4 py-3">{{ s.education_level_name or 'N/A' }}</td>
+        <td class="px-4 py-3">{{ s.academic_year or 'N/A' }}</td>
+        <td class="px-4 py-3">{{ s.teacher_name or 'Unassigned' }}</td>
+        <td class="px-4 py-3 text-center">
+          <div class="flex justify-center gap-1">
+
+            <!-- Edit -->
+            <a href="{{ url_for('admin_section_edit', section_id=s.section_id) }}" 
+              class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-txt-hover)] hover:bg-[var(--clr-glow-tertiary)]/10 hover:shadow-md transition-all">
+              <span class="material-symbols-rounded text-base">edit</span> 
+              Edit
+            </a>
+
+            {% if not show_archive %}
+              <!-- Archive -->
+              <form action="{{ url_for('admin_section_archive', section_id=s.section_id) }}" 
+                    method="POST"
+                    class="inline"
+                    onsubmit="return openConfirmFormModal(event,this,'Archive Section', 'Are you sure you want archive this section?');">
+                <button type="submit" 
+                        class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-yellow-600 hover:bg-yellow-100/60 hover:shadow-md transition-all">
+                  <span class="material-symbols-rounded text-base">archive</span> 
+                  Archive
+                </button>
+              </form>
+            {% else %}
+                <!-- Unarchive -->
+                <form action="{{ url_for('admin_section_archive', section_id=s.section_id) }}" 
+                        method="POST"
+                        class="inline"
+                        onsubmit="return openConfirmFormModal(event,this,'Unarchive Section', 'Are you sure you want unarchive this section?');">
+                    <button type="submit" 
+                            class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-green-600 hover:bg-green-100/60 hover:shadow-md transition-all">
+                    <span class="material-symbols-rounded text-base">unarchive</span> 
+                    Unarchive
+                    </button>
+                </form>
+                <form action="{{ url_for('admin_delete') }}" 
+                    method="POST" 
+                    class="inline"
+                    onsubmit="return openConfirmFormModal(event, this, 'Delete Section', 'This will permanently delete the record. Continue?')">
+                <input type="hidden" name="id" value="{{ s.section_id }}">
+                <input type="hidden" name="table" value="Section">
+                <button type="submit" 
+                        class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
+                  <span class="material-symbols-rounded text-base">delete</span> 
+                  Delete
+                </button>
+              </form>
+            {% endif %}
+
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

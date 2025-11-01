@@ -22,8 +22,11 @@
           <a href="{{ url_for('admin_student') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin_student') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">group</span>
           </a>
+          <a href="{{ url_for('admin_section') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin_section') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">diversity_3</span>
+          </a>
           <a href="{{ url_for('admin_department') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin_department') %}btn-side-bar-collapsed-active{% endif %}">
-            <span class="material-symbols-outlined">groups_3</span>
+            <span class="material-symbols-outlined">hive</span>
           </a>
           <a href="{{ url_for('admin_course') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin_course') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">menu_book</span>
@@ -93,8 +96,11 @@
           <a href="{{ url_for('admin_student') }}" class="btn-side-bar-expand {% if request.path == url_for('admin_student') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">group</span><span class="ml-4">Students</span>
           </a>
+          <a href="{{ url_for('admin_section') }}" class="btn-side-bar-expand {% if request.path == url_for('admin_section') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">diversity_3</span><span class="ml-4">Section</span>
+          </a>
           <a href="{{ url_for('admin_department') }}" class="btn-side-bar-expand {% if request.path == url_for('admin_department') %}btn-side-bar-expanded-active{% endif %}">
-            <span class="material-symbols-outlined">groups_3</span><span class="ml-4">Department</span>
+            <span class="material-symbols-outlined">hive</span><span class="ml-4">Department</span>
           </a>
           <a href="{{ url_for('admin_course') }}" class="btn-side-bar-expand {% if request.path == url_for('admin_course') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">menu_book</span><span class="ml-4">Courses</span>
