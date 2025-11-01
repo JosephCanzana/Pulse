@@ -2106,6 +2106,22 @@ html {
     outline-style: none;
   }
 }
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.05);
+  }
+}
+.animate-pulse-slow {
+  animation: pulse 10s ease-in-out infinite;
+}
+.animate-pulse {
+  animation: pulse 8s ease-in-out infinite;
+}
 @property --tw-translate-x {
   syntax: "*";
   inherits: false;

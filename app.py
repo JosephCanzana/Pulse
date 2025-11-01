@@ -626,7 +626,6 @@ def admin_teacher_add():
         lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
         return render_template("admin/teacher/add_form.html", departments=departments, lvls=lvls)
 
-
 @app.route("/admin/teacher/edit/<string:school_id>", methods=["POST", "GET"])
 @login_required
 def admin_teacher_edit(school_id):
@@ -736,7 +735,6 @@ def admin_teacher_archive(school_id):
     db.session.commit()
     return redirect(url_for("admin_teacher"))
 
-
 @app.route("/admin/teacher/archive")
 @login_required
 def teacher_archive_switch():
@@ -778,8 +776,6 @@ def admin_section():
         sections=sections,
         show_archive=show_archive
     )
-
-
 
 # Add Section
 @app.route("/admin/section/add", methods=["POST", "GET"])
@@ -873,7 +869,6 @@ def admin_section_add():
         """)).mappings().all()
         
         return render_template("admin/section/add_form.html", courses=courses, years=years, education_lvls=education_lvls, teachers=teachers)
-
 
 # Edit Section
 @app.route("/admin/section/edit/<int:section_id>", methods=["POST", "GET"])
@@ -1003,8 +998,6 @@ def admin_section_edit(section_id):
             teachers=teachers,
             current_teacher_name=current_teacher_name
         )
-
-
 
 # Toggle archive/unarchive a specific section
 @app.route("/admin/section/archive/<int:section_id>", methods=["POST", "GET"])
