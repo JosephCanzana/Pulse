@@ -45,9 +45,11 @@
         class="input-field"
       >
         {% for lvl in lvls %}
+          {% if lvl.id in valid_course %}
           <option value="{{ lvl.id }}" {% if lvl.id == course.education_level_id %}selected{% endif %}>
             {{ lvl.name }}
           </option>
+          {% endif %}
         {% endfor %}
       </select>
     </div>

@@ -52,7 +52,7 @@ app.register_blueprint(admin_bp)
 def index():
     return render_template("index.html")
 
-# ==== LOGIN ====
+# LOGIN
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -97,14 +97,13 @@ def login():
         # Redirect by role
         role = session.get("role")
         if role == "admin":
-            return redirect(url_for("admin.admin"))
+            return redirect(url_for("admin.dashboard"))
         elif role == "teacher":
             return redirect(url_for("teacher"))
         else:
             return redirect(url_for("student"))
 
     return render_template("auth/login.html")
-
 
 # ACCOUNT ACTIVATION ROUTE!
 @app.route("/login/account_activation/<string:school_id>", methods=["GET", "POST"])
@@ -164,7 +163,7 @@ def account_activation(school_id):
         })
 
         if session["role"] == "admin":
-            return redirect(url_for("admin")) 
+            return redirect(url_for("admin.dashboard")) 
         elif session["role"] == "teacher":
             return redirect(url_for("teacher")) 
         else:

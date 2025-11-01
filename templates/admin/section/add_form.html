@@ -128,4 +128,39 @@
     </div>
   </form>
 </section>
+<!-- JS: filter courses/years based on selected education level -->
+<script>
+function filterOptions() {
+  const eduId = document.getElementById('education_lvl').value;
+  const courseOptions = document.querySelectorAll('#course option[data-education]');
+  const yearOptions = document.querySelectorAll('#year option[data-education]');
+
+  let hasCourse = false;
+  courseOptions.forEach(opt => {
+    if (!opt.dataset.education || opt.dataset.education === eduId) {
+      opt.style.display = '';
+      if(opt.value) hasCourse = true;
+    } else {
+      opt.style.display = 'none';
+    }
+  });
+  document.getElementById('course').value = hasCourse ? document.getElementById('course').value : '';
+
+  let hasYear = false;
+  yearOptions.forEach(opt => {
+    if (!opt.dataset.education || opt.dataset.education === eduId) {
+      opt.style.display = '';
+      if(opt.value) hasYear = true;
+    } else {
+      opt.style.display = 'none';
+    }
+  });
+  document.getElementById('year').value = hasYear ? document.getElementById('year').value : '';
+}
+
+document.getElementById('education_lvl').addEventListener('change', filterOptions);
+
+// Trigger on page load to apply initial filter
+window.addEventListener('DOMContentLoaded', filterOptions);
+</script>
 {% endblock %}

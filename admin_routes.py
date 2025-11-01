@@ -101,8 +101,58 @@ def dashboard():
         name=session.get("first_name")
     )
 
+# =======================
+# Admin utilities
+# =======================
+@admin_bp.route("/delete", methods=["POST"])
+@login_required
+def delete():
+    row_id = request.form.get("id")
+    table = request.form.get("table")
 
+    # Validate that both fields exist and have valid values
+    if not row_id or not table:
+        flash("Missing table or ID — cannot proceed with deletion.", "error")
+        return redirect(request.referrer)
+
+    if table not in ADMIN_DELETABLE_ROWS:
+        flash("The table your trying to delete is unavailable")
+        return redirect(request.referrer)
+
+    try:
+        delete_table_row(db, table, row_id)
+    except:
+        flash("Something went wrong.", "error")
+        return redirect(request.referrer)
+    flash("Successfully deleted the row.", "success")
+    return redirect(request.referrer)
+
+@admin_bp.route("/reset", methods=["POST"])
+@login_required
+def reset():
+    row_id = request.form.get("id")
+    table = request.form.get("table")
+
+    # Validate that both fields exist and have valid values
+    if not row_id or not table:
+        flash("Missing table or ID — cannot proceed with deletion.", "error")
+        return redirect(request.referrer)
+
+    if table not in ADMIN_DELETABLE_ROWS:
+        flash("The table your trying to reset is unavailable")
+        return redirect(request.referrer)
+
+    try:
+        reset_table_row(db, table, row_id)
+    except:
+        flash("Something went wrong.", "error")
+        return redirect(request.referrer)
+    flash("Successfully reset.", "success")
+    return redirect(request.referrer)
+
+# =======================
 # Student (admin side)
+# =======================
 @admin_bp.route("/student")
 @login_required
 def student():
@@ -136,7 +186,7 @@ def student():
     students = db.session.execute(query, {"status": 0 if show_archive else 1}).mappings().all() 
     return render_template("admin/student/list.html", students=students, show_archive=show_archive)
 
-
+# Student add
 @admin_bp.route("/student/add", methods=["POST", "GET"])
 @login_required
 def student_add():
@@ -206,7 +256,7 @@ def student_add():
 
         return render_template("admin/student/add_form.html", education_lvls=education_lvls, courses=courses, sections=sections, years=years)
 
-
+# Student edit
 @admin_bp.route("/student/edit/<string:school_id>", methods=["POST", "GET"])
 @login_required
 def student_edit(school_id):
@@ -302,6 +352,7 @@ def student_edit(school_id):
             years=years
         )
 
+# Student archive
 @admin_bp.route("/student/archive/<string:school_id>", methods=["POST", "GET"])
 def student_archive(school_id):
     # Toggle status (example: 1 = active, 0 = archived)
@@ -319,7 +370,7 @@ def student_archive(school_id):
     db.session.commit()
     return redirect(url_for("admin.student"))
 
-
+# Student toggle
 @admin_bp.route("/student/archive")
 @login_required
 def student_archive_switch():
@@ -327,8 +378,9 @@ def student_archive_switch():
     session["show_archive_student"] = not session.get("show_archive_student", False)
     return redirect(url_for("admin.student"))
 
-
+# =======================
 # Teacher (admin side)
+# =======================
 @admin_bp.route("/teacher")
 @login_required
 def teacher():
@@ -359,6 +411,7 @@ def teacher():
 
     return render_template("admin/teacher/list.html", teachers=teachers, show_archive=show_archive)
 
+# Teacher add
 @admin_bp.route("/teacher/add", methods=["POST", "GET"])
 @login_required
 def teacher_add():
@@ -410,7 +463,7 @@ def teacher_add():
         lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
         return render_template("admin/teacher/add_form.html", departments=departments, lvls=lvls)
 
-
+# Teacher edit
 @admin_bp.route("/teacher/edit/<string:school_id>", methods=["POST", "GET"])
 @login_required
 def teacher_edit(school_id):
@@ -503,6 +556,7 @@ def teacher_edit(school_id):
         lvls=lvls
     )
 
+# Teacher archive
 @admin_bp.route("/teacher/archive/<string:school_id>", methods=["POST", "GET"])
 def teacher_archive(school_id):
     # Toggle status (example: 1 = active, 0 = archived)
@@ -520,15 +574,16 @@ def teacher_archive(school_id):
     db.session.commit()
     return redirect(url_for("admin.teacher"))
 
-
+# Teacher toggle archive
 @admin_bp.route("/teacher/archive")
 @login_required
 def teacher_archive_switch():
     session["show_archive_teacher"] = not session.get("show_archive_teacher", False)
     return redirect(url_for("admin.teacher"))
 
-# Section
-# List Sections
+# =======================
+# Section (admin side)
+# =======================
 @admin_bp.route("/section")
 @login_required
 def section():
@@ -563,7 +618,7 @@ def section():
         show_archive=show_archive
     )
 
-# Add Section
+# Section Add
 @admin_bp.route("/section/add", methods=["POST", "GET"])
 @login_required
 def section_add():
@@ -656,7 +711,7 @@ def section_add():
         
         return render_template("admin/section/add_form.html", courses=courses, years=years, education_lvls=education_lvls, teachers=teachers)
 
-# Edit Section
+# Section Edit
 @admin_bp.route("/section/edit/<int:section_id>", methods=["POST", "GET"])
 @login_required
 def section_edit(section_id):
@@ -785,8 +840,7 @@ def section_edit(section_id):
             current_teacher_name=current_teacher_name
         )
 
-
-# Toggle archive/unarchive a specific section
+# Section Archive
 @admin_bp.route("/section/archive/<int:section_id>", methods=["POST", "GET"])
 @login_required
 def section_archive(section_id):
@@ -805,14 +859,16 @@ def section_archive(section_id):
     flash("Section archive status updated.", "success")
     return redirect(url_for("admin.section"))
 
-# Toggle session flag to show archived sections in list
+# Section toggle archive
 @admin_bp.route("/section/archive")
 @login_required
 def section_archive_switch():
     session["show_archive_section"] = not session.get("show_archive_section", False)
     return redirect(url_for("admin.section"))
 
-# course (Admin side)
+# =======================
+# Course (admin side)
+# =======================
 @admin_bp.route("/course")
 @login_required
 def course():
@@ -829,6 +885,7 @@ def course():
     courses = db.session.execute(query).mappings().all()
     return render_template("admin/course/list.html", courses=courses)
 
+# Course add
 @admin_bp.route("/course/add", methods=["POST", "GET"])
 @login_required
 def course_add():
@@ -862,6 +919,7 @@ def course_add():
                 valid_course.append(int(lvl["id"]))
         return render_template("admin/course/add_form.html", lvls=ed_lvl,valid_course=valid_course)
 
+# Course edit
 @admin_bp.route("/course/edit/<int:id>", methods=["GET", "POST"])
 @login_required
 def course_edit(id):
@@ -886,10 +944,18 @@ def course_edit(id):
     course = db.session.execute(query, {"id": id}).mappings().first()
 
     lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+    ed_lvl = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+    valid_course = []
+    for lvl in ed_lvl:
+        if lvl["name"] in ["Senior High", "College"]:
+            valid_course.append(int(lvl["id"]))
 
-    return render_template("admin/course/edit_form.html", course=course, lvls=lvls)
+    return render_template("admin/course/edit_form.html", course=course, lvls=lvls, valid_course=valid_course)
 
+
+# =======================
 # Department (admin side)
+# =======================
 @admin_bp.route("/department")
 @login_required
 def department():
@@ -906,7 +972,7 @@ def department():
     departments = db.session.execute(query).mappings().all()
     return render_template("admin/department/list.html", departments=departments)
 
-
+# Department add
 @admin_bp.route("/department/add", methods=["POST", "GET"])
 @login_required
 def department_add():
@@ -933,6 +999,7 @@ def department_add():
         lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
         return render_template("admin/department/add_form.html", lvls=lvls)
 
+# Department edit
 @admin_bp.route("/department/edit/<int:id>", methods=["POST", "GET"])
 @login_required
 def department_edit(id):
@@ -970,6 +1037,7 @@ def department_edit(id):
 
 # =======================
 # Subjects (admin side)
+# TODO: Teacher assign
 # =======================
 @admin_bp.route("/subject")
 @login_required
@@ -990,6 +1058,7 @@ def subject():
     subjects = db.session.execute(query, {"status": int(not show_archive)}).fetchall()
     return render_template("admin/subject/list.html", subjects=subjects, show_archive=show_archive)
 
+# Subject add
 @admin_bp.route("/subject/add", methods=["POST", "GET"])
 @login_required
 def subject_add():
@@ -1017,6 +1086,7 @@ def subject_add():
         lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
         return render_template("admin/subject/add_form.html", lvls=lvls)
 
+# Subject edit
 @admin_bp.route("/subject/edit/<int:id>", methods=["POST", "GET"])
 @login_required
 def subject_edit(id):
@@ -1056,7 +1126,7 @@ def subject_edit(id):
 
     return render_template("admin/subject/edit_form.html", subject=subject, lvls=lvls)
 
-# Archive / Unarchive a Subject
+# Subject archive
 @admin_bp.route("/subject/archive/<int:subject_id>", methods=["POST", "GET"])
 @login_required
 def subject_archive(subject_id):
@@ -1075,56 +1145,10 @@ def subject_archive(subject_id):
     db.session.commit()
     return redirect(url_for("admin.subject"))
 
-# Switch between showing archived and active subjects
+# Subject Archive toggle
 @admin_bp.route("/subject/archive")
 @login_required
 def subject_archive_switch():
     # Toggle visibility flag in session
     session["show_archive_subject"] = not session.get("show_archive_subject", False)
     return redirect(url_for("admin.subject"))
-
-@admin_bp.route("/delete", methods=["POST"])
-@login_required
-def delete():
-    row_id = request.form.get("id")
-    table = request.form.get("table")
-
-    # Validate that both fields exist and have valid values
-    if not row_id or not table:
-        flash("Missing table or ID — cannot proceed with deletion.", "error")
-        return redirect(request.referrer)
-
-    if table not in ADMIN_DELETABLE_ROWS:
-        flash("The table your trying to delete is unavailable")
-        return redirect(request.referrer)
-
-    try:
-        delete_table_row(db, table, row_id)
-    except:
-        flash("Something went wrong.", "error")
-        return redirect(request.referrer)
-    flash("Successfully deleted the row.", "success")
-    return redirect(request.referrer)
-
-@admin_bp.route("/reset", methods=["POST"])
-@login_required
-def reset():
-    row_id = request.form.get("id")
-    table = request.form.get("table")
-
-    # Validate that both fields exist and have valid values
-    if not row_id or not table:
-        flash("Missing table or ID — cannot proceed with deletion.", "error")
-        return redirect(request.referrer)
-
-    if table not in ADMIN_DELETABLE_ROWS:
-        flash("The table your trying to reset is unavailable")
-        return redirect(request.referrer)
-
-    try:
-        reset_table_row(db, table, row_id)
-    except:
-        flash("Something went wrong.", "error")
-        return redirect(request.referrer)
-    flash("Successfully reset.", "success")
-    return redirect(request.referrer)
