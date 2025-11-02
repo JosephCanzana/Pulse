@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS Users (
 CREATE TABLE IF NOT EXISTS TeacherProfile (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    department_id INT,
+    department_id INT NULL,
     education_level_id INT,
     FOREIGN KEY (user_id) REFERENCES Users(id)
         ON UPDATE CASCADE ON DELETE CASCADE,
@@ -117,21 +117,19 @@ CREATE TABLE IF NOT EXISTS StudentProfile (
 -- Class table
 CREATE TABLE IF NOT EXISTS Class (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    teacher_id INT,
-    subject_id INT,
-    course_id INT,
-    section_id INT,
-    year_id INT,
-    FOREIGN KEY (teacher_id) REFERENCES Users(id)
-        ON UPDATE CASCADE ON DELETE SET NULL,
+    teacher_id INT NOT NULL COMMENT 'Class teacher, not section adviser',
+    subject_id INT NOT NULL COMMENT 'Subject being taught',
+    section_id INT NOT NULL COMMENT 'Section of students',
+    status ENUM('active','cancelled','completed') DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (teacher_id) REFERENCES TeacherProfile(id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (subject_id) REFERENCES Subject(id)
-        ON UPDATE CASCADE ON DELETE SET NULL,
-    FOREIGN KEY (course_id) REFERENCES Course(id)
-        ON UPDATE CASCADE ON DELETE SET NULL,
+        ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (section_id) REFERENCES Section(id)
-        ON UPDATE CASCADE ON DELETE SET NULL,
-    FOREIGN KEY (year_id) REFERENCES YearLevel(id)
-        ON UPDATE CASCADE ON DELETE SET NULL
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    UNIQUE KEY unique_class(subject_id, teacher_id, section_id)
 );
 
 -- ClassStudent table
@@ -139,9 +137,26 @@ CREATE TABLE IF NOT EXISTS ClassStudent (
     id INT AUTO_INCREMENT PRIMARY KEY,
     class_id INT NOT NULL,
     student_id INT NOT NULL,
+    status ENUM('active','dropped','completed') DEFAULT 'active',
+    enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (class_id) REFERENCES Class(id)
         ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (student_id) REFERENCES Users(id)
+    FOREIGN KEY (student_id) REFERENCES StudentProfile(id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    UNIQUE KEY unique_enrollment(class_id, student_id) 
+);
+
+-- Lesson table
+CREATE TABLE IF NOT EXISTS Lesson (
+    id INT AUTO_INCREMENT PRIMARY KEY,              
+    class_id INT NOT NULL COMMENT 'Class this lesson belongs to',                          
+    lesson_number INT NOT NULL COMMENT 'Order of lesson in the class',                     
+    title VARCHAR(255) NOT NULL COMMENT 'Lesson title',                    
+    description TEXT COMMENT 'Optional lesson details',                               
+    file_attachment VARCHAR(255) COMMENT 'File path or URL',                   
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (class_id) REFERENCES Class(id)    
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 

@@ -6,7 +6,7 @@ from database import db
 
 # ==== GLOBAL VARIABLES ====
 DEFAULT_PASSWORD = "mcmY_1946"
-ADMIN_DELETABLE_ROWS = ("Users", "Subject", "Course", "Department", "Section")
+ADMIN_DELETABLE_ROWS = ("Users", "Subject", "Course", "Department", "Section", "Class")
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -260,6 +260,10 @@ def student_add():
             flash("The school ID already exists.", "info")
             return redirect(url_for("admin.student_add"))
 
+        if is_exist(db, (first,second,last), "(first_name, middle_name, last_name)", "Users"):
+            flash("The name already exists.", "info")
+            return redirect(url_for("admin.student_add"))
+        
         user = add_user(db, first, second, last, email, school_id, gender, "student")
         user_id = user["id"]
 
@@ -1075,7 +1079,6 @@ def department_edit(id):
 
 # =======================
 # Subjects (admin side)
-# TODO: Teacher assign
 # =======================
 @admin_bp.route("/subject")
 @login_required
@@ -1190,3 +1193,150 @@ def subject_archive_switch():
     # Toggle visibility flag in session
     session["show_archive_subject"] = not session.get("show_archive_subject", False)
     return redirect(url_for("admin.subject"))
+
+# =======================
+# Class Management (Admin)
+# =======================
+# Class list with optional status filter
+@admin_bp.route("/class", methods=["GET", "POST"])
+@login_required
+def class_list():
+    selected_status = request.args.get("status", "all")  # default to show all
+    query = """
+        SELECT 
+            Class.id AS class_id, 
+            Class.status, 
+            Users.first_name, 
+            Users.last_name, 
+            Subject.name AS subject_name, 
+            Section.name AS section_name,
+            Section.academic_year AS academic_year
+        FROM Class
+        LEFT JOIN TeacherProfile ON Class.teacher_id = TeacherProfile.id
+        LEFT JOIN Users ON TeacherProfile.user_id = Users.id
+        LEFT JOIN Subject ON Class.subject_id = Subject.id
+        LEFT JOIN Section ON Class.section_id = Section.id
+    """
+    if selected_status != "all":
+        query += " WHERE Class.status = :status"
+        classes = db.session.execute(text(query), {"status": selected_status}).mappings().all()
+    else:
+        classes = db.session.execute(text(query)).mappings().all()
+
+    return render_template(
+        "admin/class/list.html",
+        classes=classes,
+        selected_status=selected_status
+    )
+
+# Add Class
+@admin_bp.route("/class/add", methods=["POST", "GET"])
+@login_required
+def class_add():
+    if request.method == "POST":
+        teacher_id = request.form.get("teacher_id")
+        subject_id = request.form.get("subject_id")
+        section_id = request.form.get("section_id")
+
+        if not teacher_id or not subject_id or not section_id:
+            flash("Please fill all required fields.", "info")
+            return redirect(url_for("admin.class_add"))
+
+        # Prevent duplicate class (same teacher, subject, section)
+        existing = db.session.execute(
+            text("SELECT * FROM Class WHERE teacher_id=:teacher AND subject_id=:subject AND section_id=:section"),
+            {"teacher": teacher_id, "subject": subject_id, "section": section_id}
+        ).fetchone()
+
+        if existing:
+            flash("This class already exists.", "info")
+            return redirect(url_for("admin.class_add"))
+
+        db.session.execute(
+            text("""
+                INSERT INTO Class (teacher_id, subject_id, section_id)
+                VALUES (:teacher, :subject, :section)
+            """),
+            {"teacher": teacher_id, "subject": subject_id, "section": section_id}
+        )
+        db.session.commit()
+        flash("Class added successfully!", "success")
+        return redirect(url_for("admin.class_list"))
+
+    # GET request - fetch teachers, subjects, sections
+    teachers = db.session.execute(text("SELECT TeacherProfile.id, Users.first_name, Users.last_name "   
+                                       "FROM TeacherProfile "
+                                       "LEFT JOIN Users ON TeacherProfile.user_id = Users.id")).mappings().all()
+    subjects = db.session.execute(text("SELECT * FROM Subject WHERE status=1")).mappings().all()
+    sections = db.session.execute(text("SELECT * FROM Section WHERE status=1")).mappings().all()
+    return render_template("admin/class/add_form.html", teachers=teachers, subjects=subjects, sections=sections)
+
+# Edit Class
+@admin_bp.route("/class/edit/<int:id>", methods=["POST", "GET"])
+@login_required
+def class_edit(id):
+    if request.method == "POST":
+        teacher_id = request.form.get("teacher_id")
+        subject_id = request.form.get("subject_id")
+        section_id = request.form.get("section_id")
+        status = request.form.get("status")
+
+        if not teacher_id or not subject_id or not section_id:
+            flash("Please fill all required fields.", "info")
+            return redirect(url_for("admin.class_edit", id=id))
+
+        db.session.execute(
+            text("""
+                UPDATE Class
+                SET teacher_id=:teacher, subject_id=:subject, section_id=:section,
+                    status=:status
+                WHERE id=:id
+            """),
+            {"teacher": teacher_id, "subject": subject_id, "section": section_id,
+             "status": status, "id": id}
+        )
+        db.session.commit()
+        flash("Class updated successfully!", "success")
+        return redirect(url_for("admin.class_list"))
+
+    # GET - fetch class info
+    cls = db.session.execute(
+        text("SELECT * FROM Class WHERE id=:id"), {"id": id}
+    ).mappings().first()
+
+    teachers = db.session.execute(text("SELECT TeacherProfile.id, Users.first_name, Users.last_name "
+                                       "FROM TeacherProfile "
+                                       "LEFT JOIN Users ON TeacherProfile.user_id = Users.id")).mappings().all()
+    subjects = db.session.execute(text("SELECT * FROM Subject WHERE status=1")).mappings().all()
+    sections = db.session.execute(text("SELECT * FROM Section WHERE status=1")).mappings().all()
+
+    return render_template("admin/class/edit_form.html", cls=cls, teachers=teachers, subjects=subjects, sections=sections)
+
+# Update class status
+@admin_bp.route("/class/status/<int:id>", methods=["POST"])
+@login_required
+def class_status_update(id):
+    new_status = request.form.get("status")  # Expect: 'active', 'cancelled', 'completed'
+    if new_status not in ["active", "cancelled", "completed"]:
+        flash("Invalid status selected.", "error")
+        return redirect(url_for("admin.class_list"))
+
+    db.session.execute(
+        text("""
+            UPDATE Class
+            SET status = :new_status
+            WHERE id = :id
+        """),
+        {"new_status": new_status, "id": id}
+    )
+    db.session.commit()
+    flash("Class status updated.", "success")
+    return redirect(url_for("admin.class_list"))
+
+
+# Toggle showing archived classes in session
+@admin_bp.route("/class/archive")
+@login_required
+def class_archive_switch():
+    session["show_archive_class"] = not session.get("show_archive_class", False)
+    return redirect(url_for("admin.class_list"))

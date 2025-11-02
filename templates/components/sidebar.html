@@ -25,6 +25,9 @@
           <a href="{{ url_for('admin.section') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.section') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">diversity_3</span>
           </a>
+          <a href="{{ url_for('admin.class_list') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.class_list') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">roofing</span>
+          </a>
           <a href="{{ url_for('admin.department') }}" class="btn-side-bar-collapsed {% if request.path == url_for('admin.department') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">hive</span>
           </a>
@@ -98,6 +101,9 @@
           </a>
           <a href="{{ url_for('admin.section') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.section') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">diversity_3</span><span class="ml-4">Section</span>
+          </a>
+          <a href="{{ url_for('admin.class_list') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.class_list') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">roofing</span><span class="ml-4">Classes</span>
           </a>
           <a href="{{ url_for('admin.department') }}" class="btn-side-bar-expand {% if request.path == url_for('admin.department') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">hive</span><span class="ml-4">Department</span>
