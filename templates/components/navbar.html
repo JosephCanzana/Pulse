@@ -12,7 +12,7 @@
             <img src="{{ url_for('static', filename='images/pulse.png') }}" alt="Pulse" class="w-6 h-6">
             </a>
             <h1 class="font-normal ml-2 text-2xl text-center text-[var(--clr-primary)] font-[LLPIXEL3] text-shadow-black/30">
-                Pulse
+                {{ page_title or "Pulse" }}
             </h1>
         </div>
     </div>

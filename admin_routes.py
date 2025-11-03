@@ -106,6 +106,18 @@ def dashboard():
         ORDER BY teacher_count DESC
     """)).mappings().all()
 
+    top_courses = db.session.execute(text("""
+        SELECT 
+            COALESCE(c.name, 'Unassigned') AS course_name,
+            COUNT(s.id) AS total_students
+        FROM StudentProfile s
+        LEFT JOIN Course c ON s.course_id = c.id
+        GROUP BY c.name
+        ORDER BY total_students DESC
+        LIMIT 5
+    """)).mappings().all()
+
+
     return render_template(
         "admin/dashboard.html",
         total_students=total_students,
@@ -119,6 +131,7 @@ def dashboard():
         recent_teachers=recent_teachers,
         students_per_course=students_per_course,
         teachers_per_dept=teachers_per_dept,
+        top_courses=top_courses,
         name=session.get("first_name")
     )
 

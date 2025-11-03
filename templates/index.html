@@ -17,6 +17,12 @@ Pulse | Holy Cross College LMS
   <!-- Animated gradient background -->
   <div class="absolute inset-0 bg-gradient-to-br from-[var(--clr-surface)] via-[var(--clr-surface-alt)] to-[var(--clr-surface)] animate-gradient-slow opacity-90"></div>
 
+  <div class="absolute inset-0 overflow-hidden z-0">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  
   <div class="relative z-10">
 
     <!-- HERO -->
@@ -29,8 +35,14 @@ Pulse | Holy Cross College LMS
           </span>
         </h1>
         <p class="text-[var(--clr-txt-muted)] text-xl max-w-xl mx-auto md:mx-0 leading-relaxed">
-          The official <strong>Learning Management System</strong> of <strong>Holy Cross College</strong> — empowering Hccians through seamless, modern, and faith-driven digital learning.
+          The <strong>Learning Management System</strong> of <strong>Holy Cross College</strong>. empowering Hccians through seamless, modern, and faith-driven digital learning.
         </p>
+
+        <!-- Quote -->
+        <blockquote class="italic text-lg text-[var(--clr-txt-muted)] border-l-4 border-[var(--clr-primary)] pl-4 mt-6">
+          “Learning should never lose its pulse.”
+        </blockquote>
+
         <div class="flex justify-center md:justify-start">
           <a href="{{ url_for('login') }}" class="px-10 py-4 rounded-full bg-gradient-to-r from-[var(--clr-primary)] via-[var(--clr-secondary)] to-[var(--clr-tertiary)] text-white font-semibold text-lg hover:shadow-[0_0_30px_var(--clr-glow-primary)] hover:scale-105 transition-all duration-300">
             Access Portal
@@ -39,10 +51,10 @@ Pulse | Holy Cross College LMS
       </div>
 
       <div class="flex-1 flex justify-center">
-        <div class="rounded-[2rem] overflow-hidden backdrop-blur-xl bg-[var(--clr-glass-light)] border border-[var(--clr-glass-border)] shadow-[0_20px_60px_rgba(0,0,0,0.3)] p-2 parallax" data-speed="0.3">
+        <div class="rounded-[2rem] overflow-hidden backdrop-blur-xl bg-[var(--clr-glass-light)] border border-[var(--clr-glass-border)] shadow-[0_20px_60px_rgba(0,0,0,0.3)] p-2">
           <img src="/static/images/hcc_building.jpeg"
                alt="Holy Cross Students"
-               class="rounded-[1.5rem] w-full max-w-lg hover:scale-[1.03] transition-transform duration-500" />
+               class="rounded-[1.5rem] w-full max-w-3xl hover:scale-[1.03] transition-transform duration-500" />
         </div>
       </div>
     </section>
@@ -123,13 +135,162 @@ Pulse | Holy Cross College LMS
         <p class="text-lg md:text-xl max-w-3xl mx-auto mb-10 opacity-90 leading-relaxed">
           A vibrant network of students, teachers, and alumni — growing together in faith and wisdom.
         </p>
-        <div class="rounded-[2rem] overflow-hidden border border-[var(--clr-glass-border)] shadow-xl p-2 bg-[var(--clr-glass-light)] backdrop-blur-xl max-w-5xl mx-auto">
-          <img src="https://source.unsplash.com/1200x400/?students,collaboration" 
+        <div class="rounded-[2rem] overflow-hidden border border-[var(--clr-glass-border)] shadow-xl p-2 bg-[var(--clr-glass-light)] backdrop-blur-xl max-w-4xl mx-auto">
+          <img src="/static/images/Pulse_community.png" 
                alt="Pulse Community"
                class="rounded-[1.5rem] w-full hover:scale-[1.02] transition-transform duration-300">
         </div>
       </div>
     </section>
+    <section id="faq" class="px-4 sm:px-6 md:px-10 lg:px-20 xl:px-40 py-20 bg-gradient-to-b from-[var(--clr-bg)] via-[var(--clr-surface-alt)] to-[var(--clr-bg)] scroll-fade">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-[LLPIXEL3] text-center text-[var(--clr-primary)] mb-4">
+          Pulse LMS — Frequently Asked Questions
+        </h2>
+        <p class="text-center text-lg text-[var(--clr-txt-muted)] max-w-3xl mx-auto mb-12">
+          Explore answers to common questions about Pulse — your modern and responsive Learning Management System designed for Holy Cross College Santa Rosa.
+        </p>
+
+        <div class="space-y-8">
+          <!-- Category -->
+          <div>
+            <h3 class="text-2xl font-semibold text-[var(--clr-secondary)] mb-6 border-b border-[var(--clr-border)] pb-2">
+              General
+            </h3>
+            <div class="space-y-3">
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] transition-all hover:shadow-md">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  What is Pulse?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">Pulse is the official Learning Management System of Holy Cross College Santa Rosa, designed to make online learning simple, fast, and engaging.</p>
+              </details>
+
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] transition-all hover:shadow-md">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  Who can use Pulse?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">Pulse is made for students, teachers, and administrators of Holy Cross College Santa Rosa, each with tools tailored to their role.</p>
+              </details>
+
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] transition-all hover:shadow-md">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  How do I log in to Pulse?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">You can access Pulse through the official school website or LMS link. Log in using your assigned school email or username and password.</p>
+              </details>
+            </div>
+          </div>
+
+          <!-- Students -->
+          <div>
+            <h3 class="text-2xl font-semibold text-[var(--clr-secondary)] mb-6 border-b border-[var(--clr-border)] pb-2">
+              For Students
+            </h3>
+            <div class="space-y-3">
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] hover:shadow-md transition-all">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  How can I view my classes or subjects?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">Once logged in, your enrolled classes appear automatically on your Dashboard. Click a subject to access lessons and materials.</p>
+              </details>
+
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] hover:shadow-md transition-all">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  What should I do if I forget my password?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">Click “Forgot Password” on the login page and follow the instructions, or contact your teacher or system administrator for assistance.</p>
+              </details>
+            </div>
+          </div>
+
+          <!-- Teachers -->
+          <div>
+            <h3 class="text-2xl font-semibold text-[var(--clr-secondary)] mb-6 border-b border-[var(--clr-border)] pb-2">
+              For Teachers
+            </h3>
+            <div class="space-y-3">
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] hover:shadow-md transition-all">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  How can teachers create or manage classes?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">Teachers can easily create, edit, and manage their sections and classes, including uploading lessons and assignments.</p>
+              </details>
+
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] hover:shadow-md transition-all">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  Can I upload learning materials like PDFs, videos, or slides?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">Yes. Pulse supports a wide range of file types — from documents and slides to multimedia — ensuring engaging lessons.</p>
+              </details>
+            </div>
+          </div>
+
+          <!-- Technical & Support -->
+          <div>
+            <h3 class="text-2xl font-semibold text-[var(--clr-secondary)] mb-6 border-b border-[var(--clr-border)] pb-2">
+              Technical & Support
+            </h3>
+            <div class="space-y-3">
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] hover:shadow-md transition-all">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  What devices are supported by Pulse?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">Pulse is fully responsive — it works smoothly on desktops, laptops, tablets, and smartphones.</p>
+              </details>
+
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] hover:shadow-md transition-all">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  Is my data secure on Pulse?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">Absolutely. Pulse follows strict security standards to protect all user data and ensure privacy.</p>
+              </details>
+
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] hover:shadow-md transition-all">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  What should I do if I experience technical issues?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">Reach out to the IT Office or LMS Support Team of Holy Cross College Santa Rosa via the helpdesk or support email.</p>
+              </details>
+            </div>
+          </div>
+
+          <!-- Future & Improvements -->
+          <div>
+            <h3 class="text-2xl font-semibold text-[var(--clr-secondary)] mb-6 border-b border-[var(--clr-border)] pb-2">
+              Future & Improvements
+            </h3>
+            <div class="space-y-3">
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] hover:shadow-md transition-all">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  Will new features be added in the future?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">Yes. Pulse is continuously updated based on feedback from students and teachers to enhance learning.</p>
+              </details>
+
+              <details class="group border border-[var(--clr-border)] rounded-2xl p-5 bg-[var(--clr-surface)] hover:shadow-md transition-all">
+                <summary class="cursor-pointer font-semibold text-[var(--clr-txt-primary)] flex justify-between items-center">
+                  How can I give feedback or suggestions?
+                  <span class="transition-transform group-open:rotate-180 text-[var(--clr-secondary)]">⌄</span>
+                </summary>
+                <p class="mt-3 text-[var(--clr-txt-muted)]">You can share your feedback through the built-in Feedback Form or reach out directly to the LMS admin team.</p>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
 
   </div>
 </div>

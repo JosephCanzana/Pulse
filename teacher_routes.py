@@ -27,7 +27,6 @@ def get_teacher_id():
 @teacher_bp.route("/")
 @login_required
 def dashboard():
-    """Teacher dashboard — shows advisory sections with their course and level."""
     teacher_id = get_teacher_id()
     if not teacher_id:
         return apology("Teacher profile not found.", 404)
