@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block title %}My Classes{% endblock %}
+
+{% block main %}
+<section class="p-8">
+  <header class="mb-6">
+    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">My Classes</h1>
+    <p class="text-[var(--clr-txt-muted)] mt-1">Subjects you’re currently handling</p>
+  </header>
+
+  {% if classes %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for item in classes %}
+    <div class="bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-md p-5 hover:shadow-lg hover:scale-[1.02] transition-all duration-200">
+      <h2 class="text-lg font-semibold text-[var(--clr-txt-primary)] mb-1">
+        {{ item.subject_name }}
+      </h2>
+      <p class="text-[var(--clr-txt-secondary)] text-sm">
+        Section: <span class="text-[var(--clr-txt-muted)]">{{ item.section_name }}</span><br>
+        Level: <span class="text-[var(--clr-txt-muted)]">{{ item.education_level }}</span>
+      </p>
+      <a href="/teacher/class/{{ item.class_id }}" 
+         class="mt-3 inline-block text-[var(--clr-secondary)] font-medium hover:text-[var(--clr-txt-hover)] transition">
+        View Details →
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center text-[var(--clr-txt-muted)] py-12">
+    No classes or subjects assigned yet.
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

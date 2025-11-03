@@ -10,7 +10,7 @@ from models import load_user
 
 # Blueprints
 from admin_routes import admin_bp
-
+from teacher_routes import teacher_bp
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -45,6 +45,7 @@ def testdb():
 
 # ==== ADMIN BLUEPRINT =====
 app.register_blueprint(admin_bp)
+app.register_blueprint(teacher_bp)
 
 # ==== GENERAL PAGES ====
 # LANDING PAGE
@@ -99,7 +100,7 @@ def login():
         if role == "admin":
             return redirect(url_for("admin.dashboard"))
         elif role == "teacher":
-            return redirect(url_for("teacher"))
+            return redirect(url_for("teacher.dashboard"))
         else:
             return redirect(url_for("student"))
 
@@ -165,7 +166,7 @@ def account_activation(school_id):
         if session["role"] == "admin":
             return redirect(url_for("admin.dashboard")) 
         elif session["role"] == "teacher":
-            return redirect(url_for("teacher")) 
+            return redirect(url_for("teacher.dashboard")) 
         else:
             return redirect(url_for("student"))
 
@@ -188,14 +189,6 @@ def logout():
 @login_manager.unauthorized_handler
 def unauthorized():
     return redirect(url_for("login"))
-
-# ==== TEACHER PAGES =====
-
-@app.route("/teacher")
-@login_required
-def teacher():
-    return render_template("teacher/dashboard.html", name=session["first_name"])
-
 
 # ==== STUDENT PAGES =====
 

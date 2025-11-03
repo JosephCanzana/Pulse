@@ -39,10 +39,10 @@
           </a>
 
         {% elif session.get('role') == 'teacher' %}
-          <a href="{{ url_for('teacher') }}" class="btn-side-bar-collapsed {% if request.path == url_for('teacher') %}btn-side-bar-collapsed-active{% endif %}">
+          <a href="{{ url_for('teacher.dashboard') }}" class="btn-side-bar-collapsed {% if request.path == url_for('teacher.dashboard') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">home</span>
           </a>
-          <a href="#" class="btn-side-bar-collapsed">
+          <a href="{{ url_for('teacher.classes') }}" class="btn-side-bar-collapsed {% if request.path == url_for('teacher.classes') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">menu_book</span>
           </a>
 
@@ -116,10 +116,13 @@
           </a>
 
         {% elif session.get('role') == 'teacher' %}
-          <a href="{{ url_for('teacher') }}" class="btn-side-bar-expand {% if request.path == url_for('teacher') %}btn-side-bar-expanded-active{% endif %}">
+          <a href="{{ url_for('teacher.dashboard') }}" class="btn-side-bar-expand {% if request.path == url_for('teacher.dashboard') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">home</span><span class="ml-4">Dashboard</span>
           </a>
-          <a href="#" class="btn-side-bar-expand"><span class="material-symbols-outlined">menu_book</span><span class="ml-4">Subjects</span></a>
+          <a href="{{ url_for('teacher.classes') }}" class="btn-side-bar-expand {% if request.path == url_for('teacher.classes') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">menu_book</span><span class="ml-4">Classes</span>
+          </a>
+          
 
         {% else %}
           <a href="{{ url_for('student') }}" class="btn-side-bar-expand {% if request.path == url_for('student') %}btn-side-bar-expanded-active{% endif %}">

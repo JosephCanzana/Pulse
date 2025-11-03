@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, Blueprint, jsonify
+import re
+from flask import render_template, request, redirect, url_for, session, flash, Blueprint, jsonify
 from flask_login import login_required
 from sqlalchemy import text
 from helpers import *
@@ -55,79 +56,55 @@ def search_sections():
         for r in results
     ])
 
+# =======================
+# HOME
+# =======================
 @admin_bp.route("/")
 @login_required
 def dashboard():
     # --- Summary Counts ---
-    total_students = db.session.execute(
-        text("SELECT COUNT(*) AS count FROM Users WHERE role='student' AND status=1")
-    ).scalar()
+    def get_count(query):
+        return db.session.execute(text(query)).scalar() or 0
 
-    archived_students = db.session.execute(
-        text("SELECT COUNT(*) AS count FROM Users WHERE role='student' AND status=0")
-    ).scalar()
-
-    total_teachers = db.session.execute(
-        text("SELECT COUNT(*) AS count FROM Users WHERE role='teacher' AND status=1")
-    ).scalar()
-
-    archived_teachers = db.session.execute(
-        text("SELECT COUNT(*) AS count FROM Users WHERE role='teacher' AND status=0")
-    ).scalar()
-
-    total_courses = db.session.execute(
-        text("SELECT COUNT(*) AS count FROM Course")
-    ).scalar()
-
-    total_departments = db.session.execute(
-        text("SELECT COUNT(*) AS count FROM Department")
-    ).scalar()
-
-    total_subjects = db.session.execute(
-        text("SELECT COUNT(*) AS count FROM Subject")
-    ).scalar()
+    total_students = get_count("SELECT COUNT(*) FROM Users WHERE role='student' AND status=1")
+    archived_students = get_count("SELECT COUNT(*) FROM Users WHERE role='student' AND status=0")
+    total_teachers = get_count("SELECT COUNT(*) FROM Users WHERE role='teacher' AND status=1")
+    archived_teachers = get_count("SELECT COUNT(*) FROM Users WHERE role='teacher' AND status=0")
+    total_courses = get_count("SELECT COUNT(*) FROM Course")
+    total_departments = get_count("SELECT COUNT(*) FROM Department")
+    total_subjects = get_count("SELECT COUNT(*) FROM Subject")
 
     # --- Recent Activity ---
-    recent_students = db.session.execute(
-        text("""
-            SELECT first_name, middle_name, last_name, school_id 
-            FROM Users 
-            WHERE role='student' 
-            ORDER BY id DESC LIMIT 5
-        """)
-    ).mappings().all()
+    recent_students = db.session.execute(text("""
+        SELECT first_name, middle_name, last_name, school_id 
+        FROM Users 
+        WHERE role='student' 
+        ORDER BY id DESC LIMIT 5
+    """)).mappings().all()
 
-    recent_teachers = db.session.execute(
-        text("""
-            SELECT first_name, middle_name, last_name, school_id 
-            FROM Users 
-            WHERE role='teacher' 
-            ORDER BY id DESC LIMIT 5
-        """)
-    ).mappings().all()
+    recent_teachers = db.session.execute(text("""
+        SELECT first_name, middle_name, last_name, school_id 
+        FROM Users 
+        WHERE role='teacher' 
+        ORDER BY id DESC LIMIT 5
+    """)).mappings().all()
 
-    # --- Data for Charts ---
-    # Students per Course
-    students_per_course = db.session.execute(
-        text("""
-            SELECT c.name AS course_name, COUNT(s.id) AS student_count
-            FROM StudentProfile s
-            LEFT JOIN Course c ON s.course_id = c.id
-            GROUP BY c.name
-            ORDER BY student_count DESC
-        """)
-    ).mappings().all()
+    # --- Chart Data ---
+    students_per_course = db.session.execute(text("""
+        SELECT COALESCE(c.name, 'Unassigned') AS course_name, COUNT(s.id) AS student_count
+        FROM StudentProfile s
+        LEFT JOIN Course c ON s.course_id = c.id
+        GROUP BY c.name
+        ORDER BY student_count DESC
+    """)).mappings().all()
 
-    # Teachers per Department
-    teachers_per_dept = db.session.execute(
-        text("""
-            SELECT d.name AS department_name, COUNT(t.id) AS teacher_count
-            FROM TeacherProfile t
-            LEFT JOIN Department d ON t.department_id = d.id
-            GROUP BY d.name
-            ORDER BY teacher_count DESC
-        """)
-    ).mappings().all()
+    teachers_per_dept = db.session.execute(text("""
+        SELECT COALESCE(d.name, 'Unassigned') AS department_name, COUNT(t.id) AS teacher_count
+        FROM TeacherProfile t
+        LEFT JOIN Department d ON t.department_id = d.id
+        GROUP BY d.name
+        ORDER BY teacher_count DESC
+    """)).mappings().all()
 
     return render_template(
         "admin/dashboard.html",
@@ -697,12 +674,20 @@ def section_add():
         if ed_lvl_id in [1, 2]:
             course_id = None
 
+        if not re.match(r"^\d{4}-\d{4}$", academic_year):
+            flash("Invalid academic year format. Use YYYY-YYYY (e.g., 2025-2026).")
+            return redirect(url_for("admin.section_add"))
+        
+        start, end = map(int, academic_year.split('-'))
+        if end != start + 1:
+            flash("Academic year must be consecutive (e.g., 2025-2026).")
+            return redirect(url_for("admin.section_add"))
 
         # Check duplicate section name in academic year
         duplicate = db.session.execute(text("""
             SELECT 1 FROM Section
-            WHERE name = :name AND academic_year = :academic_year 
-        """), {"name": name, "academic_year": academic_year}).first()
+            WHERE name = :name AND academic_year = :academic_year AND year_id = :year_id AND course_id = :course_id
+        """), {"name": name, "academic_year": academic_year, "year_id": year_id, "course_id":course_id}).first()
 
         if duplicate:
             flash("Section name already exists.", "info")
