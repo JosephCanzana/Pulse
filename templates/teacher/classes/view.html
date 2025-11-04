@@ -75,7 +75,7 @@
   <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)] mb-4 flex items-center justify-between">
     Lessons
     <!-- Manage Lessons Button -->
-    <a href="#" 
+    <a href="{{ url_for('teacher.manage_lesson', class_id=class_info.class_id ) }}" 
        class="px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg shadow-md hover:bg-[var(--clr-secondary)] transition-all duration-200 text-sm">
       Manage Lessons
     </a>
@@ -115,9 +115,9 @@
     <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)] text-center mb-4 flex items-center justify-between">
       Enrolled Students
       <!-- Add Student Button -->
-      <button class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] text-4xl flex items-center justify-center rounded-full w-10 h-10">
+      <a  href="{{ url_for('teacher.manage_student', class_id=class_info.class_id ) }}" class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] text-4xl flex items-center justify-center rounded-full w-10 h-10">
         <span class="material-symbols-outlined">add_circle</span>
-      </button>
+      </a>
     </h2>
     {% if no_students %}
       <p class="text-[var(--clr-txt-muted)] dark:text-[var(--clr-txt-secondary)]">No students enrolled yet.</p>

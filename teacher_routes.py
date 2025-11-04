@@ -155,10 +155,26 @@ def view_class(class_id):
 
     # Handle inline edit submission
     if request.method == "POST":
-        subject_id = request.form.get("subject_id")
-        section_id = request.form.get("section_id")
+        subject_name = request.form.get("subject_id")
+        section_name = request.form.get("section_id")
         class_status = request.form.get("class_status")
 
+        # Look up IDs from the names
+        subject_row = db.session.execute(
+            text("SELECT id FROM Subject WHERE name = :name"), {"name": subject_name}
+        ).fetchone()
+        section_row = db.session.execute(
+            text("SELECT id FROM Section WHERE name = :name"), {"name": section_name}
+        ).fetchone()
+
+        if not subject_row or not section_row:
+            flash("Invalid subject or section name selected.", "error")
+            return redirect(url_for("teacher_bp.view_class", class_id=class_id))
+
+        subject_id = subject_row.id
+        section_id = section_row.id
+
+        # Proceed with updating using IDs
         update_query = text("""
             UPDATE Class
             SET subject_id = :subject_id,
@@ -174,7 +190,7 @@ def view_class(class_id):
         })
         db.session.commit()
         flash("Class updated successfully!", "success")
-        return redirect(url_for("teacher_bp.view_class", class_id=class_id))
+        return redirect(url_for("teacher.view_class", class_id=class_id))
 
     return render_template(
         "teacher/classes/view.html",  # updated template
@@ -187,92 +203,13 @@ def view_class(class_id):
         sections=sections
     )
 
+
+@teacher_bp.route("/classes/view/<int:class_id>/lessons", methods=["GET", "POST"])
 @login_required
-def edit_class(class_id):
-    """Edit class details in the format of the view template."""
+def manage_lesson(class_id):
+    return render_template("teacher/classes/lesson_form.html")
 
-    # Fetch class info with joined names
-    class_query = text("""
-        SELECT 
-            c.id AS class_id,
-            c.subject_id,
-            c.section_id,
-            c.status AS class_status,
-            s.name AS subject_name,
-            sec.name AS section_name,
-            co.name AS course_name,
-            el.name AS education_level
-        FROM Class c
-        JOIN Subject s ON c.subject_id = s.id
-        JOIN Section sec ON c.section_id = sec.id
-        LEFT JOIN Course co ON sec.course_id = co.id
-        LEFT JOIN EducationLevel el ON co.education_level_id = el.id
-        WHERE c.id = :class_id
-    """)
-    class_info = db.session.execute(class_query, {"class_id": class_id}).mappings().first()
-
-    if not class_info:
-        return apology("Class not found.", 404)
-
-    # Fetch lessons
-    lessons_query = text("""
-        SELECT id, lesson_number, title, description
-        FROM Lesson
-        WHERE class_id = :class_id
-        ORDER BY lesson_number
-    """)
-    lessons = db.session.execute(lessons_query, {"class_id": class_id}).mappings().all()
-    no_lessons = len(lessons) == 0
-
-    # Fetch students
-    students_query = text("""
-        SELECT CONCAT(u.first_name, ' ', COALESCE(u.middle_name,''), ' ', u.last_name) AS full_name,
-               sp.year_id,
-               cs.status AS enrollment_status
-        FROM ClassStudent cs
-        JOIN StudentProfile sp ON cs.student_id = sp.id
-        JOIN Users u ON sp.user_id = u.id
-        WHERE cs.class_id = :class_id
-        ORDER BY u.last_name
-    """)
-    students = db.session.execute(students_query, {"class_id": class_id}).mappings().all()
-    no_students = len(students) == 0
-
-    # Dropdown options
-    subjects = db.session.execute(text("SELECT id, name FROM Subject WHERE status = 1")).mappings().all()
-    sections = db.session.execute(text("SELECT id, name FROM Section WHERE status = 1")).mappings().all()
-
-    if request.method == "POST":
-        subject_id = request.form.get("subject_id")
-        section_id = request.form.get("section_id")
-        class_status = request.form.get("class_status")
-
-        update_query = text("""
-            UPDATE Class
-            SET subject_id = :subject_id,
-                section_id = :section_id,
-                status = :status
-            WHERE id = :class_id
-        """)
-        db.session.execute(update_query, {
-            "subject_id": subject_id,
-            "section_id": section_id,
-            "status": class_status,
-            "class_id": class_id
-        })
-        db.session.commit()
-
-        flash("Class updated successfully!", "success")
-        return redirect(url_for("teacher_bp.view_class", class_id=class_id))
-
-    return render_template(
-        "teacher/classes/edit.html",
-        class_info=class_info,
-        lessons=lessons,
-        students=students,
-        no_lessons=no_lessons,
-        no_students=no_students,
-        subjects=subjects,
-        sections=sections
-    )
-
+@teacher_bp.route("/classes/view/<int:class_id>/students", methods=["GET", "POST"])
+@login_required
+def manage_student(class_id):
+    return render_template("teacher/classes/students.html")
