@@ -1,3 +1,4 @@
+{% set page_title = "Classes" %}
 {% extends "layout.html" %}
 {% block title %}My Classes{% endblock %}
 
@@ -19,8 +20,8 @@
         Section: <span class="text-[var(--clr-txt-muted)]">{{ item.section_name }}</span><br>
         Level: <span class="text-[var(--clr-txt-muted)]">{{ item.education_level }}</span>
       </p>
-      <a href="/teacher/class/{{ item.class_id }}" 
-         class="mt-3 inline-block text-[var(--clr-secondary)] font-medium hover:text-[var(--clr-txt-hover)] transition">
+      <a href="{{ url_for('teacher.view_class', class_id=item.class_id) }}"
+        class="mt-3 inline-block text-[var(--clr-secondary)] font-medium hover:text-[var(--clr-txt-hover)] transition">
         View Details →
       </a>
     </div>

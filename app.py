@@ -2,6 +2,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_login import LoginManager, login_user, login_required, logout_user
 from sqlalchemy import text
+from datetime import date
 
 # Own created helpers/mini-framework
 from helpers import *
@@ -42,6 +43,33 @@ def testdb():
     tables = db.session.execute(text("SHOW TABLES")).fetchall()
     return {"tables": [t[0] for t in tables]}
 
+
+# Daily Random Quotes
+last_checked_date = None
+
+@app.before_request
+def ensure_daily_inspiration():
+    global last_checked_date
+    today = date.today()
+
+    if last_checked_date != today:
+        last_checked_date = today
+
+        daily = db.session.execute(
+            text("SELECT * FROM daily_inspirations WHERE date = :today"),
+            {"today": today}
+        ).mappings().first()
+
+        if not daily:
+            quote_id = db.session.execute(text("SELECT id FROM motivational_quotes ORDER BY RAND() LIMIT 1")).scalar()
+            verse_id = db.session.execute(text("SELECT id FROM bible_verses ORDER BY RAND() LIMIT 1")).scalar()
+            message_id = db.session.execute(text("SELECT id FROM grateful_peace_messages ORDER BY RAND() LIMIT 1")).scalar()
+
+            db.session.execute(text("""
+                INSERT INTO daily_inspirations (quote_id, verse_id, message_id, date)
+                VALUES (:q, :v, :m, :d)
+            """), {"q": quote_id, "v": verse_id, "m": message_id, "d": today})
+            db.session.commit()
 
 # ==== ADMIN BLUEPRINT =====
 app.register_blueprint(admin_bp)

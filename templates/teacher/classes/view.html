@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+{% block title %}Class Details{% endblock %}
+
+{% block main %}
+<section class="min-h-full space-y-6">
+
+  <!-- Top Row: Class Info + Lessons -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Class Info Card -->
+    <div id="class-info-card" class="lg:col-span-1 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 border border-[var(--clr-border-strong)]">
+      
+      <!-- Static View -->
+      <div id="view-mode">
+        <h1 class="text-3xl font-bold text-[var(--clr-primary)]">{{ class_info.subject_name }}</h1>
+        <p class="text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)] mt-2">
+          Section: {{ class_info.section_name }}<br>
+          Course: {{ class_info.course_name or 'N/A' }}<br>
+          Level: {{ class_info.education_level or 'N/A' }}<br>
+          Status: {{ class_info.class_status }}
+        </p>
+        <div class="mt-6">
+          <button id="edit-btn" type="button" class="w-full text-center block px-4 py-2 bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)] text-white font-medium rounded-lg shadow-md transition-all duration-200">
+            Edit Section
+          </button>
+        </div>
+      </div>
+
+      <!-- Edit Form (hidden by default) -->
+      <form id="edit-mode" method="POST" class="hidden">
+        <!-- Subject -->
+        <label class="block mt-4 text-[var(--clr-txt-secondary)]" for="subject">Subject</label>
+        <input list="subjects-list" name="subject_id" id="subject" class="mt-1 w-full p-2 border rounded-lg"
+              value="{{ class_info.subject_name }}">
+        <datalist id="subjects-list">
+          {% for sub in subjects %}
+            <option value="{{ sub.name }}"></option>
+          {% endfor %}
+        </datalist>
+
+        <!-- Section -->
+        <label class="block mt-4 text-[var(--clr-txt-secondary)]" for="section">Section</label>
+        <input list="sections-list" name="section_id" id="section" class="mt-1 w-full p-2 border rounded-lg"
+              value="{{ class_info.section_name }}">
+        <datalist id="sections-list">
+          {% for sec in sections %}
+            <option value="{{ sec.name }}"></option>
+          {% endfor %}
+        </datalist>
+
+        <!-- Status -->
+        <label class="block mt-4 text-[var(--clr-txt-secondary)]" for="status">Status</label>
+        <input list="status-list" name="class_status" id="status" class="mt-1 w-full p-2 border rounded-lg"
+              value="{{ class_info.class_status }}">
+        <datalist id="status-list">
+          <option value="active"></option>
+          <option value="cancelled"></option>
+          <option value="completed"></option>
+        </datalist>
+
+        <div class="mt-6 flex gap-2">
+          <button type="submit" class="flex-1 text-center px-4 py-2 bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)] text-white font-medium rounded-lg shadow-md transition-all duration-200">
+            Save
+          </button>
+          <button type="button" id="cancel-btn" class="flex-1 text-center px-4 py-2 bg-[var(--clr-border-strong)] hover:bg-[var(--clr-border)] text-[var(--clr-txt-primary)] font-medium rounded-lg shadow-md transition-all duration-200">
+            Cancel
+          </button>
+        </div>
+      </form>
+
+    </div>
+
+<!-- Lessons Card -->
+<div class="lg:col-span-2 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 border border-[var(--clr-border)] overflow-x-auto relative">
+  <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)] mb-4 flex items-center justify-between">
+    Lessons
+    <!-- Manage Lessons Button -->
+    <a href="#" 
+       class="px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg shadow-md hover:bg-[var(--clr-secondary)] transition-all duration-200 text-sm">
+      Manage Lessons
+    </a>
+  </h2>
+
+  {% if no_lessons %}
+    <p class="text-[var(--clr-txt-muted)] dark:text-[var(--clr-txt-secondary)]">No lessons created yet.</p>
+  {% else %}
+    <table class="min-w-full border border-[var(--clr-border)] rounded-lg">
+      <thead class="bg-[var(--clr-surface-alt)] dark:bg-[var(--clr-surface)]">
+        <tr>
+          <th class="py-2 px-4 border-b border-[var(--clr-border)] text-left">#</th>
+          <th class="py-2 px-4 border-b border-[var(--clr-border)] text-left">Lesson Number</th>
+          <th class="py-2 px-4 border-b border-[var(--clr-border)] text-left">Title</th>
+          <th class="py-2 px-4 border-b border-[var(--clr-border)] text-left">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lesson in lessons %}
+        <tr class="hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-colors">
+          <td class="py-2 px-4 border-b border-[var(--clr-border)]">{{ loop.index }}</td>
+          <td class="py-2 px-4 border-b border-[var(--clr-border)]">{{ lesson.lesson_number }}</td>
+          <td class="py-2 px-4 border-b border-[var(--clr-border)]">{{ lesson.title }}</td>
+          <td class="py-2 px-4 border-b border-[var(--clr-border)]">{{ lesson.description }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</div>
+
+
+  </div>
+
+  <!-- Bottom Row: Students (read-only) -->
+  <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 border border-[var(--clr-border)] overflow-x-auto">
+    <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)] text-center mb-4 flex items-center justify-between">
+      Enrolled Students
+      <!-- Add Student Button -->
+      <button class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] text-4xl flex items-center justify-center rounded-full w-10 h-10">
+        <span class="material-symbols-outlined">add_circle</span>
+      </button>
+    </h2>
+    {% if no_students %}
+      <p class="text-[var(--clr-txt-muted)] dark:text-[var(--clr-txt-secondary)]">No students enrolled yet.</p>
+    {% else %}
+      <table class="min-w-full border border-[var(--clr-border)] rounded-lg">
+        <thead class="bg-[var(--clr-surface-alt)] dark:bg-[var(--clr-surface)]">
+          <tr>
+            <th class="py-2 px-4 border-b border-[var(--clr-border)] text-left">#</th>
+            <th class="py-2 px-4 border-b border-[var(--clr-border)] text-left">Student Name</th>
+            <th class="py-2 px-4 border-b border-[var(--clr-border)] text-left">Year</th>
+            <th class="py-2 px-4 border-b border-[var(--clr-border)] text-left">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          <tr class="hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-colors">
+            <td class="py-2 px-4 border-b border-[var(--clr-border)]">{{ loop.index }}</td>
+            <td class="py-2 px-4 border-b border-[var(--clr-border)]">{{ student.full_name }}</td>
+            <td class="py-2 px-4 border-b border-[var(--clr-border)]">{{ student.year_id }}</td>
+            <td class="py-2 px-4 border-b border-[var(--clr-border)]">{{ student.enrollment_status }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+</section>
+
+<!-- JS to toggle edit mode -->
+<script>
+  const editBtn = document.getElementById('edit-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
+  const viewMode = document.getElementById('view-mode');
+  const editMode = document.getElementById('edit-mode');
+
+  editBtn.addEventListener('click', () => {
+    viewMode.classList.add('hidden');
+    editMode.classList.remove('hidden');
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    editMode.classList.add('hidden');
+    viewMode.classList.remove('hidden');
+  });
+</script>
+
+{% endblock %}
