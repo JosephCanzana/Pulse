@@ -70,53 +70,10 @@
 }
 
 
-/* Local fonts for ease of use */
-@font-face {
-  font-family: 'Roboto';
-  src: url('/static/fonts/Roboto-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('/static/fonts/Roboto-Medium.ttf') format('truetype');
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Roboto';
-  src: url('/static/fonts/Roboto/Roboto-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Poppins';
-  src: url('/static/fonts/Poppins-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Poppins';
-  src: url('/static/fonts/Poppins-Medium.ttf') format('truetype');
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Poppins';
-  src: url('/static/fonts/Poppins-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-}
-
 @font-face {
     font-family: 'LLPIXEL3';
-    src: url('/static/fonts/LLPIXEL3.ttf') format('truetype');
-    font-weight: 400;
+    src: url('/static/fonts/Exo2-VariableFont_wght.ttf') format('truetype');
+    font-weight: 700;
     font-style: normal;
 }
 

@@ -102,6 +102,10 @@ def login():
             flash("Password is incorrect.", "Error")
             return redirect(url_for("login"))
 
+        if user["status"] != 1:
+            flash("Your account is archived, contact admin to resolve this issue", "warning")
+            return redirect(url_for("login"))
+
         # Create Flask-Login user object
         user_obj = load_user(user["id"])
 
@@ -113,6 +117,8 @@ def login():
                 "role": user["role"]
             })
             return redirect(url_for("account_activation", school_id=user["school_id"]))
+
+
 
         # Normal login
         login_user(user_obj)

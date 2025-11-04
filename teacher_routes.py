@@ -204,10 +204,142 @@ def view_class(class_id):
     )
 
 
+
 @teacher_bp.route("/classes/view/<int:class_id>/lessons", methods=["GET", "POST"])
 @login_required
 def manage_lesson(class_id):
-    return render_template("teacher/classes/lesson_form.html")
+    """Manage lessons: add, edit, or delete for a specific class."""
+
+    # Handle form submission
+    if request.method == "POST":
+        action = request.form.get("action")
+        lesson_number = request.form.get("lesson_number")
+        title = request.form.get("title")
+        description = request.form.get("description")
+
+        # Add new lesson
+        if action == "add":
+            insert_query = text("""
+                INSERT INTO Lesson (class_id, lesson_number, title, description)
+                VALUES (:class_id, :lesson_number, :title, :description)
+            """)
+            db.session.execute(insert_query, {
+                "class_id": class_id,
+                "lesson_number": lesson_number,
+                "title": title,
+                "description": description
+            })
+            db.session.commit()
+            flash("Lesson added successfully!", "success")
+
+        # Update lesson
+        elif action == "edit":
+            lesson_id = request.form.get("lesson_id")
+            update_query = text("""
+                UPDATE Lesson
+                SET lesson_number = :lesson_number,
+                    title = :title,
+                    description = :description
+                WHERE id = :lesson_id AND class_id = :class_id
+            """)
+            db.session.execute(update_query, {
+                "lesson_number": lesson_number,
+                "title": title,
+                "description": description,
+                "lesson_id": lesson_id,
+                "class_id": class_id
+            })
+            db.session.commit()
+            flash("Lesson updated successfully!", "success")
+
+        # Delete lesson
+        elif action == "delete":
+            lesson_id = request.form.get("lesson_id")
+            db.session.execute(text("DELETE FROM Lesson WHERE id = :id AND class_id = :class_id"), {
+                "id": lesson_id,
+                "class_id": class_id
+            })
+            db.session.commit()
+            flash("Lesson deleted.", "info")
+
+        return redirect(url_for("teacher.manage_lesson", class_id=class_id))
+
+    # Fetch lessons for display (no date_created)
+    lessons_query = text("""
+        SELECT id, lesson_number, title, description
+        FROM Lesson
+        WHERE class_id = :class_id
+        ORDER BY lesson_number
+    """)
+    lessons = db.session.execute(lessons_query, {"class_id": class_id}).mappings().all()
+
+    return render_template("teacher/classes/lesson_form.html", lessons=lessons, class_id=class_id)
+    """Manage lessons: add, edit, or delete for a specific class."""
+
+    # Handle form submission
+    if request.method == "POST":
+        action = request.form.get("action")
+        lesson_number = request.form.get("lesson_number")
+        title = request.form.get("title")
+        description = request.form.get("description")
+
+        # Add new lesson
+        if action == "add":
+            insert_query = text("""
+                INSERT INTO Lesson (class_id, lesson_number, title, description)
+                VALUES (:class_id, :lesson_number, :title, :description)
+            """)
+            db.session.execute(insert_query, {
+                "class_id": class_id,
+                "lesson_number": lesson_number,
+                "title": title,
+                "description": description
+            })
+            db.session.commit()
+            flash("Lesson added successfully!", "success")
+
+        # Update lesson
+        elif action == "edit":
+            lesson_id = request.form.get("lesson_id")
+            update_query = text("""
+                UPDATE Lesson
+                SET lesson_number = :lesson_number,
+                    title = :title,
+                    description = :description
+                WHERE id = :lesson_id AND class_id = :class_id
+            """)
+            db.session.execute(update_query, {
+                "lesson_number": lesson_number,
+                "title": title,
+                "description": description,
+                "lesson_id": lesson_id,
+                "class_id": class_id
+            })
+            db.session.commit()
+            flash("Lesson updated successfully!", "success")
+
+        # Delete lesson
+        elif action == "delete":
+            lesson_id = request.form.get("lesson_id")
+            db.session.execute(text("DELETE FROM Lesson WHERE id = :id AND class_id = :class_id"), {
+                "id": lesson_id,
+                "class_id": class_id
+            })
+            db.session.commit()
+            flash("Lesson deleted.", "info")
+
+        return redirect(url_for("teacher_bp.manage_lesson", class_id=class_id))
+
+    # Fetch lessons for display
+    lessons_query = text("""
+        SELECT id, lesson_number, title, description, date_created
+        FROM Lesson
+        WHERE class_id = :class_id
+        ORDER BY lesson_number
+    """)
+    lessons = db.session.execute(lessons_query, {"class_id": class_id}).mappings().all()
+
+    return render_template("teacher/classes/lesson_form.html", lessons=lessons, class_id=class_id)
 
 @teacher_bp.route("/classes/view/<int:class_id>/students", methods=["GET", "POST"])
 @login_required

@@ -28,7 +28,7 @@ Pulse | Holy Cross College LMS
     <!-- HERO -->
     <section id="home" class="px-4 sm:px-6 md:px-10 lg:px-20 xl:px-40 flex flex-col-reverse md:flex-row items-center justify-between min-h-screen gap-16 py-24 hero-section">
       <div class="flex-1 text-center md:text-left space-y-8">
-        <h1 class="text-6xl md:text-7xl font-[LLPIXEL3] text-[var(--clr-primary)] leading-tight drop-shadow-[0_0_20px_var(--clr-glow-primary)]">
+        <h1 class="text-6xl md:text-7xl font-[LLPIXEL3] text-[var(--clr-primary)] leading-tight">
           Welcome to 
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--clr-secondary)] via-[var(--clr-tertiary)] to-[var(--clr-primary)] animate-gradient-text">
             Pulse
@@ -316,11 +316,15 @@ window.addEventListener('scroll', () => {
 
 <!-- Styles -->
 <style>
+/* Gradient Animations */
 @keyframes gradient-slow {
   0%,100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
 }
-.animate-gradient-slow { background-size: 200% 200%; animation: gradient-slow 20s ease-in-out infinite; }
+.animate-gradient-slow {
+  background-size: 200% 200%;
+  animation: gradient-slow 20s ease-in-out infinite;
+}
 
 @keyframes gradient-text {
   0%, 100% { background-position: 0% 50%; }
@@ -331,22 +335,64 @@ window.addEventListener('scroll', () => {
   animation: gradient-text 6s linear infinite;
 }
 
-/* Floating orbs */
+/* Floating Orbs */
 .orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.3;
+  filter: blur(50px); /* cleaner than 80px */
+  opacity: 0.25;      /* slightly more subtle */
   mix-blend-mode: screen;
-  animation: float 25s ease-in-out infinite;
+  animation: float 30s ease-in-out infinite alternate; /* smoother */
 }
-.orb1 { width: 400px; height: 400px; background: var(--clr-primary); top: 10%; left: 5%; animation-delay: 0s; }
-.orb2 { width: 300px; height: 300px; background: var(--clr-secondary); bottom: 10%; right: 10%; animation-delay: 10s; }
-.orb3 { width: 500px; height: 500px; background: var(--clr-tertiary); top: 40%; right: 30%; animation-delay: 15s; }
 
+/* Orb variations */
+.orb1 {
+  width: 350px;
+  height: 350px;
+  background: var(--clr-primary);
+  top: 10%;
+  left: 5%;
+  animation-delay: 0s;
+}
+.orb2 {
+  width: 250px;
+  height: 250px;
+  background: var(--clr-secondary);
+  bottom: 15%;
+  right: 10%;
+  animation-delay: 8s;
+}
+.orb3 {
+  width: 400px;
+  height: 400px;
+  background: var(--clr-tertiary);
+  top: 40%;
+  right: 25%;
+  animation-delay: 12s;
+}
+
+/* Smooth floating animation */
 @keyframes float {
-  0%,100% { transform: translateY(0px) translateX(0px); }
-  50% { transform: translateY(-40px) translateX(30px); }
+  0% {
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px) scale(1.05);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateY(-40px) translateX(30px) scale(1);
+    opacity: 0.3;
+  }
+  75% {
+    transform: translateY(-20px) translateX(-10px) scale(1.05);
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.3;
+  }
 }
 
 /* Scroll fade animation */
