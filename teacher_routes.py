@@ -5,7 +5,6 @@ from helpers import *
 from database import db
 import os
 from werkzeug.utils import secure_filename
-from datetime import datetime
 
 teacher_bp = Blueprint('teacher', __name__, url_prefix='/teacher')
 
@@ -278,6 +277,10 @@ def manage_lesson(class_id):
 
     return render_template("teacher/classes/lesson_form.html", lessons=lessons, class_id=class_id)
 
+
+# ============================
+# Lesson order
+# ============================
 @teacher_bp.route("/classes/view/<int:class_id>/lessons/update-order", methods=["POST"])
 @login_required
 def update_lesson_order(class_id):
@@ -379,11 +382,97 @@ def delete_lesson(class_id, lesson_id):
     flash("Lesson deleted successfully!", "success")
     return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
-
-
-
-
-@teacher_bp.route("/classes/view/<int:class_id>/students", methods=["GET", "POST"])
+@teacher_bp.route("/classes/view/<int:class_id>/add-student", methods=["GET", "POST"])
 @login_required
 def manage_student(class_id):
-    return render_template("teacher/classes/students.html")
+    search_query = request.form.get("search", "").strip()
+    selected_students = request.form.getlist("student_ids")  # checkboxes for multiple add
+
+    if request.method == "POST" and selected_students:
+        for student_id in selected_students:
+            db.session.execute(
+                text(
+                    "INSERT IGNORE INTO ClassStudent (class_id, student_id) VALUES (:class_id, :student_id)"
+                ),
+                {"class_id": class_id, "student_id": student_id}
+            )
+        db.session.commit()
+        flash("Student(s) added successfully.", "success")
+        return redirect(url_for("teacher.manage_student", class_id=class_id))
+
+    search_pattern = f"%{search_query}%"
+
+    # Students NOT yet in the class with section info
+    students = db.session.execute(
+        text(
+            """
+            SELECT sp.id AS student_id, u.first_name, u.last_name, u.school_id,
+                   sp.section_id, sec.name AS section_name
+            FROM StudentProfile sp
+            JOIN Users u ON sp.user_id = u.id
+            LEFT JOIN ClassStudent cs 
+                ON cs.student_id = sp.id AND cs.class_id = :class_id
+            LEFT JOIN Section sec ON sp.section_id = sec.id
+            WHERE cs.id IS NULL
+              AND (
+                  u.first_name LIKE :search OR 
+                  u.last_name LIKE :search OR 
+                  u.school_id LIKE :search OR
+                  sec.name LIKE :search
+              )
+            ORDER BY sec.name, u.last_name, u.first_name
+            """
+        ),
+        {"class_id": class_id, "search": search_pattern}
+    ).fetchall()
+
+    # Students ALREADY in the class with section info
+    existing_students = db.session.execute(
+        text(
+            """
+            SELECT sp.id AS student_id, u.first_name, u.last_name, u.school_id,
+                   sp.section_id, sec.name AS section_name
+            FROM ClassStudent cs
+            JOIN StudentProfile sp ON cs.student_id = sp.id
+            JOIN Users u ON sp.user_id = u.id
+            LEFT JOIN Section sec ON sp.section_id = sec.id
+            WHERE cs.class_id = :class_id
+            ORDER BY sec.name, u.last_name, u.first_name
+            """
+        ),
+        {"class_id": class_id}
+    ).fetchall()
+
+    return render_template(
+        "teacher/classes/add_student.html",
+        students=students,
+        existing_students=existing_students,
+        class_id=class_id,
+        search_query=search_query
+    )
+
+
+
+@teacher_bp.route("/classes/view/<int:class_id>/remove-student", methods=["POST"])
+@login_required
+def remove_student_from_class(class_id):
+    """
+    Remove a student from a class.
+    Expects POST with 'id' = student_id
+    """
+    student_id = request.form.get("id")
+    if not student_id:
+        flash("Invalid student ID.", "error")
+        return redirect(url_for("teacher.manage_student", class_id=class_id))
+
+    # Delete the record from ClassStudent
+    db.session.execute(
+        text(
+            "DELETE FROM ClassStudent WHERE class_id = :class_id AND student_id = :student_id"
+        ),
+        {"class_id": class_id, "student_id": student_id}
+    )
+    db.session.commit()
+    flash("Student removed successfully.", "success")
+    return redirect(url_for("teacher.manage_student", class_id=class_id))
+
