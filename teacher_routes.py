@@ -3,10 +3,13 @@ from flask_login import login_required, current_user
 from sqlalchemy import text
 from helpers import *
 from database import db
+import os
+from werkzeug.utils import secure_filename
+from datetime import datetime
 
 teacher_bp = Blueprint('teacher', __name__, url_prefix='/teacher')
 
-teacher_bp = Blueprint("teacher", __name__, url_prefix="/teacher")
+UPLOAD_FOLDER = "uploads/lessons"
 
 
 def get_teacher_id():
@@ -97,6 +100,9 @@ def classes():
         classes=teacher_classes
     )
 
+# =============
+# VIEW classes
+# =============
 @teacher_bp.route("/classes/view/<int:class_id>", methods=["GET", "POST"])
 @login_required
 def view_class(class_id):
@@ -169,7 +175,7 @@ def view_class(class_id):
 
         if not subject_row or not section_row:
             flash("Invalid subject or section name selected.", "error")
-            return redirect(url_for("teacher_bp.view_class", class_id=class_id))
+            return redirect(url_for("teacher.view_class", class_id=class_id))
 
         subject_id = subject_row.id
         section_id = section_row.id
@@ -203,143 +209,179 @@ def view_class(class_id):
         sections=sections
     )
 
-
-
+# ============================
+# Manage Lesson (View / Add)
+# ============================
 @teacher_bp.route("/classes/view/<int:class_id>/lessons", methods=["GET", "POST"])
 @login_required
 def manage_lesson(class_id):
-    """Manage lessons: add, edit, or delete for a specific class."""
-
-    # Handle form submission
     if request.method == "POST":
-        action = request.form.get("action")
-        lesson_number = request.form.get("lesson_number")
         title = request.form.get("title")
         description = request.form.get("description")
+        file = request.files.get("file")
 
-        # Add new lesson
-        if action == "add":
-            insert_query = text("""
-                INSERT INTO Lesson (class_id, lesson_number, title, description)
-                VALUES (:class_id, :lesson_number, :title, :description)
-            """)
-            db.session.execute(insert_query, {
-                "class_id": class_id,
-                "lesson_number": lesson_number,
-                "title": title,
-                "description": description
-            })
-            db.session.commit()
-            flash("Lesson added successfully!", "success")
+        if not title:
+            flash("Lesson title is required.", "danger")
+            return redirect(request.url)
 
-        # Update lesson
-        elif action == "edit":
-            lesson_id = request.form.get("lesson_id")
-            update_query = text("""
-                UPDATE Lesson
-                SET lesson_number = :lesson_number,
-                    title = :title,
-                    description = :description
-                WHERE id = :lesson_id AND class_id = :class_id
+        # Determine next lesson number
+        next_num_query = text("""
+            SELECT COALESCE(MAX(lesson_number), 0) + 1 AS next_number
+            FROM Lesson
+            WHERE class_id = :class_id
+        """)
+        next_number = db.session.execute(next_num_query, {"class_id": class_id}).scalar()
+
+        # Insert lesson
+        insert_lesson = text("""
+            INSERT INTO Lesson (class_id, lesson_number, title, description, created_at, updated_at)
+            VALUES (:class_id, :lesson_number, :title, :description, NOW(), NOW())
+        """)
+        db.session.execute(insert_lesson, {
+            "class_id": class_id,
+            "lesson_number": next_number,
+            "title": title,
+            "description": description
+        })
+        db.session.commit()
+
+        # Get inserted lesson ID
+        lesson_id = db.session.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+
+        # Handle file upload
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(filepath)
+
+            insert_file = text("""
+                INSERT INTO LessonFile (lesson_id, file_name, file_path, file_type, uploaded_at)
+                VALUES (:lesson_id, :file_name, :file_path, :file_type, NOW())
             """)
-            db.session.execute(update_query, {
-                "lesson_number": lesson_number,
-                "title": title,
-                "description": description,
+            db.session.execute(insert_file, {
                 "lesson_id": lesson_id,
-                "class_id": class_id
+                "file_name": filename,
+                "file_path": filepath,
+                "file_type": file.mimetype
             })
             db.session.commit()
-            flash("Lesson updated successfully!", "success")
 
-        # Delete lesson
-        elif action == "delete":
-            lesson_id = request.form.get("lesson_id")
-            db.session.execute(text("DELETE FROM Lesson WHERE id = :id AND class_id = :class_id"), {
-                "id": lesson_id,
-                "class_id": class_id
-            })
-            db.session.commit()
-            flash("Lesson deleted.", "info")
-
+        flash("Lesson added successfully!", "success")
         return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
-    # Fetch lessons for display (no date_created)
-    lessons_query = text("""
-        SELECT id, lesson_number, title, description
-        FROM Lesson
+    # Fetch lessons
+    lessons = db.session.execute(text("""
+        SELECT * FROM Lesson
         WHERE class_id = :class_id
-        ORDER BY lesson_number
-    """)
-    lessons = db.session.execute(lessons_query, {"class_id": class_id}).mappings().all()
+        ORDER BY lesson_number ASC
+    """), {"class_id": class_id}).mappings().all()
 
     return render_template("teacher/classes/lesson_form.html", lessons=lessons, class_id=class_id)
-    """Manage lessons: add, edit, or delete for a specific class."""
 
-    # Handle form submission
+@teacher_bp.route("/classes/view/<int:class_id>/lessons/update-order", methods=["POST"])
+@login_required
+def update_lesson_order(class_id):
+    order_data = request.form.get("order")
+
+    if not order_data:
+        flash("No order data received.", "danger")
+        return redirect(url_for("teacher.manage_lesson", class_id=class_id))
+
+    import json
+    try:
+        order_list = json.loads(order_data)
+        for item in order_list:
+            db.session.execute(text("""
+                UPDATE Lesson
+                SET lesson_number = :new_order
+                WHERE id = :lesson_id AND class_id = :class_id
+            """), {
+                "new_order": item["new_order"],
+                "lesson_id": item["id"],
+                "class_id": class_id
+            })
+        db.session.commit()
+        flash("Lesson order updated successfully!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error updating lesson order: {e}", "danger")
+
+    return redirect(url_for("teacher.manage_lesson", class_id=class_id))
+
+
+# ============================
+# Edit Lesson
+# ============================
+@teacher_bp.route("/classes/view/<int:class_id>/lessons/edit/<int:lesson_id>", methods=["GET", "POST"])
+@login_required
+def edit_lesson(class_id, lesson_id):
     if request.method == "POST":
-        action = request.form.get("action")
-        lesson_number = request.form.get("lesson_number")
         title = request.form.get("title")
         description = request.form.get("description")
+        file = request.files.get("file")
 
-        # Add new lesson
-        if action == "add":
-            insert_query = text("""
-                INSERT INTO Lesson (class_id, lesson_number, title, description)
-                VALUES (:class_id, :lesson_number, :title, :description)
-            """)
-            db.session.execute(insert_query, {
-                "class_id": class_id,
-                "lesson_number": lesson_number,
-                "title": title,
-                "description": description
-            })
-            db.session.commit()
-            flash("Lesson added successfully!", "success")
+        # Update lesson info
+        update_lesson = text("""
+            UPDATE Lesson
+            SET title = :title,
+                description = :description,
+                updated_at = NOW()
+            WHERE id = :lesson_id
+        """)
+        db.session.execute(update_lesson, {
+            "title": title,
+            "description": description,
+            "lesson_id": lesson_id
+        })
+        db.session.commit()
 
-        # Update lesson
-        elif action == "edit":
-            lesson_id = request.form.get("lesson_id")
-            update_query = text("""
-                UPDATE Lesson
-                SET lesson_number = :lesson_number,
-                    title = :title,
-                    description = :description
-                WHERE id = :lesson_id AND class_id = :class_id
+        # Optional file upload
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(filepath)
+
+            insert_file = text("""
+                INSERT INTO LessonFile (lesson_id, file_name, file_path, file_type, uploaded_at)
+                VALUES (:lesson_id, :file_name, :file_path, :file_type, NOW())
             """)
-            db.session.execute(update_query, {
-                "lesson_number": lesson_number,
-                "title": title,
-                "description": description,
+            db.session.execute(insert_file, {
                 "lesson_id": lesson_id,
-                "class_id": class_id
+                "file_name": filename,
+                "file_path": filepath,
+                "file_type": file.mimetype
             })
             db.session.commit()
-            flash("Lesson updated successfully!", "success")
 
-        # Delete lesson
-        elif action == "delete":
-            lesson_id = request.form.get("lesson_id")
-            db.session.execute(text("DELETE FROM Lesson WHERE id = :id AND class_id = :class_id"), {
-                "id": lesson_id,
-                "class_id": class_id
-            })
-            db.session.commit()
-            flash("Lesson deleted.", "info")
+        flash("Lesson updated successfully!", "success")
+        return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
-        return redirect(url_for("teacher_bp.manage_lesson", class_id=class_id))
+    # Fetch lesson
+    lesson = db.session.execute(text("""
+        SELECT * FROM Lesson WHERE id = :lesson_id
+    """), {"lesson_id": lesson_id}).mappings().first()
 
-    # Fetch lessons for display
-    lessons_query = text("""
-        SELECT id, lesson_number, title, description, date_created
-        FROM Lesson
-        WHERE class_id = :class_id
-        ORDER BY lesson_number
-    """)
-    lessons = db.session.execute(lessons_query, {"class_id": class_id}).mappings().all()
+    if not lesson:
+        flash("Lesson not found.", "danger")
+        return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
-    return render_template("teacher/classes/lesson_form.html", lessons=lessons, class_id=class_id)
+    return render_template("teacher/classes/edit_lesson.html", lesson=lesson, class_id=class_id)
+
+
+# ============================
+# Delete Lesson
+# ============================
+@teacher_bp.route("/classes/view/<int:class_id>/lessons/delete/<int:lesson_id>", methods=["POST"])
+@login_required
+def delete_lesson(class_id, lesson_id):
+    db.session.execute(text("DELETE FROM Lesson WHERE id = :lesson_id"), {"lesson_id": lesson_id})
+    db.session.commit()
+    flash("Lesson deleted successfully!", "success")
+    return redirect(url_for("teacher.manage_lesson", class_id=class_id))
+
+
+
+
 
 @teacher_bp.route("/classes/view/<int:class_id>/students", methods=["GET", "POST"])
 @login_required

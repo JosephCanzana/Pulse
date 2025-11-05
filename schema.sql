@@ -148,15 +148,26 @@ CREATE TABLE IF NOT EXISTS ClassStudent (
 
 -- Lesson table
 CREATE TABLE IF NOT EXISTS Lesson (
-    id INT AUTO_INCREMENT PRIMARY KEY,              
-    class_id INT NOT NULL COMMENT 'Class this lesson belongs to',                          
-    lesson_number INT NOT NULL COMMENT 'Order of lesson in the class',                     
-    title VARCHAR(255) NOT NULL COMMENT 'Lesson title',                    
-    description TEXT COMMENT 'Optional lesson details',                               
-    file_attachment VARCHAR(255) COMMENT 'File path or URL',                   
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (class_id) REFERENCES Class(id)    
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    class_id INT NOT NULL COMMENT 'Class this lesson belongs to',
+    lesson_number INT NOT NULL COMMENT 'Order of lesson in the class',
+    title VARCHAR(255) NOT NULL COMMENT 'Lesson title',
+    description TEXT COMMENT 'Optional lesson details',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (class_id) REFERENCES Class(id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS LessonFile (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lesson_id INT NOT NULL COMMENT 'Linked lesson ID',
+    file_name VARCHAR(255) NOT NULL COMMENT 'Original file name',
+    file_path VARCHAR(255) NOT NULL COMMENT 'Server path or URL',
+    file_type VARCHAR(100) COMMENT 'MIME type, e.g. application/pdf',
+    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (lesson_id) REFERENCES Lesson(id)
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 

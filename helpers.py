@@ -2,6 +2,10 @@ from flask import render_template
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy import text
 
+ALLOWED_EXTENSIONS = {'pdf', 'docx', 'pptx', 'jpg', 'png', 'mp4', 'zip'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # APOLOGY FORM 
 def apology(num=400, message="Error occur"):
