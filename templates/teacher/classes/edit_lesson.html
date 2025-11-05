@@ -1,40 +1,97 @@
 {% extends "layout.html" %}
-{% block title %}Edit Lesson{% endblock %}
+{% block title %}View Lesson{% endblock %}
 
 {% block main %}
-<div class="container mt-4">
-    <h2 class="mb-4">Edit Lesson</h2>
+<div class="w-full h-full">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-10">
+    <div class="flex items-center gap-3">
+      <!-- Back Button (Icon Only) -->
+      <a href="{{ url_for('teacher.manage_lesson', class_id=class_id) }}"
+         class="flex items-center justify-center w-9 h-9 rounded-full border border-[var(--clr-txt-secondary)] hover:border-[var(--clr-primary)] hover:text-[var(--clr-primary)] text-[var(--clr-txt-secondary)] transition">
+        <span class="material-symbols-outlined text-xl">arrow_back</span>
+      </a>
 
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
+      <!-- Title -->
+      <div>
+        <h1 class="text-2xl font-semibold text-[var(--clr-primary)] leading-tight">Lesson Details</h1>
+        <p class="text-sm text-[var(--clr-txt-secondary)]">Review and update the lesson below.</p>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <button type="submit" form="edit-lesson-form"
+            class="px-6 py-2.5 rounded-lg bg-[var(--clr-primary)] text-white font-medium hover:bg-[var(--clr-secondary)] transition shadow-sm hover:shadow-md">
+      Save Changes
+    </button>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="space-y-2 mb-8">
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          <div class="p-4 rounded-lg text-white shadow-sm
+                      {% if category == 'success' %}bg-green-500{% elif category == 'error' %}bg-red-500{% else %}bg-blue-500{% endif %}
+                      flex justify-between items-center">
+            <span>{{ message }}</span>
+            <button type="button" class="ml-4 text-white hover:opacity-80" onclick="this.parentElement.remove()">✕</button>
           </div>
         {% endfor %}
-      {% endif %}
-    {% endwith %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
-    <form action="{{ url_for('teacher.edit_lesson', class_id=class_id, lesson_id=lesson.id) }}" method="POST" enctype="multipart/form-data">
-        <div class="mb-3">
-            <label class="form-label">Lesson Title</label>
-            <input type="text" name="title" class="form-control" value="{{ lesson.title }}" required>
-        </div>
+  <!-- Main Form -->
+  <form id="edit-lesson-form"
+        action="{{ url_for('teacher.edit_lesson', class_id=class_id, lesson_id=lesson.id) }}"
+        method="POST" enctype="multipart/form-data"
+        class="grid grid-cols-1 md:grid-cols-2 gap-12">
 
-        <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea name="description" class="form-control" rows="3">{{ lesson.description }}</textarea>
-        </div>
+    <!-- LEFT: Title + Description -->
+    <div class="space-y-8">
+      <!-- Lesson Title -->
+      <div>
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">Lesson Title</label>
+        <input type="text" name="title" value="{{ lesson.title }}" required
+               class="w-full bg-transparent text-2xl font-semibold text-[var(--clr-txt-primary)] border-b border-gray-300 focus:border-[var(--clr-primary)] focus:outline-none transition py-2">
+      </div>
 
-        <div class="mb-3">
-            <label class="form-label">Upload New File (optional)</label>
-            <input type="file" name="file" class="form-control">
-        </div>
+      <!-- Description -->
+      <div>
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Description</label>
+        <textarea name="description" rows="10"
+                  class="w-full bg-transparent border border-gray-200 rounded-lg text-[var(--clr-txt-primary)] text-base leading-relaxed focus:border-[var(--clr-primary)] focus:ring-1 focus:ring-[var(--clr-primary)] focus:outline-none transition p-3 resize-y min-h-[220px]">{{ lesson.description }}</textarea>
+      </div>
+    </div>
 
-        <button type="submit" class="btn btn-success">Save Changes</button>
-        <a href="{{ url_for('teacher.manage_lesson', class_id=class_id) }}" class="btn btn-secondary">Back</a>
-    </form>
+    <!-- RIGHT: File Management -->
+    <div class="space-y-10">
+      <!-- Current File -->
+      <div>
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Current File</label>
+        {% if lesson.files and lesson.files|length > 0 %}
+          <div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+            <span class="text-sm text-gray-700 truncate">{{ lesson.files[0].filename }}</span>
+            <a href="{{ url_for('static', filename='uploads/' + lesson.files[0].filename) }}"
+               target="_blank"
+               class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] text-sm font-medium transition">View</a>
+          </div>
+        {% else %}
+          <p class="text-sm text-gray-500 italic">No file attached.</p>
+        {% endif %}
+      </div>
+
+      <!-- Replace File -->
+      <div>
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Replace File (optional)</label>
+        <input type="file" name="file"
+               class="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0 file:text-sm file:font-semibold
+                      file:bg-[var(--clr-primary)] file:text-white hover:file:bg-[var(--clr-secondary)]
+                      transition cursor-pointer">
+      </div>
+    </div>
+  </form>
 </div>
 {% endblock %}
