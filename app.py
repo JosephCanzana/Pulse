@@ -12,6 +12,7 @@ from models import load_user
 # Blueprints
 from admin_routes import admin_bp
 from teacher_routes import teacher_bp
+from student_routes import student_bp
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -74,6 +75,7 @@ def ensure_daily_inspiration():
 # ==== ADMIN BLUEPRINT =====
 app.register_blueprint(admin_bp)
 app.register_blueprint(teacher_bp)
+app.register_blueprint(student_bp)
 
 # ==== GENERAL PAGES ====
 # LANDING PAGE
@@ -118,8 +120,6 @@ def login():
             })
             return redirect(url_for("account_activation", school_id=user["school_id"]))
 
-
-
         # Normal login
         login_user(user_obj)
         session.update({
@@ -136,7 +136,7 @@ def login():
         elif role == "teacher":
             return redirect(url_for("teacher.dashboard"))
         else:
-            return redirect(url_for("student"))
+            return redirect(url_for("student.dashboard"))
 
     return render_template("auth/login.html")
 
@@ -202,7 +202,7 @@ def account_activation(school_id):
         elif session["role"] == "teacher":
             return redirect(url_for("teacher.dashboard")) 
         else:
-            return redirect(url_for("student"))
+            return redirect(url_for("student.dashboard"))
 
     else:
         return render_template("auth/account_activation.html")
@@ -223,13 +223,6 @@ def logout():
 @login_manager.unauthorized_handler
 def unauthorized():
     return redirect(url_for("login"))
-
-# ==== STUDENT PAGES =====
-
-@app.route("/student")
-@login_required
-def student():
-    return render_template("student/dashboard.html", name=session["first_name"])
 
 
 if __name__ == "__main__": 

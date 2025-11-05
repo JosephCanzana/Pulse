@@ -47,7 +47,7 @@
           </a>
 
         {% else %}
-          <a href="{{ url_for('student') }}" class="btn-side-bar-collapsed {% if request.path == url_for('student') %}btn-side-bar-collapsed-active{% endif %}">
+          <a href="{{ url_for('student.dashboard') }}" class="btn-side-bar-collapsed {% if request.path == url_for('student.dashboard') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">home</span>
           </a>
           <a href="#" class="btn-side-bar-collapsed">
@@ -125,7 +125,7 @@
           
 
         {% else %}
-          <a href="{{ url_for('student') }}" class="btn-side-bar-expand {% if request.path == url_for('student') %}btn-side-bar-expanded-active{% endif %}">
+          <a href="{{ url_for('student.dashboard') }}" class="btn-side-bar-expand {% if request.path == url_for('student.dashboard') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">home</span><span class="ml-4">Dashboard</span>
           </a>
           <a href="#" class="btn-side-bar-expand"><span class="material-symbols-outlined">book</span><span class="ml-4">Subjects</span></a>

@@ -277,10 +277,7 @@ def manage_lesson(class_id):
 
     return render_template("teacher/classes/lesson_form.html", lessons=lessons, class_id=class_id)
 
-
-# ============================
 # Lesson order
-# ============================
 @teacher_bp.route("/classes/view/<int:class_id>/lessons/update-order", methods=["POST"])
 @login_required
 def update_lesson_order(class_id):
@@ -312,9 +309,7 @@ def update_lesson_order(class_id):
     return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
 
-# ============================
 # Edit Lesson
-# ============================
 @teacher_bp.route("/classes/view/<int:class_id>/lessons/edit/<int:lesson_id>", methods=["GET", "POST"])
 @login_required
 def edit_lesson(class_id, lesson_id):
@@ -371,9 +366,7 @@ def edit_lesson(class_id, lesson_id):
     return render_template("teacher/classes/edit_lesson.html", lesson=lesson, class_id=class_id)
 
 
-# ============================
 # Delete Lesson
-# ============================
 @teacher_bp.route("/classes/view/<int:class_id>/lessons/delete/<int:lesson_id>", methods=["POST"])
 @login_required
 def delete_lesson(class_id, lesson_id):
@@ -382,6 +375,9 @@ def delete_lesson(class_id, lesson_id):
     flash("Lesson deleted successfully!", "success")
     return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
+# ============================
+# Manage Student
+# ============================
 @teacher_bp.route("/classes/view/<int:class_id>/add-student", methods=["GET", "POST"])
 @login_required
 def manage_student(class_id):
@@ -451,8 +447,7 @@ def manage_student(class_id):
         search_query=search_query
     )
 
-
-
+# Remove student
 @teacher_bp.route("/classes/view/<int:class_id>/remove-student", methods=["POST"])
 @login_required
 def remove_student_from_class(class_id):
