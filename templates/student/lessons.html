@@ -1,57 +1,51 @@
 {% extends "layout.html" %}
-{% block title %}Class Lessons{% endblock %}
+
+{% block title %}Lessons{% endblock %}
 
 {% block main %}
-<section class="min-h-full space-y-6 p-4">
+<div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">Lessons</h1>
 
-  <h1 class="text-2xl font-semibold text-pulse-600 mb-4">Lessons</h1>
+    {% if lessons %}
+        <ul class="space-y-4">
+            {% for l in lessons %}
+            <li class="p-4 border rounded shadow hover:shadow-lg transition">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold">Lesson {{ l.lesson_number }}: {{ l.title }}</h3>
+                        <p>{{ l.description or "No description provided." }}</p>
+                        {% if l.file_id %}
+                        <p class="mt-1">
+                            File: 
+                            <a href="{{ l.file_path }}" target="_blank" class="text-blue-600 underline">{{ l.file_name }}</a>
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <span class="px-2 py-1 rounded 
+                                     {% if l.status == 'completed' %}bg-green-200 text-green-800
+                                     {% elif l.status == 'in_progress' %}bg-yellow-200 text-yellow-800
+                                     {% else %}bg-gray-200 text-gray-800{% endif %}">
+                            {{ l.status.replace('_', ' ')|capitalize }}
+                        </span>
+                    </div>
+                </div>
 
-  {% if lessons %}
-    <div class="space-y-4">
-      {% for lesson in lessons %}
-      <div class="bg-white rounded-2xl shadow-md p-4 flex flex-col md:flex-row md:justify-between items-start md:items-center border-l-8 {% if lesson.status == 'completed' %}border-green-500{% elif lesson.status == 'in_progress' %}border-yellow-500{% else %}border-gray-300{% endif %}">
-        
-        <div class="flex-1">
-          <h2 class="text-xl font-bold">{{ lesson.lesson_number }}. {{ lesson.title }}</h2>
-          {% if lesson.description %}
-          <p class="text-gray-600 mt-1">{{ lesson.description }}</p>
-          {% endif %}
+                {% if class_status == 'active' and l.status != 'completed' %}
+                <form method="POST" action="{{ url_for('student.update_lesson_progress', lesson_id=l.id) }}" class="mt-2">
+                    <button type="submit" class="btn btn-primary">
+                        {% if l.status == 'not_started' %}Start Lesson{% elif l.status == 'in_progress' %}Complete Lesson{% endif %}
+                    </button>
+                </form>
+                {% endif %}
 
-          {% if lesson.file_id %}
-          <div class="mt-2 space-y-1">
-            <h3 class="font-semibold text-gray-700">Files:</h3>
-            <a href="{{ url_for('static', filename=lesson.file_path) }}" target="_blank" class="text-pulse-600 hover:underline">{{ lesson.file_name }}</a>
-          </div>
-          {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No lessons found for this class.</p>
+    {% endif %}
 
-          <div class="mt-2 text-sm text-gray-500">
-            {% if lesson.started_at %}
-            <span>Started: {{ lesson.started_at.strftime('%b %d, %Y %I:%M %p') }}</span>
-            {% endif %}
-            {% if lesson.completed_at %}
-            <span class="ml-4">Completed: {{ lesson.completed_at.strftime('%b %d, %Y %I:%M %p') }}</span>
-            {% endif %}
-          </div>
-        </div>
-
-        <div class="mt-4 md:mt-0 md:ml-4">
-          <form action="{{ url_for('student.update_lesson_progress', lesson_id=lesson.id) }}" method="POST">
-            {% if lesson.status == 'not_started' %}
-            <button type="submit" class="bg-pulse-500 hover:bg-pulse-600 text-white px-4 py-2 rounded-xl">Start Lesson</button>
-            {% elif lesson.status == 'in_progress' %}
-            <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl">Mark as Completed</button>
-            {% else %}
-            <button type="button" disabled class="bg-green-500 text-white px-4 py-2 rounded-xl cursor-not-allowed">Completed</button>
-            {% endif %}
-          </form>
-        </div>
-
-      </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="text-gray-500">No lessons available for this class.</p>
-  {% endif %}
-
-</section>
+    <a href="{{ url_for('student.view_classes') }}" class="btn btn-secondary mt-4">Back to Classes</a>
+</div>
 {% endblock %}

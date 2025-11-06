@@ -14,20 +14,49 @@ student_bp = Blueprint('student', __name__, url_prefix='/student')
 @student_bp.route("/")
 @login_required
 def dashboard():
-    query = text("""
+    # Main summary counts
+    summary_query = text("""
         SELECT 
             COUNT(DISTINCT cs.id) AS total_classes,
             COUNT(DISTINCT CASE WHEN cs.status = 'completed' THEN cs.id END) AS total_classes_completed,
             COUNT(DISTINCT CASE WHEN cs.status = 'active' THEN cs.id END) AS total_classes_active,
-            COUNT(DISTINCT sl.id) AS total_lessons_completed
+            COUNT(DISTINCT CASE WHEN sl.status = 'completed' THEN sl.id END) AS total_lessons_completed,
+            COUNT(DISTINCT CASE WHEN sl.status = 'in_progress' THEN sl.id END) AS lessons_in_progress
         FROM StudentProfile sp
         LEFT JOIN ClassStudent cs ON cs.student_id = sp.id
         LEFT JOIN StudentLessonProgress sl 
-            ON sl.student_id = sp.id AND sl.status = 'completed'
+            ON sl.student_id = sp.id
         WHERE sp.user_id = :user_id
     """)
-    
-    result = db.session.execute(query, {'user_id': current_user.id}).fetchone()
+
+    result = db.session.execute(summary_query, {'user_id': current_user.id}).fetchone()
+
+    # Recent progress (most recent 5 lessons by started_at or completed_at)
+    recent_progress_query = text("""
+        SELECT 
+            l.id AS lesson_id,
+            l.title AS lesson_title,
+            c.id AS class_id,
+            s.name AS subject_name,
+            slp.status,
+            slp.started_at,
+            slp.completed_at
+        FROM StudentLessonProgress slp
+        JOIN Lesson l ON l.id = slp.lesson_id
+        JOIN Class c ON c.id = slp.class_id
+        JOIN Subject s ON s.id = c.subject_id
+        JOIN StudentProfile sp ON sp.id = slp.student_id
+        WHERE sp.user_id = :user_id
+        ORDER BY GREATEST(
+            IFNULL(slp.completed_at, '1970-01-01'),
+            IFNULL(slp.started_at, '1970-01-01')
+        ) DESC
+        LIMIT 5
+    """)
+
+    recent_progress = db.session.execute(recent_progress_query, {'user_id': current_user.id}).mappings().all()
+
+    # Daily inspiration
     daily = db.session.execute(text("""
         SELECT di.*, 
                q.quote, q.author, 
@@ -41,7 +70,6 @@ def dashboard():
         LIMIT 1
     """)).mappings().first()
 
-
     return render_template(
         "student/dashboard.html",
         name=session.get("first_name"),
@@ -49,8 +77,12 @@ def dashboard():
         total_classes_completed=result.total_classes_completed or 0,
         total_classes_active=result.total_classes_active or 0,
         total_lessons_completed=result.total_lessons_completed or 0,
+        lessons_in_progress=result.lessons_in_progress or 0,
+        recent_progress=recent_progress,
         daily=daily
     )
+
+
 
 # ==============================
 # View Enrolled Classes
@@ -71,9 +103,17 @@ def view_classes():
         JOIN StudentProfile sp ON cs.student_id = sp.id
         WHERE sp.user_id = :user_id
     """)
-    classes = db.session.execute(query, {'user_id': current_user.id}).fetchall()
+    all_classes = db.session.execute(query, {'user_id': current_user.id}).fetchall()
 
-    return render_template("student/classes.html", classes=classes)
+    # Separate active vs history
+    active_classes = [c for c in all_classes if c.status == 'active']
+    history_classes = [c for c in all_classes if c.status in ('completed', 'cancelled')]
+
+    return render_template(
+        "student/classes.html",
+        active_classes=active_classes,
+        history_classes=history_classes
+    )
 
 # ==============================
 # View Lessons in a Class (with files)
@@ -81,6 +121,11 @@ def view_classes():
 @student_bp.route("/classes/<int:class_id>/lessons")
 @login_required
 def view_lessons(class_id):
+    # Get class status
+    class_status_query = text("SELECT status FROM Class WHERE id = :class_id")
+    class_status = db.session.execute(class_status_query, {'class_id': class_id}).scalar()
+
+    # Fetch lessons with progress and files
     query = text("""
         SELECT l.id, l.lesson_number, l.title, l.description,
                slp.status, slp.completed_at,
@@ -101,7 +146,16 @@ def view_lessons(class_id):
         'class_id': class_id
     }).fetchall()
 
-    return render_template("student/lessons.html", lessons=lessons, class_id=class_id)
+    # If the class is completed or cancelled, flash info but allow view
+    if class_status in ('completed', 'cancelled'):
+        flash("This class is no longer active. You can view it in your history, but cannot update progress.", "info")
+
+    return render_template(
+        "student/lessons.html",
+        lessons=lessons,
+        class_id=class_id,
+        class_status=class_status  # Pass the status to the template
+    )
 
 # ==============================
 # Update Lesson Progress (Incremental)
@@ -111,6 +165,16 @@ def view_lessons(class_id):
 def update_lesson_progress(lesson_id):
     student_query = text("SELECT id FROM StudentProfile WHERE user_id = :user_id")
     student = db.session.execute(student_query, {'user_id': current_user.id}).fetchone()
+    class_id_query = text("SELECT class_id FROM Lesson WHERE id = :lesson_id")
+    class_id = db.session.execute(class_id_query, {'lesson_id': lesson_id}).scalar()
+
+    # Check class status
+    class_status_query = text("SELECT status FROM Class WHERE id = :class_id")
+    class_status = db.session.execute(class_status_query, {'class_id': class_id}).scalar()
+
+    if class_status in ('completed', 'cancelled'):
+        flash("You cannot update progress for a completed or cancelled class.", "warning")
+        return redirect(url_for("student.view_classes"))
 
     if not student:
         flash("Student profile not found.", "error")

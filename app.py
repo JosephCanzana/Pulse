@@ -2,7 +2,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_login import LoginManager, login_user, login_required, logout_user
 from sqlalchemy import text
-from datetime import date
+from datetime import date, datetime
 
 # Own created helpers/mini-framework
 from helpers import *
@@ -44,6 +44,23 @@ def testdb():
     tables = db.session.execute(text("SHOW TABLES")).fetchall()
     return {"tables": [t[0] for t in tables]}
 
+@app.template_filter('datetimeformat')
+def datetimeformat(value, format='%I:%M %p'):
+    """
+    Formats a datetime string or object into a given format.
+    Default: 'h:mm AM/PM' (12-hour)
+    """
+    if not value:
+        return ''
+    
+    # Convert string to datetime if needed
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except ValueError:
+            return value  # return as-is if not parseable
+
+    return value.strftime(format)
 
 # Daily Random Quotes
 last_checked_date = None
