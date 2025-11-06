@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block title %}Class History{% endblock %}
+
+{% block main %}
+<section class="w-full h-full space-y-6">
+
+  <!-- Header -->
+  <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    
+    <!-- Left: Back + Title -->
+    <div class="flex items-center gap-3">
+      <a href="{{ url_for('student.view_classes') }}"
+         class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--clr-surface,#1e1e1e)] border border-[var(--clr-border,rgba(255,255,255,0.1))] text-[var(--clr-primary)] hover:bg-[var(--clr-primary)] hover:text-white shadow-sm hover:shadow-[0_0_10px_var(--clr-glow-primary,rgba(255,255,255,0.2))] transition-all duration-200">
+        <span class="material-symbols-rounded text-2xl">arrow_back</span>
+      </a>
+      <h1 class="text-3xl font-bold text-[var(--clr-primary)] tracking-tight">Class History</h1>
+    </div>
+
+<!-- Right: Search -->
+<form method="get" action="{{ url_for('student.history') }}" 
+      class="flex items-center gap-2 bg-[var(--clr-surface,#1e1e1e)] border border-[var(--clr-border,rgba(255,255,255,0.1))] 
+             rounded-full px-5 py-2 shadow-sm focus-within:ring-2 focus-within:ring-[var(--clr-primary)] 
+             transition-all duration-300 w-full md:w-[400px] lg:w-[480px]">
+  
+  <input type="text" name="search" value="{{ request.args.get('search', '') }}"
+         placeholder="Search class, teacher, or section..."
+         class="flex-1 bg-transparent text-[var(--clr-txt-primary,#e5e7eb)] 
+                placeholder-[var(--clr-txt-muted,#9ca3af)] focus:outline-none text-sm 
+                transition-all duration-300 focus:w-full" />
+
+  <button type="submit"
+          class="flex items-center justify-center w-9 h-9 rounded-full 
+                 bg-[var(--clr-primary)] text-white hover:opacity-90 transition">
+    <span class="material-symbols-rounded text-[20px]">search</span>
+  </button>
+</form>
+
+  </header>
+
+  <!-- History Classes -->
+  {% if history_classes %}
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {% for c in history_classes %}
+      {% set accent = c.color if c.color else 'var(--clr-primary)' %}
+      <div class="relative group rounded-2xl overflow-hidden border border-[var(--clr-border,rgba(255,255,255,0.1))] bg-[var(--clr-surface,#1e1e1e)] shadow-sm hover:shadow-[0_0_15px_var(--clr-glow-primary,rgba(255,255,255,0.15))] transition-all duration-300 hover:-translate-y-[3px]">
+
+        <!-- Accent Strip -->
+        <div class="absolute left-0 top-0 h-full w-1.5" style="background-color: {{ accent }};"></div>
+
+        <!-- Card Content -->
+        <div class="relative p-6 pl-8">
+          <h3 class="text-lg font-semibold text-[var(--clr-txt-primary,#fff)] mb-1 tracking-wide">
+            {{ c.subject_name }}
+          </h3>
+          <p class="text-sm text-[var(--clr-txt-secondary,#b0b0b0)]">Section: {{ c.section_name }}</p>
+          <p class="text-sm text-[var(--clr-txt-secondary,#b0b0b0)]">Teacher: {{ c.teacher_name }}</p>
+          <p class="text-sm mt-2">Status:
+            <span class="font-semibold text-[{{ accent }}]">{{ c.status|capitalize }}</span>
+          </p>
+          <a href="{{ url_for('student.view_lessons', class_id=c.id) }}"
+             class="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg border border-[{{ accent }}] text-[{{ accent }}] text-sm font-semibold hover:bg-[{{ accent }}] hover:text-white transition">
+            <span class="material-symbols-rounded text-sm">menu_book</span> View Lessons
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-[var(--clr-txt-muted,#9ca3af)] italic">No completed or cancelled classes yet.</p>
+  {% endif %}
+
+</section>
+{% endblock %}

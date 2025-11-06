@@ -229,3 +229,27 @@ def update_lesson_progress(lesson_id):
     db.session.commit()
     flash(f"Lesson progress updated to '{next_status}'!", "success")
     return redirect(request.referrer or url_for("student.dashboard"))
+
+
+@student_bp.route("/history")
+@login_required
+def history():
+    search = request.args.get("search", "").strip().lower()
+    query = """
+        SELECT c.id, s.name AS subject_name, sec.name AS section_name, 
+               CONCAT(u.first_name, ' ', u.last_name) AS teacher_name, 
+               c.status, c.color
+        FROM Class c
+        JOIN Subject s ON c.subject_id = s.id
+        JOIN Section sec ON c.section_id = sec.id
+        JOIN TeacherProfile tp ON c.teacher_id = tp.id
+        JOIN Users u ON tp.user_id = u.id
+        WHERE c.status IN ('completed', 'cancelled')
+    """
+    if search:
+        query += " AND (LOWER(s.name) LIKE :s OR LOWER(sec.name) LIKE :s OR LOWER(u.first_name) LIKE :s OR LOWER(u.last_name) LIKE :s)"
+        classes = db.session.execute(text(query), {"s": f"%{search}%"}).fetchall()
+    else:
+        classes = db.session.execute(text(query)).fetchall()
+
+    return render_template("student/history.html", history_classes=classes)
