@@ -50,14 +50,8 @@
           <a href="{{ url_for('student.dashboard') }}" class="btn-side-bar-collapsed {% if request.path == url_for('student.dashboard') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">home</span>
           </a>
-          <a href="#" class="btn-side-bar-collapsed">
+          <a href="{{ url_for('student.view_classes') }}" class="btn-side-bar-collapsed {% if request.path == url_for('student.view_classes') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">book</span>
-          </a>
-          <a href="#" class="btn-side-bar-collapsed">
-            <span class="material-symbols-outlined">format_list_bulleted</span>
-          </a>
-          <a href="#" class="btn-side-bar-collapsed">
-            <span class="material-symbols-outlined">workspace_premium</span>
           </a>
         {% endif %}
       </div>
@@ -128,9 +122,7 @@
           <a href="{{ url_for('student.dashboard') }}" class="btn-side-bar-expand {% if request.path == url_for('student.dashboard') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">home</span><span class="ml-4">Dashboard</span>
           </a>
-          <a href="#" class="btn-side-bar-expand"><span class="material-symbols-outlined">book</span><span class="ml-4">Subjects</span></a>
-          <a href="#" class="btn-side-bar-expand"><span class="material-symbols-outlined">format_list_bulleted</span><span class="ml-4">Submissions</span></a>
-          <a href="#" class="btn-side-bar-expand"><span class="material-symbols-outlined">workspace_premium</span><span class="ml-4">Grades</span></a>
+          <a href="{{ url_for('student.view_classes') }}" class="btn-side-bar-expand {% if request.path == url_for('student.view_classes') %}btn-side-bar-expanded-active{% endif %}"><span class="material-symbols-outlined">book</span><span class="ml-4">Subjects</span></a>
         {% endif %}
       </div>
 

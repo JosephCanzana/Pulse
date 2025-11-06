@@ -94,14 +94,8 @@
         <a href="{{ url_for('student.dashboard') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">home</span> Dashboard
         </a>
-        <a href="#" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+        <a href="{{ url_for('student.view_classes') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">book</span> Subjects
-        </a>
-        <a href="#" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">format_list_bulleted</span> Submissions
-        </a>
-        <a href="#" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">workspace_premium</span> Grades
         </a>
       {% endif %}
 

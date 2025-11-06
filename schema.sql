@@ -188,3 +188,6 @@ CREATE TABLE IF NOT EXISTS StudentLessonProgress (
         ON UPDATE CASCADE ON DELETE CASCADE,
     UNIQUE KEY unique_progress(class_id, lesson_id, student_id)
 );
+
+INSERT INTO Users (first_name, middle_name, last_name, email, school_id, gender, password, role, is_verified, status) VALUES
+('Admin', 'A', 'User', 'administrator@holycross.edu.ph', 'LMS001', 'Other', 'adminpassword', 'admin', 1, 1);
