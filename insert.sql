@@ -157,13 +157,19 @@ INSERT INTO LessonFile (lesson_id, file_name, file_path, file_type) VALUES
 (5, 'networks.pdf', '/uploads/lessons/networks.pdf', 'application/pdf'),
 (6, 'html_basics.zip', '/uploads/lessons/html_basics.zip', 'application/zip');
 
--- ==========================================================
--- STUDENT LESSON PROGRESS
--- (Simulate progress for Joseph and Anthony)
--- ==========================================================
-INSERT INTO StudentLessonProgress (class_id, lesson_id, student_id, status, completed_at) VALUES
-(1, 1, 1, 'completed', NOW()),
-(1, 2, 1, 'in_progress', NULL),
-(1, 1, 2, 'completed', NOW()),
-(2, 1, 1, 'not_started', NULL),
-(3, 1, 1, 'not_started', NULL);
+
+INSERT INTO StudentLessonProgress (class_id, lesson_id, student_id, status, started_at, completed_at)
+SELECT 
+    cs.class_id,
+    l.id AS lesson_id,
+    cs.student_id,
+    'not_started' AS status,
+    NULL AS started_at,
+    NULL AS completed_at
+FROM ClassStudent cs
+JOIN Lesson l ON l.class_id = cs.class_id
+LEFT JOIN StudentLessonProgress slp 
+       ON slp.class_id = cs.class_id 
+      AND slp.lesson_id = l.id 
+      AND slp.student_id = cs.student_id
+WHERE slp.id IS NULL;  -- only insert if no progress exists

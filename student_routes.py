@@ -3,8 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import text
 from helpers import *
 from database import db
-import os
-from werkzeug.utils import secure_filename
+from datetime import datetime
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
 
@@ -53,8 +52,6 @@ def dashboard():
         daily=daily
     )
 
-
-
 # ==============================
 # View Enrolled Classes
 # ==============================
@@ -78,22 +75,24 @@ def view_classes():
 
     return render_template("student/classes.html", classes=classes)
 
-
 # ==============================
-# View Lessons in a Class
+# View Lessons in a Class (with files)
 # ==============================
 @student_bp.route("/classes/<int:class_id>/lessons")
 @login_required
 def view_lessons(class_id):
     query = text("""
         SELECT l.id, l.lesson_number, l.title, l.description,
-               slp.status, slp.completed_at
+               slp.status, slp.completed_at,
+               lf.id AS file_id, lf.file_name, lf.file_path, lf.file_type
         FROM Lesson l
         LEFT JOIN StudentLessonProgress slp 
             ON l.id = slp.lesson_id 
             AND slp.student_id = (
                 SELECT sp.id FROM StudentProfile sp WHERE sp.user_id = :user_id
             )
+        LEFT JOIN LessonFile lf
+            ON l.id = lf.lesson_id
         WHERE l.class_id = :class_id
         ORDER BY l.lesson_number ASC
     """)
@@ -104,13 +103,12 @@ def view_lessons(class_id):
 
     return render_template("student/lessons.html", lessons=lessons, class_id=class_id)
 
-
 # ==============================
-# Mark Lesson as Completed
+# Update Lesson Progress (Incremental)
 # ==============================
-@student_bp.route("/lessons/<int:lesson_id>/complete", methods=["POST"])
+@student_bp.route("/lessons/<int:lesson_id>/progress", methods=["POST"])
 @login_required
-def complete_lesson(lesson_id):
+def update_lesson_progress(lesson_id):
     student_query = text("SELECT id FROM StudentProfile WHERE user_id = :user_id")
     student = db.session.execute(student_query, {'user_id': current_user.id}).fetchone()
 
@@ -118,26 +116,45 @@ def complete_lesson(lesson_id):
         flash("Student profile not found.", "error")
         return redirect(url_for("student.dashboard"))
 
-    check_query = text("""
-        SELECT id FROM StudentLessonProgress
+    progress_query = text("""
+        SELECT id, status, started_at, completed_at 
+        FROM StudentLessonProgress
         WHERE lesson_id = :lesson_id AND student_id = :student_id
     """)
-    existing = db.session.execute(check_query, {
+    progress = db.session.execute(progress_query, {
         'lesson_id': lesson_id,
         'student_id': student.id
     }).fetchone()
 
-    if existing:
-        update = text("""
-            UPDATE StudentLessonProgress
-            SET status = 'completed', completed_at = NOW()
-            WHERE id = :id
-        """)
-        db.session.execute(update, {'id': existing.id})
+    next_status = 'not_started'
+    now = datetime.now()
+
+    if progress:
+        if progress.status == 'not_started':
+            next_status = 'in_progress'
+            update = text("""
+                UPDATE StudentLessonProgress
+                SET status = :status,
+                    started_at = NOW()
+                WHERE id = :id
+            """)
+            db.session.execute(update, {'id': progress.id, 'status': next_status})
+
+        elif progress.status == 'in_progress':
+            next_status = 'completed'
+            update = text("""
+                UPDATE StudentLessonProgress
+                SET status = :status,
+                    completed_at = NOW()
+                WHERE id = :id
+            """)
+            db.session.execute(update, {'id': progress.id, 'status': next_status})
+
     else:
+        # First time clicking → move from not_started → in_progress
         insert = text("""
-            INSERT INTO StudentLessonProgress (class_id, lesson_id, student_id, status, completed_at)
-            SELECT l.class_id, :lesson_id, :student_id, 'completed', NOW()
+            INSERT INTO StudentLessonProgress (class_id, lesson_id, student_id, status, started_at)
+            SELECT l.class_id, :lesson_id, :student_id, 'in_progress', NOW()
             FROM Lesson l WHERE l.id = :lesson_id
         """)
         db.session.execute(insert, {
@@ -146,5 +163,5 @@ def complete_lesson(lesson_id):
         })
 
     db.session.commit()
-    flash("Lesson marked as completed!", "success")
+    flash(f"Lesson progress updated to '{next_status}'!", "success")
     return redirect(request.referrer or url_for("student.dashboard"))

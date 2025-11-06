@@ -105,15 +105,16 @@ def classes():
 @teacher_bp.route("/classes/view/<int:class_id>", methods=["GET", "POST"])
 @login_required
 def view_class(class_id):
-    """Display class details and allow inline editing of class info."""
+    """Display class details and allow inline editing of class info, including class color."""
 
-    # Fetch class info with joined names
+    # Fetch class info with joined names (now includes color)
     class_query = text("""
         SELECT 
             c.id AS class_id,
             c.subject_id,
             c.section_id,
             c.status AS class_status,
+            c.color AS class_color,
             s.name AS subject_name,
             sec.name AS section_name,
             co.name AS course_name,
@@ -163,6 +164,7 @@ def view_class(class_id):
         subject_name = request.form.get("subject_id")
         section_name = request.form.get("section_id")
         class_status = request.form.get("class_status")
+        class_color = request.form.get("class_color") 
 
         # Look up IDs from the names
         subject_row = db.session.execute(
@@ -179,18 +181,20 @@ def view_class(class_id):
         subject_id = subject_row.id
         section_id = section_row.id
 
-        # Proceed with updating using IDs
+        # Proceed with updating using IDs (and color)
         update_query = text("""
             UPDATE Class
             SET subject_id = :subject_id,
                 section_id = :section_id,
-                status = :status
+                status = :status,
+                color = :color
             WHERE id = :class_id
         """)
         db.session.execute(update_query, {
             "subject_id": subject_id,
             "section_id": section_id,
             "status": class_status,
+            "color": class_color,
             "class_id": class_id
         })
         db.session.commit()
@@ -198,7 +202,7 @@ def view_class(class_id):
         return redirect(url_for("teacher.view_class", class_id=class_id))
 
     return render_template(
-        "teacher/classes/view.html",  # updated template
+        "teacher/classes/view.html",
         class_info=class_info,
         lessons=lessons,
         students=students,
@@ -247,6 +251,17 @@ def manage_lesson(class_id):
         # Get inserted lesson ID
         lesson_id = db.session.execute(text("SELECT LAST_INSERT_ID()")).scalar()
 
+        # NEW: create StudentLessonProgress for all enrolled students 
+        create_progress = text("""
+            INSERT IGNORE INTO StudentLessonProgress (class_id, lesson_id, student_id, status, started_at, completed_at)
+            SELECT cs.class_id, :lesson_id, cs.student_id, 'not_started', NULL, NULL
+            FROM ClassStudent cs
+            WHERE cs.class_id = :class_id
+        """)
+        db.session.execute(create_progress, {"lesson_id": lesson_id, "class_id": class_id})
+        db.session.commit()
+
+
         # Handle file upload
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
@@ -267,6 +282,7 @@ def manage_lesson(class_id):
 
         flash("Lesson added successfully!", "success")
         return redirect(url_for("teacher.manage_lesson", class_id=class_id))
+
 
     # Fetch lessons
     lessons = db.session.execute(text("""
@@ -386,15 +402,27 @@ def manage_student(class_id):
 
     if request.method == "POST" and selected_students:
         for student_id in selected_students:
+            # Add student to class
             db.session.execute(
                 text(
                     "INSERT IGNORE INTO ClassStudent (class_id, student_id) VALUES (:class_id, :student_id)"
                 ),
                 {"class_id": class_id, "student_id": student_id}
             )
+
+            # create StudentLessonProgress for all existing lessons in this class 
+            create_progress = text("""
+                INSERT IGNORE INTO StudentLessonProgress (class_id, lesson_id, student_id, status, started_at, completed_at)
+                SELECT id AS class_id, l.id AS lesson_id, :student_id, 'not_started', NULL, NULL
+                FROM Lesson l
+                WHERE l.class_id = :class_id
+            """)
+            db.session.execute(create_progress, {"student_id": student_id, "class_id": class_id})
+        
         db.session.commit()
         flash("Student(s) added successfully.", "success")
         return redirect(url_for("teacher.manage_student", class_id=class_id))
+
 
     search_pattern = f"%{search_query}%"
 

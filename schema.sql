@@ -122,6 +122,7 @@ CREATE TABLE IF NOT EXISTS Class (
     subject_id INT NOT NULL COMMENT 'Subject being taught',
     section_id INT NOT NULL COMMENT 'Section of students',
     status ENUM('active','cancelled','completed') DEFAULT 'active',
+    color VARCHAR(20) DEFAULT NULL COMMENT 'Theme color for the class',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (teacher_id) REFERENCES TeacherProfile(id)
@@ -132,6 +133,7 @@ CREATE TABLE IF NOT EXISTS Class (
         ON DELETE RESTRICT ON UPDATE CASCADE,
     UNIQUE KEY unique_class(subject_id, teacher_id, section_id)
 );
+
 
 -- ClassStudent table
 CREATE TABLE IF NOT EXISTS ClassStudent (
@@ -179,6 +181,7 @@ CREATE TABLE IF NOT EXISTS StudentLessonProgress (
     lesson_id INT NOT NULL,
     student_id INT NOT NULL,
     status ENUM('not_started', 'in_progress', 'completed') DEFAULT 'not_started',
+    started_at DATETIME NULL,
     completed_at DATETIME NULL,
     FOREIGN KEY (class_id) REFERENCES Class(id)
         ON UPDATE CASCADE ON DELETE CASCADE,
