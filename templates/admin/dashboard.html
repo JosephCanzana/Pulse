@@ -37,33 +37,62 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     
     <!-- Quick Insights -->
-    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6">
-      <h3 class="font-bold mb-4 text-[var(--clr-txt-primary)] flex items-center gap-2">
-        <i class="fa fa-lightbulb text-[var(--clr-info)]"></i> Quick Insights
-      </h3>
-      <ul class="space-y-3 text-[var(--clr-txt-secondary)]">
-        <li class="flex justify-between items-center border-b border-[var(--clr-border)] pb-2">
-          <span><i class="fa fa-user-plus text-[var(--clr-success)] mr-2"></i> Active vs Archived Students</span>
-          <span class="font-semibold">{{ total_students }} / {{ archived_students }}</span>
-        </li>
-        <li class="flex justify-between items-center border-b border-[var(--clr-border)] pb-2">
-          <span><i class="fa fa-users text-[var(--clr-primary)] mr-2"></i> Active vs Archived Teachers</span>
-          <span class="font-semibold">{{ total_teachers }} / {{ archived_teachers }}</span>
-        </li>
-        <li class="flex justify-between items-center border-b border-[var(--clr-border)] pb-2">
-          <span><i class="fa fa-layer-group text-[var(--clr-warning)] mr-2"></i> Total Courses</span>
-          <span class="font-semibold">{{ total_courses }}</span>
-        </li>
-        <li class="flex justify-between items-center border-b border-[var(--clr-border)] pb-2">
-          <span><i class="fa fa-building-columns text-[var(--clr-tertiary)] mr-2"></i> Departments</span>
-          <span class="font-semibold">{{ total_departments }}</span>
-        </li>
-        <li class="flex justify-between items-center">
-          <span><i class="fa fa-book text-[var(--clr-info)] mr-2"></i> Subjects</span>
-          <span class="font-semibold">{{ total_subjects }}</span>
-        </li>
-      </ul>
-    </div>
+<div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6">
+  <h3 class="font-bold mb-4 text-[var(--clr-txt-primary)] flex items-center gap-2">
+    <i class="fa fa-lightbulb text-[var(--clr-info)]"></i> Quick Insights
+  </h3>
+
+  <ul class="space-y-3 text-[var(--clr-txt-secondary)]">
+    
+    <!-- Students -->
+    <li class="border-b border-[var(--clr-border)] pb-3">
+      <div class="flex justify-between items-center mb-1">
+        <span class="flex items-center">
+          <i class="fa fa-user-graduate text-[var(--clr-success)] mr-2"></i> Students
+        </span>
+        <span class="font-semibold text-[var(--clr-txt-primary)]">{{ total_students + archived_students }}</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-[var(--clr-success)]">Active: {{ total_students }}</span>
+        <span class="text-[var(--clr-danger)]">Archived: {{ archived_students }}</span>
+      </div>
+    </li>
+
+    <!-- Teachers -->
+    <li class="border-b border-[var(--clr-border)] pb-3">
+      <div class="flex justify-between items-center mb-1">
+        <span class="flex items-center">
+          <i class="fa fa-chalkboard-teacher text-[var(--clr-primary)] mr-2"></i> Teachers
+        </span>
+        <span class="font-semibold text-[var(--clr-txt-primary)]">{{ total_teachers + archived_teachers }}</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-[var(--clr-success)]">Active: {{ total_teachers }}</span>
+        <span class="text-[var(--clr-danger)]">Archived: {{ archived_teachers }}</span>
+      </div>
+    </li>
+
+    <!-- Courses -->
+    <li class="flex justify-between items-center border-b border-[var(--clr-border)] pb-2">
+      <span><i class="fa fa-layer-group text-[var(--clr-warning)] mr-2"></i> Total Courses</span>
+      <span class="font-semibold text-[var(--clr-txt-primary)]">{{ total_courses }}</span>
+    </li>
+
+    <!-- Departments -->
+    <li class="flex justify-between items-center border-b border-[var(--clr-border)] pb-2">
+      <span><i class="fa fa-building-columns text-[var(--clr-tertiary)] mr-2"></i> Departments</span>
+      <span class="font-semibold text-[var(--clr-txt-primary)]">{{ total_departments }}</span>
+    </li>
+
+    <!-- Subjects -->
+    <li class="flex justify-between items-center">
+      <span><i class="fa fa-book text-[var(--clr-info)] mr-2"></i> Subjects</span>
+      <span class="font-semibold text-[var(--clr-txt-primary)]">{{ total_subjects }}</span>
+    </li>
+
+  </ul>
+</div>
+
 
     <!-- Top Active Courses -->
     <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6">
