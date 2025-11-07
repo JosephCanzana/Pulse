@@ -1,8 +1,9 @@
 # utilities
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import text
 from datetime import date, datetime
+import re
 
 # Own created helpers/mini-framework
 from helpers import *
@@ -37,6 +38,9 @@ login_manager.user_loader(load_user)
 
 # GLOBAL VARIABLES
 DEFAULT_PASSWORD = "mcmY_1946"
+# Password regex
+HARD_PASS_RE = "^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$"
+MID_PASS_RE = "/^(?=.*[A-Z])(?=.*\d).{8,}$/"
 
 # TEST
 @app.route("/testdb")
@@ -99,6 +103,107 @@ app.register_blueprint(student_bp)
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    user_id = current_user.id
+    role = session.get("role")
+
+    # Fetch current user info
+    user_query = text("SELECT * FROM Users WHERE id = :id")
+    user = db.session.execute(user_query, {"id": user_id}).mappings().first()
+
+    # Fetch extra profile info based on role
+    extra_profile = None
+    if role == "student":
+        extra_query = text("""
+            SELECT sp.*, c.name AS course_name, s.name AS section_name, el.name AS education_level_name
+            FROM StudentProfile sp
+            LEFT JOIN Course c ON sp.course_id = c.id
+            LEFT JOIN Section s ON sp.section_id = s.id
+            LEFT JOIN EducationLevel el ON sp.education_level_id = el.id
+            WHERE sp.user_id = :id
+        """)
+        extra_profile = db.session.execute(extra_query, {"id": user_id}).mappings().first()
+    elif role == "teacher":
+        extra_query = text("""
+            SELECT tp.*, d.name AS department_name, el.name AS education_level_name
+            FROM TeacherProfile tp
+            LEFT JOIN Department d ON tp.department_id = d.id
+            LEFT JOIN EducationLevel el ON tp.education_level_id = el.id
+            WHERE tp.user_id = :id
+        """)
+        extra_profile = db.session.execute(extra_query, {"id": user_id}).mappings().first()
+
+    # Handle admin updating their own profile
+    if request.method == "POST" and role == "admin":
+        first_name = request.form.get("first_name")
+        middle_name = request.form.get("middle_name")
+        last_name = request.form.get("last_name")
+        email = request.form.get("email")
+        
+        # Password change fields
+        current_password = request.form.get("current_password")
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+
+        if not re.match(HARD_PASS_RE, new_password):
+            flash("Password must be at least 8 characters long and include an uppercase letter, number, and special character.", "error")
+            return redirect("/profile")
+        elif not re.match(MID_PASS_RE, new_password):
+            flash("Add atleast one character", "error")
+            return redirect("/profile")
+        
+        # Verify current password before updating
+        if current_password or new_password or confirm_password:
+            if not current_password or not new_password or not confirm_password:
+                flash("All password fields are required to change password.", "error")
+                return redirect(url_for("profile"))
+
+            # Check current password
+            if not check_password(current_password, user["password"]):
+                flash("Current password is incorrect.", "error")
+                return redirect(url_for("profile"))
+            
+            # Check new password confirmation
+            if new_password != confirm_password:
+                flash("New passwords do not match.", "error")
+                return redirect(url_for("profile"))
+
+            # Hash new password
+            password = encrypt_password(new_password)
+        else:
+            password = None  # no change
+
+        # Update user info
+        update_query = text("""
+            UPDATE Users SET
+                first_name = :first_name,
+                middle_name = :middle_name,
+                last_name = :last_name,
+                email = :email
+                {password_clause}
+            WHERE id = :id
+        """.format(password_clause=", password = :password" if password else ""))
+
+        params = {
+            "first_name": first_name,
+            "middle_name": middle_name,
+            "last_name": last_name,
+            "email": email,
+            "id": user_id
+        }
+        if password:
+            params["password"] = password
+
+        db.session.execute(update_query, params)
+        db.session.commit()
+        flash("Profile updated successfully!", "success")
+        return redirect(url_for("profile"))
+
+    return render_template("profile.html", user=user, extra_profile=extra_profile, role=role)
+
 
 # LOGIN
 @app.route("/login", methods=["GET", "POST"])
@@ -194,6 +299,14 @@ def account_activation(school_id):
             flash("Your password don't match", "error")
             return redirect(url_for("account_activation",  school_id=school_id))
         
+        if not re.match(HARD_PASS_RE, new_pwd):
+            flash("Password must be at least 8 characters long and include an uppercase letter, number, and special character.", "error")
+            return redirect("/profile")
+        elif not re.match(MID_PASS_RE, new_pwd):
+            flash("Add atleast one character", "error")
+            return redirect("/profile")
+        
+
         hashed_pwd = encrypt_password(new_pwd)
 
         # Update password and set account as verified

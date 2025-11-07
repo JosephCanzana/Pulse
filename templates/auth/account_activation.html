@@ -67,6 +67,37 @@
     </div>
   </div>
 </div>
+<script>
+  const passwordInput = document.querySelector('input[name="new_password"]');
+  const passwordHelp = document.getElementById('passwordHelp');
+
+  passwordInput.addEventListener('input', () => {
+    const value = passwordInput.value;
+    let strength = 'Weak';
+    let color = 'text-red-500';
+
+    // Check for medium strength (letters + numbers)
+    const hasLetters = /[a-zA-Z]/.test(value);
+    const hasNumbers = /\d/.test(value);
+    const hasSpecials = /[!@#$%^&*(),.?":{}|<>_]/.test(value);
+
+    if (value.length >= 8) {
+      if (hasLetters && hasNumbers && hasSpecials) {
+        strength = 'Strong';
+        color = 'text-green-500';
+      } else if ((hasLetters && hasNumbers) || (hasLetters && hasSpecials)) {
+        strength = 'Medium';
+        color = 'text-yellow-500';
+      } 
+    } else {
+      strength = 'Weak';
+      color = 'text-red-500';
+    }
+
+    passwordHelp.textContent = `Password Strength: ${strength}`;
+    passwordHelp.className = `text-sm text-center mt-1 ${color}`;
+  });
+</script>
 {% endblock %}
 
 {% block footer %}
