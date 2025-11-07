@@ -441,7 +441,9 @@ def student_archive_switch():
 @login_required
 def teacher():
     show_archive = session.get("show_archive_teacher", False)
-    query = text(f"""
+    search = request.args.get("search", "").strip()
+
+    base_query = """
         SELECT 
             Users.id AS user_id,
             Users.first_name,
@@ -458,14 +460,36 @@ def teacher():
         JOIN TeacherProfile ON Users.id = TeacherProfile.user_id
         LEFT JOIN EducationLevel ON TeacherProfile.education_level_id = EducationLevel.id
         LEFT JOIN Department ON TeacherProfile.department_id = Department.id
-        WHERE Users.role = 'teacher' 
-        AND Users.status = {0 if show_archive else 1}
-        ORDER BY Users.last_name, Users.first_name
-    """)
+        WHERE Users.role = 'teacher'
+        AND Users.status = :status
+    """
 
-    teachers = db.session.execute(query).mappings().all()
+    params = {"status": 0 if show_archive else 1}
 
-    return render_template("admin/teacher/list.html", teachers=teachers, show_archive=show_archive)
+    # search filter
+    if search:
+        base_query += """
+            AND (
+                Users.first_name LIKE :search OR
+                Users.middle_name LIKE :search OR
+                Users.last_name LIKE :search OR
+                Users.email LIKE :search OR
+                Users.school_id LIKE :search
+            )
+        """
+        params["search"] = f"%{search}%"
+
+    base_query += " ORDER BY Users.last_name, Users.first_name"
+
+    teachers = db.session.execute(text(base_query), params).mappings().all()
+
+    return render_template(
+        "admin/teacher/list.html",
+        teachers=teachers,
+        show_archive=show_archive,
+        search=search
+    )
+
 
 # Teacher add
 @admin_bp.route("/teacher/add", methods=["POST", "GET"])
