@@ -1,5 +1,6 @@
 import re
 from flask import render_template, request, redirect, url_for, session, flash, Blueprint, jsonify
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from flask_login import login_required
 from sqlalchemy import text
 from helpers import *
@@ -295,7 +296,7 @@ def student_add():
 @admin_bp.route("/student/edit/<string:school_id>", methods=["POST", "GET"])
 @login_required
 def student_edit(school_id):
-    # GET the school id user
+    # --- Fetch Student ---
     student = db.session.execute(text("""
         SELECT u.id AS user_id, u.first_name, u.middle_name, u.last_name, 
                u.school_id, u.gender, u.email, u.is_verified,
@@ -307,95 +308,109 @@ def student_edit(school_id):
 
     if not student:
         flash("Student not found.", "warning")
-        return redirect(url_for("admin.student"))  
+        return redirect(url_for("admin.student"))
 
     if request.method == "POST":
-        # Form data
-        first = request.form.get("first_name").capitalize()
-        second = request.form.get("second_name").capitalize()
-        last = request.form.get("last_name").capitalize()
-        gender = request.form.get("gender").capitalize()
-        school_id_new = request.form.get("school_id")
-        education_lvl = request.form.get("education_lvl")
-        course_id = request.form.get("course")
-        section_id = request.form.get("section")
-        year_id = request.form.get("year_id")
+        try:
+            # --- Form Fields ---
+            first = request.form.get("first_name", "").strip().capitalize()
+            second = request.form.get("second_name", "").strip().capitalize()
+            last = request.form.get("last_name", "").strip().capitalize()
+            gender = request.form.get("gender", "").strip().capitalize()
+            school_id_new = request.form.get("school_id", "").strip()
+            education_lvl = request.form.get("education_lvl")
+            course_id = request.form.get("course")
+            section_id = request.form.get("section")
+            year_id = request.form.get("year")
 
-        # Email auto-update
-        new_email = f"{school_id_new}@holycross.edu.ph"
-        query = text("""
-            SELECT Section.course_id, Section.year_id
-            FROM Section
-            WHERE Section.id = :section_id
-        """)
-        section_info = db.session.execute(query, {"section_id": section_id}).mappings().first()
+            # --- Validation ---
+            if not all([first, last, gender, education_lvl, school_id_new]):
+                flash("All required fields must be completed.", "warning")
+                return redirect(url_for("admin.student_edit", school_id=school_id))
 
-        course_id = section_info["course_id"] if section_info else None
-        year_id = section_info["year_id"] if section_info else None
+            if not school_id_new.isdigit() or len(school_id_new) != 8:
+                flash("School ID must be an 8-digit number.", "error")
+                return redirect(url_for("admin.student_edit", school_id=school_id))
 
-        if not all([first, last, gender, education_lvl, section_id, year_id]):
-            flash(f"{[first, last, gender, education_lvl, section_id, year_id]}Some parameters are missing.", "warning")
-            return redirect(url_for("admin.student_edit", school_id=school_id))
+            # --- Email Update ---
+            new_email = f"{school_id_new}@holycross.edu.ph"
 
-        # --- Update Users table ---
-        db.session.execute(text("""
-            UPDATE Users
-            SET first_name = :first,
-                middle_name = :second,
-                last_name = :last,
-                gender = :gender,
-                email = :email
-            WHERE school_id = :school_id
-        """), {
-            "first": first,
-            "second": second,
-            "last": last,
-            "gender": gender,
-            "email": new_email,
-            "school_id": school_id
-        })
+            # --- Update Users ---
+            db.session.execute(text("""
+                UPDATE Users
+                SET first_name = :first,
+                    middle_name = :second,
+                    last_name = :last,
+                    gender = :gender,
+                    email = :email
+                WHERE school_id = :school_id
+            """), {
+                "first": first,
+                "second": second,
+                "last": last,
+                "gender": gender,
+                "email": new_email,
+                "school_id": school_id
+            })
 
+            # --- Update School ID if changed ---
+            if school_id_new != school_id:
+                db.session.execute(text("""
+                    UPDATE Users 
+                    SET school_id = :new_id, email = :new_email
+                    WHERE school_id = :old_id
+                """), {
+                    "new_id": school_id_new,
+                    "new_email": new_email,
+                    "old_id": school_id
+                })
 
-        # --- Update StudentProfile table ---
-        db.session.execute(text("""
-            UPDATE StudentProfile
-            SET education_level_id = :education_lvl,
-                course_id = :course_id,
-                section_id = :section_id,
-                year_id = :year_id
-            WHERE user_id = :user_id
-        """), {
-            "education_lvl": education_lvl,
-            "course_id": course_id,
-            "section_id": section_id,
-            "year_id": year_id,
-            "user_id": student["user_id"]
-        })
+            # --- Update StudentProfile ---
+            db.session.execute(text("""
+                UPDATE StudentProfile
+                SET education_level_id = :education_lvl,
+                    course_id = :course_id,
+                    section_id = :section_id,
+                    year_id = :year_id
+                WHERE user_id = :user_id
+            """), {
+                "education_lvl": education_lvl,
+                "course_id": course_id,
+                "section_id": section_id,
+                "year_id": year_id,
+                "user_id": student["user_id"]
+            })
 
-        if school_id_new != school_id:
-            db.session.execute(text("UPDATE Users SET school_id = :new_id, email = :new_email WHERE school_id = :school_id"), {"new_id": school_id_new, "new_email": new_email, "school_id": school_id})
+            db.session.commit()
+            flash("Student record updated successfully.", "success")
+            return redirect(url_for("admin.student"))
 
+        except IntegrityError:
+            db.session.rollback()
+            flash("Integrity error: possible duplicate school ID or name.", "error")
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash(f"Database error: {str(e)}", "error")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Unexpected error: {str(e)}", "error")
 
-        db.session.commit()
-        flash("Student record updated successfully.", "success")
-        return redirect(url_for("admin.student", school_id=school_id))
+        return redirect(url_for("admin.student_edit", school_id=school_id))
 
-    else:
-        # GET all needed information
-        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
-        courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
-        sections = db.session.execute(text("SELECT * FROM Section")).mappings().all()
-        years = db.session.execute(text("SELECT * FROM YearLevel")).mappings().all()
+    # --- GET Request ---
+    education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+    courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
+    sections = db.session.execute(text("SELECT * FROM Section")).mappings().all()
+    years = db.session.execute(text("SELECT * FROM YearLevel")).mappings().all()
 
-        return render_template(
-            "admin/student/edit_form.html",
-            student=student,
-            education_lvls=education_lvls,
-            courses=courses,
-            sections=sections,
-            years=years
-        )
-
+    return render_template(
+        "admin/student/edit_form.html",
+        student=student,
+        education_lvls=education_lvls,
+        courses=courses,
+        sections=sections,
+        years=years
+    )
 # Student archive
 @admin_bp.route("/student/archive/<string:school_id>", methods=["POST", "GET"])
 def student_archive(school_id):

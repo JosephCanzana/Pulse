@@ -21,67 +21,70 @@
     onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this student?')"
     class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full"
   >
-    <!-- Left Column -->
+    <!-- Left Column: Personal Info -->
     <div class="flex flex-col gap-4">
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">School ID</label>
         <input type="text" name="school_id" value="{{ student.school_id }}" required class="input-field" />
       </div>
-
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">First Name</label>
         <input type="text" name="first_name" value="{{ student.first_name }}" required class="input-field" />
       </div>
-
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Middle Name</label>
         <input type="text" name="second_name" value="{{ student.middle_name or '' }}" class="input-field" />
       </div>
-
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Last Name</label>
         <input type="text" name="last_name" value="{{ student.last_name }}" required class="input-field" />
       </div>
-
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Gender</label>
         <select name="gender" required class="input-field">
           <option value="Male" {% if student.gender == 'Male' %}selected{% endif %}>Male</option>
           <option value="Female" {% if student.gender == 'Female' %}selected{% endif %}>Female</option>
+          <option value="Other" {% if student.gender == 'Other' %}selected{% endif %}>Other</option>
         </select>
       </div>
     </div>
 
-    <!-- Right Column -->
+    <!-- Right Column: Education Info -->
     <div class="flex flex-col gap-4">
-      <!-- Education Level -->
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
-        <select name="education_lvl" id="educationSelect" class="input-field" required>
+        <select id="education_lvl" name="education_lvl" required class="input-field">
           <option value="" disabled selected>Select education level</option>
           {% for lvl in education_lvls %}
             <option value="{{ lvl.id }}" {% if lvl.id == student.education_level_id %}selected{% endif %}>{{ lvl.name }}</option>
           {% endfor %}
         </select>
       </div>
-
-      <!-- Section -->
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Course</label>
+        <select id="course" name="course" class="input-field" disabled>
+          <option value="" disabled selected>Select course</option>
+        </select>
+      </div>
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Year Level</label>
+        <select id="year" name="year" class="input-field" disabled>
+          <option value="" disabled selected>Select year level</option>
+        </select>
+      </div>
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section</label>
-          <select name="section" id="sectionSelect" class="input-field" required data-selected="{{ student.section_id }}">
-            <option value="" disabled selected>Search and select a section</option>
-          </select>
-          <p class="mt-1 text-xs text-[var(--clr-txt-muted)]">Type the year, course, or section name to find the section.</p>
+        <select id="section" name="section" class="input-field" disabled>
+          <option value="" disabled selected>Select section</option>
+        </select>
       </div>
     </div>
-
 
     <!-- Hidden Field -->
     <input type="hidden" id="reset_account_input" name="reset_account" value="0">
 
     <!-- Buttons -->
     <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
-      <!-- Go Back -->
       <a href="{{ url_for('admin.student') }}"
          class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
                 hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
@@ -89,7 +92,6 @@
         ← Go Back
       </a>
 
-      <!-- Save Changes -->
       <button type="submit"
               class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
                      bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
@@ -100,35 +102,89 @@
     </div>
   </form>
 </section>
-<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet"/>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const educationSelect = document.getElementById("educationSelect");
+  const eduSelect = document.getElementById("education_lvl");
+  const courseSelect = document.getElementById("course");
+  const yearSelect = document.getElementById("year");
+  const sectionSelect = document.getElementById("section");
 
-  const sectionSelect = new TomSelect("#sectionSelect", {
-    valueField: "id",
-    labelField: "text",
-    searchField: ["text"],
-    create: false,
-    placeholder: "Search and select a section...",
-    load: function(query, callback) {
-      const education_level_id = educationSelect.value;
-      if (!education_level_id) return callback();
+  function resetSelect(select, placeholder, disable = true) {
+    select.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
+    select.disabled = disable;
+  }
 
-      fetch(`/admin/api/sections/search?education_level_id=${education_level_id}&q=${encodeURIComponent(query)}`)
-        .then(res => res.json())
-        .then(data => callback(data))
-        .catch(() => callback());
+  // Populate Course, Year, Section with existing student values
+  const currentCourse = "{{ student.course_id or '' }}";
+  const currentYear = "{{ student.year_id or '' }}";
+  const currentSection = "{{ student.section_id or '' }}";
+
+  async function loadCoursesAndYears(levelId) {
+    resetSelect(courseSelect, "Select course");
+    resetSelect(yearSelect, "Select year level");
+    resetSelect(sectionSelect, "Select section");
+
+    if (!levelId) return;
+
+    try {
+      const [courses, years] = await Promise.all([
+        fetch(`/api/student-hierarchy?type=courses&education_level_id=${levelId}`).then(r => r.json()),
+        fetch(`/api/student-hierarchy?type=year_levels&education_level_id=${levelId}`).then(r => r.json())
+      ]);
+
+      if (courses?.length) {
+        courseSelect.disabled = false;
+        courses.forEach(c => {
+          const selected = c.id == currentCourse ? 'selected' : '';
+          courseSelect.innerHTML += `<option value="${c.id}" ${selected}>${c.name}</option>`;
+        });
+      }
+
+      if (years?.length) {
+        yearSelect.disabled = false;
+        years.forEach(y => {
+          const selected = y.id == currentYear ? 'selected' : '';
+          yearSelect.innerHTML += `<option value="${y.id}" ${selected}>${y.name}</option>`;
+        });
+      }
+
+      // Load sections after courses and years
+      loadSections();
+    } catch (err) {
+      console.error("Error loading data:", err);
     }
-  });
+  }
 
-  // Refresh sections when education level changes
-  educationSelect.addEventListener("change", () => {
-    sectionSelect.clearOptions();
-    sectionSelect.clear(true);
-  });
+  async function loadSections() {
+    const courseId = courseSelect.value;
+    const yearId = yearSelect.value;
+    resetSelect(sectionSelect, "Select section");
+
+    if (!courseId || !yearId) return;
+
+    try {
+      const sections = await fetch(`/api/student-hierarchy?type=sections&course_id=${courseId}&year_id=${yearId}`).then(r => r.json());
+      if (sections?.length) {
+        sectionSelect.disabled = false;
+        sections.forEach(s => {
+          const label = s.academic_year ? `${s.name} (${s.academic_year})` : s.name;
+          const selected = s.id == currentSection ? 'selected' : '';
+          sectionSelect.innerHTML += `<option value="${s.id}" ${selected}>${label}</option>`;
+        });
+      }
+    } catch (err) {
+      console.error("Error loading sections:", err);
+    }
+  }
+
+  // Initial load with existing student data
+  if (eduSelect.value) loadCoursesAndYears(eduSelect.value);
+
+  // Event listeners
+  eduSelect.addEventListener("change", () => loadCoursesAndYears(eduSelect.value));
+  courseSelect.addEventListener("change", loadSections);
+  yearSelect.addEventListener("change", loadSections);
 });
 </script>
 {% endblock %}
