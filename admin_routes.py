@@ -184,41 +184,56 @@ def reset():
     flash("Successfully reset.", "success")
     return redirect(request.referrer)
 
-# =======================
-# Student (admin side)
-# =======================
 @admin_bp.route("/student")
 @login_required
 def student():
     show_archive = session.get("show_archive_student", False)
-    
-    query = text("""
-    SELECT 
-        Users.id AS user_id,
-        Users.first_name,
-        Users.middle_name,
-        Users.last_name,
-        Users.email,
-        Users.school_id,
-        Users.is_verified,
-        StudentProfile.id AS profile_id,
-        EducationLevel.name AS education_level_name,
-        Course.name AS course_name,
-        Section.name AS section_name,
-        YearLevel.name AS academic_year_name
-    FROM Users
-    JOIN StudentProfile ON Users.id = StudentProfile.user_id
-    LEFT JOIN EducationLevel ON StudentProfile.education_level_id = EducationLevel.id
-    LEFT JOIN Course ON StudentProfile.course_id = Course.id
-    LEFT JOIN Section ON StudentProfile.section_id = Section.id
-    LEFT JOIN YearLevel ON StudentProfile.year_id = YearLevel.id
-    WHERE Users.role = 'student'
-    AND Users.status = :status
-    ORDER BY Users.last_name, Users.first_name
-""")
+    search = request.args.get("search", "").strip()
 
-    students = db.session.execute(query, {"status": 0 if show_archive else 1}).mappings().all() 
-    return render_template("admin/student/list.html", students=students, show_archive=show_archive)
+    base_query = """
+        SELECT 
+            Users.id AS user_id,
+            Users.first_name,
+            Users.middle_name,
+            Users.last_name,
+            Users.email,
+            Users.school_id,
+            Users.is_verified,
+            StudentProfile.id AS profile_id,
+            EducationLevel.name AS education_level_name,
+            Course.name AS course_name,
+            Section.name AS section_name,
+            YearLevel.name AS academic_year_name
+        FROM Users
+        JOIN StudentProfile ON Users.id = StudentProfile.user_id
+        LEFT JOIN EducationLevel ON StudentProfile.education_level_id = EducationLevel.id
+        LEFT JOIN Course ON StudentProfile.course_id = Course.id
+        LEFT JOIN Section ON StudentProfile.section_id = Section.id
+        LEFT JOIN YearLevel ON StudentProfile.year_id = YearLevel.id
+        WHERE Users.role = 'student'
+        AND Users.status = :status
+    """
+
+    params = {"status": 0 if show_archive else 1}
+
+    # Add search filter if present
+    if search:
+        base_query += """
+            AND (
+                Users.first_name LIKE :search OR
+                Users.middle_name LIKE :search OR
+                Users.last_name LIKE :search OR
+                Users.email LIKE :search OR
+                Users.school_id LIKE :search
+            )
+        """
+        params["search"] = f"%{search}%"
+
+    base_query += " ORDER BY Users.last_name, Users.first_name"
+
+    students = db.session.execute(text(base_query), params).mappings().all()
+
+    return render_template("admin/student/list.html", students=students, show_archive=show_archive, search=search)
 
 # Student add
 @admin_bp.route("/student/add", methods=["POST", "GET"])
