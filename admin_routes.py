@@ -56,6 +56,7 @@ def search_sections():
         for r in results
     ])
 
+
 # =======================
 # HOME
 # =======================
@@ -240,68 +241,55 @@ def student():
 @login_required
 def student_add():
     if request.method == "POST":
-        first = request.form.get("first_name").capitalize()
-        second = request.form.get("second_name").capitalize()
-        last = request.form.get("last_name").capitalize()
-        school_id = request.form.get("school_id")
-        gender = request.form.get("gender").capitalize()
+        first = request.form.get("first_name", "").strip().capitalize()
+        second = request.form.get("second_name", "").strip().capitalize()
+        last = request.form.get("last_name", "").strip().capitalize()
+        school_id = request.form.get("school_id", "").strip()
+        gender = request.form.get("gender", "").capitalize()
         email = f"{school_id}@holycross.edu.ph"
 
+        # Basic validation
         if not all([first, last, school_id, gender]):
-            flash("Please fill up the form.", "info")
+            flash("Please fill up the form.", "error")
             return redirect(url_for("admin.student_add"))
-
-        if len(school_id) != 8:
-            flash("The school ID must be 8 digits.", "info")
-            return redirect(url_for("admin.student_add"))
-
-        try:
-            school_id = int(school_id)
-        except (TypeError, ValueError):
-            flash("School ID must be an integer.", "warning")
+        
+        if len(school_id) != 8 or not school_id.isdigit():
+            flash("School ID must be 8 digits integer", "error")
             return redirect(url_for("admin.student_add"))
 
         if is_exist(db, school_id, "school_id", "Users"):
-            flash("The school ID already exists.", "info")
+            flash("School ID already exist", "error")
             return redirect(url_for("admin.student_add"))
 
-        if is_exist(db, (first,second,last), "(first_name, middle_name, last_name)", "Users"):
-            flash("The name already exists.", "info")
+
+        if is_exist(db, (first, second, last), "(first_name, middle_name, last_name)", "Users"):
+            flash("The name alread exists.", "error")
             return redirect(url_for("admin.student_add"))
-        
-        user = add_user(db, first, second, last, email, school_id, gender, "student")
+
+        # Add user
+        user = add_user(db, first, second, last, email, int(school_id), gender, "student")
         user_id = user["id"]
 
+        # Education level and optional section
         education_lvl = request.form.get("education_lvl")
-        section_id = request.form.get("section")
-
-        if not (education_lvl and section_id):
-            flash("Some fields are missing!", "warning")
-            return redirect(url_for("admin.student_add"))
-
-        # Auto-detect year and course from section
-        query = text("""
-            SELECT Section.course_id, Section.year_id
-            FROM Section
-            WHERE Section.id = :section_id
-        """)
-        section_info = db.session.execute(query, {"section_id": section_id}).mappings().first()
-
-        course_id = section_info["course_id"] if section_info else None
-        year_id = section_info["year_id"] if section_info else None
+        section_id = request.form.get("section") 
+        year_id = request.form.get("year")
+        course_id = request.form.get("course")
 
         assign_student_profile(db, user_id, education_lvl, course_id, section_id, year_id)
 
-        flash("Student added successfully!", "success")
-        return redirect(url_for("admin.student_add"))
+        flash("Succesfully added", "succes")
+        return redirect(url_for("admin.student"))
 
-    else:
-        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
-        sections = db.session.execute(text("SELECT * FROM Section")).mappings().all()
+    # GET request
+    education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+    sections = db.session.execute(text("SELECT * FROM Section")).mappings().all()
 
-        return render_template("admin/student/add_form.html",
-                               education_lvls=education_lvls,
-                               sections=sections)
+    return render_template(
+        "admin/student/add_form.html",
+        education_lvls=education_lvls,
+        sections=sections
+    )
 
 # Student edit
 @admin_bp.route("/student/edit/<string:school_id>", methods=["POST", "GET"])
@@ -719,105 +707,119 @@ def section():
 @login_required
 def section_add():
     if request.method == "POST":
+        # --- Get form inputs ---
         name = request.form.get("name", "").strip().capitalize()
         academic_year = request.form.get("academic_year", "").strip()
         ed_lvl_id = request.form.get("education_lvl_id")
         course_id = request.form.get("course_id")
         year_id = request.form.get("year_id")
-        teacher_name = request.form.get("teacher_name", "").strip()
-        teacher_id = request.form.get("teacher.id")
+        teacher_id = request.form.get("teacher_id")
 
-        # Convert ed_lvl_id and course_id to int if possible
+        # --- Convert IDs to int ---
         try:
             ed_lvl_id = int(ed_lvl_id)
         except (TypeError, ValueError):
-            ed_lvl_id = None
+            flash("Invalid education level selected.", "warning")
+            return redirect(url_for("admin.section_add"))
 
         try:
             course_id = int(course_id) if course_id else None
         except (TypeError, ValueError):
             course_id = None
 
+        try:
+            year_id = int(year_id)
+        except (TypeError, ValueError):
+            flash("Invalid year selected.", "warning")
+            return redirect(url_for("admin.section_add"))
+
+        try:
+            teacher_id = int(teacher_id) if teacher_id else None
+        except (TypeError, ValueError):
+            teacher_id = None
+
+        # --- Required fields ---
         if not (name and academic_year and year_id and ed_lvl_id):
             flash("All fields are required!", "warning")
             return redirect(url_for("admin.section_add"))
 
-        # For SHS and College, course is required
+        # --- Course logic ---
         if ed_lvl_id in [3, 4] and not course_id:
             flash("Course is required for Senior High and College.", "warning")
             return redirect(url_for("admin.section_add"))
-
-        # For Elementary and Junior High, course should be None
         if ed_lvl_id in [1, 2]:
-            course_id = None
+            course_id = None  # Elementary/Junior High should not have a course
 
+        # --- Academic year validation ---
         if not re.match(r"^\d{4}-\d{4}$", academic_year):
             flash("Invalid academic year format. Use YYYY-YYYY (e.g., 2025-2026).")
             return redirect(url_for("admin.section_add"))
-        
+
         start, end = map(int, academic_year.split('-'))
         if end != start + 1:
             flash("Academic year must be consecutive (e.g., 2025-2026).")
             return redirect(url_for("admin.section_add"))
 
-        # Check duplicate section name in academic year
-        duplicate = db.session.execute(text("""
+        # --- Duplicate check ---
+        duplicate_query = """
             SELECT 1 FROM Section
-            WHERE name = :name AND academic_year = :academic_year AND year_id = :year_id AND course_id = :course_id
-        """), {"name": name, "academic_year": academic_year, "year_id": year_id, "course_id":course_id}).first()
-
+            WHERE name = :name 
+              AND academic_year = :academic_year 
+              AND year_id = :year_id 
+              AND (:course_id IS NULL AND course_id IS NULL OR course_id = :course_id)
+        """
+        duplicate = db.session.execute(
+            text(duplicate_query),
+            {"name": name, "academic_year": academic_year, "year_id": year_id, "course_id": course_id}
+        ).first()
         if duplicate:
-            flash("Section name already exists.", "info")
+            flash("Section name already exists for this academic year.", "info")
             return redirect(url_for("admin.section_add"))
 
-        # if teacher_name: 
-        #     teacher = db.session.execute(text("""
-        #         SELECT tp.id FROM TeacherProfile tp
-        #         JOIN Users u ON tp.user_id = u.id
-        #         WHERE CONCAT(u.first_name, ' ', u.middle_name, ' ', u.last_name) = :full_name
-        #         AND u.status = 1 AND u.role = 'teacher'
-        #     """), {"full_name": teacher_name}).first()
-        #     if teacher:
-        #         teacher_id = teacher.id
-        #     else:
-        #         flash("Teacher not found. Section will be created without a teacher.", "info")
-        #         return redirect(url_for("admin.section_add"))
-
+        # --- Teacher validation ---
         if teacher_id:
-            flash("Teacher not found. Section will be created without a teacher.", "info")
-            return redirect(url_for("admin.section_add"))
+            teacher_exists = db.session.execute(
+                text("SELECT id FROM TeacherProfile WHERE id = :id"), {"id": teacher_id}
+            ).first()
+            if not teacher_exists:
+                teacher_id = None  # Allow section creation without a teacher
+                flash("Teacher not found. Section will be created without a teacher.", "info")
 
-        # Insert into Section
-        db.session.execute(text("""
-            INSERT INTO Section (name, academic_year, course_id, year_id, teacher_id)
-            VALUES (:name, :academic_year, :course_id, :year_id, :teacher_id)
-        """), {
-            "name": name,
-            "academic_year": academic_year,
-            "course_id": course_id,
-            "year_id": year_id,
-            "teacher_id": teacher_id
-        })
-
+        # --- Insert Section ---
+        db.session.execute(
+            text("""
+                INSERT INTO Section (name, academic_year, course_id, year_id, teacher_id)
+                VALUES (:name, :academic_year, :course_id, :year_id, :teacher_id)
+            """),
+            {"name": name, "academic_year": academic_year, "course_id": course_id,
+             "year_id": year_id, "teacher_id": teacher_id}
+        )
         db.session.commit()
+
         flash("Section added successfully!", "success")
         return redirect(url_for("admin.section_add"))
 
-
-    else:
-        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
-        courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
-        years = db.session.execute(text("SELECT * FROM YearLevel")).mappings().all()
-        teachers = db.session.execute(
+    # --- GET request ---
+    education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+    courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
+    years = db.session.execute(text("SELECT * FROM YearLevel")).mappings().all()
+    teachers = db.session.execute(
         text("""
             SELECT TeacherProfile.id, Users.first_name, Users.middle_name, Users.last_name
             FROM TeacherProfile
             JOIN Users ON TeacherProfile.user_id = Users.id
             WHERE Users.status = 1 AND Users.role = 'teacher'
             ORDER BY Users.last_name, Users.first_name
-        """)).mappings().all()
-        
-        return render_template("admin/section/add_form.html", courses=courses, years=years, education_lvls=education_lvls, teachers=teachers)
+        """)
+    ).mappings().all()
+
+    return render_template(
+        "admin/section/add_form.html",
+        courses=courses,
+        years=years,
+        education_lvls=education_lvls,
+        teachers=teachers
+    )
 
 # Section Edit
 @admin_bp.route("/section/edit/<int:section_id>", methods=["POST", "GET"])
