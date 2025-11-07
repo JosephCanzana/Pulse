@@ -668,34 +668,51 @@ def teacher_archive_switch():
 @login_required
 def section():
     show_archive = session.get("show_archive_section", False)
+    search = request.args.get("search", "").strip()
 
-    query = text("""
-    SELECT 
-        Section.id AS section_id,
-        Section.name AS section_name,
-        Section.academic_year,
-        Course.name AS course_name,
-        YearLevel.name AS year_name,
-        EducationLevel.name AS education_level_name,
-        CONCAT(Users.first_name, ' ', IFNULL(Users.middle_name,''), ' ', Users.last_name) AS teacher_name
-    FROM Section
-    LEFT JOIN Course ON Section.course_id = Course.id
-    LEFT JOIN YearLevel ON Section.year_id = YearLevel.id
-    LEFT JOIN EducationLevel ON Course.education_level_id = EducationLevel.id
-    LEFT JOIN TeacherProfile ON Section.teacher_id = TeacherProfile.id
-    LEFT JOIN Users ON TeacherProfile.user_id = Users.id
-    WHERE Section.status = :status
-    ORDER BY Section.name
-""")
+    base_query = """
+        SELECT 
+            Section.id AS section_id,
+            Section.name AS section_name,
+            Section.academic_year,
+            Course.name AS course_name,
+            YearLevel.name AS year_name,
+            EducationLevel.name AS education_level_name,
+            CONCAT(Users.first_name, ' ', IFNULL(Users.middle_name,''), ' ', Users.last_name) AS teacher_name
+        FROM Section
+        LEFT JOIN Course ON Section.course_id = Course.id
+        LEFT JOIN YearLevel ON Section.year_id = YearLevel.id
+        LEFT JOIN EducationLevel ON Course.education_level_id = EducationLevel.id
+        LEFT JOIN TeacherProfile ON Section.teacher_id = TeacherProfile.id
+        LEFT JOIN Users ON TeacherProfile.user_id = Users.id
+        WHERE Section.status = :status
+    """
 
+    params = {"status": 0 if show_archive else 1}
 
-    status = 0 if show_archive else 1  # 0 = archived, 1 = active
-    sections = db.session.execute(query, {"status": status}).mappings().all()
-    
+    # Add search filter if keyword exists
+    if search:
+        base_query += """
+            AND (
+                Section.name LIKE :search
+                OR Section.academic_year LIKE :search
+                OR Course.name LIKE :search
+                OR YearLevel.name LIKE :search
+                OR EducationLevel.name LIKE :search
+                OR CONCAT(Users.first_name, ' ', IFNULL(Users.middle_name,''), ' ', Users.last_name) LIKE :search
+            )
+        """
+        params["search"] = f"%{search}%"
+
+    base_query += " ORDER BY Section.name"
+
+    sections = db.session.execute(text(base_query), params).mappings().all()
+
     return render_template(
         "admin/section/list.html",
         sections=sections,
-        show_archive=show_archive
+        show_archive=show_archive,
+        search=search
     )
 
 # Section Add
