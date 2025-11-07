@@ -490,7 +490,6 @@ def teacher():
         search=search
     )
 
-
 # Teacher add
 @admin_bp.route("/teacher/add", methods=["POST", "GET"])
 @login_required
@@ -981,18 +980,41 @@ def section_archive_switch():
 @admin_bp.route("/course")
 @login_required
 def course():
-    query = text("""
+    show_archive = session.get("show_archive_course", False)
+    search = request.args.get("search", "").strip()
+
+    base_query = """
         SELECT
             Course.id AS course_id,
             Course.name AS course_name,
             EducationLevel.name AS education_level_name
         FROM Course
         LEFT JOIN EducationLevel ON Course.education_level_id = EducationLevel.id
-        ORDER BY Course.name
-    """)
+        WHERE Course.status = :status
+    """
 
-    courses = db.session.execute(query).mappings().all()
-    return render_template("admin/course/list.html", courses=courses)
+    params = {"status": 0 if show_archive else 1}
+
+    if search:
+        base_query += """
+            AND (
+                Course.name LIKE :search
+                OR EducationLevel.name LIKE :search
+            )
+        """
+        params["search"] = f"%{search}%"
+
+    base_query += " ORDER BY Course.name"
+
+    courses = db.session.execute(text(base_query), params).mappings().all()
+
+    return render_template(
+        "admin/course/list.html",
+        courses=courses,
+        show_archive=show_archive,
+        search=search
+    )
+
 
 # Course add
 @admin_bp.route("/course/add", methods=["POST", "GET"])
@@ -1060,6 +1082,32 @@ def course_edit(id):
             valid_course.append(int(lvl["id"]))
 
     return render_template("admin/course/edit_form.html", course=course, lvls=lvls, valid_course=valid_course)
+
+# Course Archive
+@admin_bp.route("/course/archive/<int:course_id>", methods=["POST", "GET"])
+@login_required
+def course_archive(course_id):
+    db.session.execute(
+        text("""
+            UPDATE Course
+            SET status = CASE
+                WHEN status = 1 THEN 0
+                ELSE 1
+            END
+            WHERE id = :course_id
+        """),
+        {"course_id": course_id}
+    )
+    db.session.commit()
+    flash("Course archive status updated.", "success")
+    return redirect(url_for("admin.course"))
+
+# Section toggle archive
+@admin_bp.route("/course/archive")
+@login_required
+def course_archive_switch():
+    session["show_archive_course"] = not session.get("show_archive_course", False)
+    return redirect(url_for("admin.course"))
 
 
 # =======================

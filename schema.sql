@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS Course (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     education_level_id INT,
+    status BOOLEAN NOT NULL DEFAULT TRUE,
     FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
         ON UPDATE CASCADE ON DELETE SET NULL
 );
@@ -34,6 +35,7 @@ CREATE TABLE IF NOT EXISTS Department (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     education_level_id INT NULL,
+    status BOOLEAN NOT NULL DEFAULT TRUE,
     FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)
 );
 

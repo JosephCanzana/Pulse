@@ -29,6 +29,21 @@ INSERT INTO YearLevel (name, education_level_id) VALUES
 ('2nd Year', 4),
 ('3rd Year', 4),
 ('4th Year', 4);
+INSERT INTO YearLevel (name, education_level_id) VALUES
+('Grade 1', 1),
+('Grade 2', 1),
+('Grade 3', 1),
+('Grade 4', 1),
+('Grade 5', 1),
+('Grade 6', 1);
+INSERT INTO YearLevel (name, education_level_id) VALUES
+('Grade 7', 2),
+('Grade 8', 2),
+('Grade 9', 2),
+('Grade 10', 2);
+INSERT INTO YearLevel (name, education_level_id) VALUES
+('Grade 11', 3),
+('Grade 12', 3);
 
 -- ==========================================================
 -- DEPARTMENTS

@@ -26,8 +26,12 @@
   <div class="flex items-center gap-3 flex-wrap">
     <!-- Toggle Archive View -->
     <a href="{{ url_for('admin.subject_archive_switch') }}"
-      class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
-      <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">archive</span>
+        class="ml-2 mr-2 flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 font-medium shadow-md hover:shadow-lg transition-all duration-300
+         {{ 'text-yellow-600 border-yellow-500 bg-yellow-100/80 hover:bg-yellow-200/80' if show_archive else 'text-[var(--clr-txt-primary)] hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)]' }}">
+         
+         <span class="material-symbols-rounded transition-colors duration-300">
+           {{ 'unarchive' if show_archive else 'archive' }}
+         </span>  
     </a>
 
     <!-- Add New Subject -->
