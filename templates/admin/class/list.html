@@ -9,18 +9,44 @@
 <!-- Page Header -->
 <div class="flex flex-wrap items-center justify-between mb-8 gap-3">
 
-  <!-- Status Filter -->
-  <form method="get" class="flex items-center gap-3">
-    <label for="status" class="text-[var(--clr-txt-secondary)] font-medium">Filter by Status:</label>
-    <select name="status" id="status" onchange="this.form.submit()" class="input-field">
-      <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All</option>
-      <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
-      <option value="cancelled" {% if selected_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
-      <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
-    </select>
-  </form>
+  <!-- Left: Status Filter & Search -->
+  <div class="flex flex-wrap items-center gap-3">
+    <!-- Status Filter -->
+    <form method="get" class="flex items-center gap-2">
+      <label for="status" class="text-[var(--clr-txt-secondary)] font-medium">Status:</label>
+      <select name="status" id="status" onchange="this.form.submit()" 
+              class="px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] backdrop-blur-sm text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+        <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All</option>
+        <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
+        <option value="cancelled" {% if selected_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
+      </select>
 
-  <!-- Add Class -->
+      <!-- Hidden search field to persist search when changing filter -->
+      {% if search %}
+        <input type="hidden" name="search" value="{{ search }}">
+      {% endif %}
+    </form>
+
+    <!-- Search Bar -->
+    <form method="get" class="flex items-center gap-2">
+      {% if selected_status %}
+        <input type="hidden" name="status" value="{{ selected_status }}">
+      {% endif %}
+      <div class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] px-4 py-2 focus-within:ring-2 focus-within:ring-[var(--clr-primary)] transition-all">
+        <span class="material-symbols-rounded text-[var(--clr-txt-secondary)]">search</span>
+        <input type="text" name="search" value="{{ search or '' }}" 
+               placeholder="Search class, subject, or teacher..."
+               class="bg-transparent focus:outline-none text-[var(--clr-txt-primary)] w-56">
+      </div>
+      <button type="submit"
+              class="px-4 py-2 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-md hover:shadow-lg hover:bg-[var(--clr-secondary)] transition-all">
+        Search
+      </button>
+    </form>
+  </div>
+
+  <!-- Right: Add Class -->
   <a href="{{ url_for('admin.class_add') }}" 
      class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
     <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">add_circle</span>
@@ -28,10 +54,10 @@
   </a>
 </div>
 
-<h1 class="text-2xl font-semibold mb-6 text-[var(--clr-txt-primary)]">
-  Class List
-</h1>
+<!-- Title -->
+<h1 class="text-2xl font-semibold mb-6 text-[var(--clr-txt-primary)]">Class List</h1>
 
+<!-- Table -->
 <div class="overflow-x-auto rounded-3xl border border-[var(--clr-glass-border)] bg-[var(--clr-glass-light)] backdrop-blur-md shadow-xl">
   <table class="w-full border-collapse text-sm">
     <thead class="bg-[var(--clr-surface-alt)]/70 text-[var(--clr-txt-secondary)]">
@@ -51,7 +77,8 @@
         <td class="px-4 py-3 whitespace-nowrap">{{ c.section_name }} ({{ c.academic_year }})</td>
         <td class="px-4 py-3 whitespace-nowrap">
           <form method="POST" action="{{ url_for('admin.class_status_update', id=c.class_id) }}">
-            <select name="status" onchange="this.form.submit()" class="input-field">
+            <select name="status" onchange="this.form.submit()" 
+                    class="px-2 py-1 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] text-[var(--clr-txt-primary)] focus:ring-2 focus:ring-[var(--clr-primary)]">
               <option value="active" {% if c.status == 'active' %}selected{% endif %}>Active</option>
               <option value="cancelled" {% if c.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
               <option value="completed" {% if c.status == 'completed' %}selected{% endif %}>Completed</option>
@@ -69,6 +96,7 @@
             </a>
 
             <!-- Delete -->
+            {% if c.status == 'completed' or c.status == 'cancelled' %}
             <form action="{{ url_for('admin.delete') }}" 
                   method="POST" 
                   class="inline"
@@ -81,6 +109,7 @@
                 Delete
               </button>
             </form>
+            {% endif %}
           </div>
         </td>
       </tr>

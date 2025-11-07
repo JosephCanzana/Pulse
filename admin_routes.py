@@ -1264,11 +1264,13 @@ def subject_archive_switch():
 # =======================
 # Class Management (Admin)
 # =======================
-# Class list with optional status filter
 @admin_bp.route("/class", methods=["GET", "POST"])
 @login_required
 def class_list():
-    selected_status = request.args.get("status", "all")  # default to show all
+    selected_status = request.args.get("status", "active") 
+    search = request.args.get("search", "").strip()
+
+    # Base SQL
     query = """
         SELECT 
             Class.id AS class_id, 
@@ -1283,18 +1285,38 @@ def class_list():
         LEFT JOIN Users ON TeacherProfile.user_id = Users.id
         LEFT JOIN Subject ON Class.subject_id = Subject.id
         LEFT JOIN Section ON Class.section_id = Section.id
+        WHERE 1=1
     """
+
+    params = {}
+
+    # Filter by class status if not "all"
     if selected_status != "all":
-        query += " WHERE Class.status = :status"
-        classes = db.session.execute(text(query), {"status": selected_status}).mappings().all()
-    else:
-        classes = db.session.execute(text(query)).mappings().all()
+        query += " AND Class.status = :status"
+        params["status"] = selected_status
+
+    # Apply search if provided
+    if search:
+        query += """
+            AND (
+                Subject.name LIKE :search OR
+                Section.name LIKE :search OR
+                CONCAT(Users.first_name, ' ', Users.last_name) LIKE :search
+            )
+        """
+        params["search"] = f"%{search}%"
+
+    query += " ORDER BY Section.name, Subject.name"
+
+    classes = db.session.execute(text(query), params).mappings().all()
 
     return render_template(
         "admin/class/list.html",
         classes=classes,
-        selected_status=selected_status
+        selected_status=selected_status,
+        search=search
     )
+
 
 # Add Class
 @admin_bp.route("/class/add", methods=["POST", "GET"])
