@@ -10,17 +10,17 @@
 <!-- Page Header -->
 <div class="flex flex-wrap items-center justify-between mb-8 gap-3">
   <!-- Search -->
-  <form method="get" action="{{ url_for('admin.course') }}" class="relative">
+  <form method="get" action="{{ url_for('admin.course') }}" class="flex items-center flex-grow max-w-lg bg-[var(--clr-glass-light)] backdrop-blur-md border border-[var(--clr-border)] rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--clr-primary)]">
+    <span class="material-symbols-rounded text-[var(--clr-txt-secondary)] ml-2 hover:text-[var(--clr-error)] transition-colors duration-200">
+      search
+    </span>
     <input 
       type="text" 
       name="search" 
       value="{{ search or '' }}" 
-      placeholder="Search course or education level..."
-      class="pl-10 pr-4 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] placeholder-[var(--clr-txt-secondary)] backdrop-blur-md focus:ring-2 focus:ring-[var(--clr-primary)] outline-none transition-all"
+      placeholder=" Search course or education level"
+      class="bg-transparent w-full focus:outline-none text-[var(--clr-txt-primary)] placeholder-[var(--clr-txt-secondary)]"
     >
-    <span class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-[var(--clr-txt-secondary)]">
-      search
-    </span>
   </form>
 
   <div class="flex">

@@ -1116,18 +1116,51 @@ def course_archive_switch():
 @admin_bp.route("/department")
 @login_required
 def department():
-    query = text("""
+    # Retrieve archive visibility setting from session
+    show_archive = session.get("show_archive_department", False)
+
+    # Get search query from request args
+    search = request.args.get("search", "").strip()
+
+    # Base query with search and EducationLevel info
+    query = """
         SELECT
             Department.id AS department_id,
             Department.name AS department_name,
             EducationLevel.name AS education_level_name
         FROM Department
         LEFT JOIN EducationLevel ON Department.education_level_id = EducationLevel.id
-        ORDER BY Department.name
-    """)
+        WHERE Department.status = :status
+    """
 
-    departments = db.session.execute(query).mappings().all()
-    return render_template("admin/department/list.html", departments=departments)
+    params = {"status": 0 if show_archive else 1}
+
+    # Add search condition if keyword is provided
+    if search:
+        query += " AND (Department.name LIKE :search OR EducationLevel.name LIKE :search)"
+        params["search"] = f"%{search}%"
+
+    query += " ORDER BY Department.name"
+
+    # Execute query
+    departments = db.session.execute(text(query), params).mappings().all()
+
+    # Label for UI clarity
+    page_state_label = (
+        f"Search Results for '{search}'"
+        if search
+        else "Archived Departments" if show_archive
+        else "Active Departments"
+    )
+
+    return render_template(
+        "admin/department/list.html",
+        departments=departments,
+        show_archive=show_archive,
+        page_state_label=page_state_label,
+        search=search  # so we can keep the value in the input field
+    )
+
 
 # Department add
 @admin_bp.route("/department/add", methods=["POST", "GET"])
@@ -1190,6 +1223,32 @@ def department_edit(id):
     lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
 
     return render_template("admin/department/edit_form.html", department=department, lvls=lvls)
+
+# Department Archive
+@admin_bp.route("/department/archive/<int:department_id>", methods=["POST", "GET"])
+@login_required
+def department_archive(department_id):
+    db.session.execute(
+        text("""
+            UPDATE Department
+            SET status = CASE
+                WHEN status = 1 THEN 0
+                ELSE 1
+            END
+            WHERE id = :department_id
+        """),
+        {"department_id": department_id}
+    )
+    db.session.commit()
+    flash("Department archive status updated.", "success")
+    return redirect(url_for("admin.department"))
+
+# Section toggle archive
+@admin_bp.route("/department/archive")
+@login_required
+def department_archive_switch():
+    session["show_archive_department"] = not session.get("show_archive_department", False)
+    return redirect(url_for("admin.department"))
 
 
 # =======================
