@@ -316,13 +316,22 @@ def student_edit(school_id):
         education_lvl = request.form.get("education_lvl")
         course_id = request.form.get("course")
         section_id = request.form.get("section")
-        year_id = request.form.get("year")
+        year_id = request.form.get("year_id")
 
         # Email auto-update
         new_email = f"{school_id_new}@holycross.edu.ph"
+        query = text("""
+            SELECT Section.course_id, Section.year_id
+            FROM Section
+            WHERE Section.id = :section_id
+        """)
+        section_info = db.session.execute(query, {"section_id": section_id}).mappings().first()
 
-        if not (first and last and gender and education_lvl and course_id and section_id and year_id):
-            flash("Some parameters are missing.", "warning")
+        course_id = section_info["course_id"] if section_info else None
+        year_id = section_info["year_id"] if section_info else None
+
+        if not all([first, last, gender, education_lvl, section_id, year_id]):
+            flash(f"{[first, last, gender, education_lvl, section_id, year_id]}Some parameters are missing.", "warning")
             return redirect(url_for("admin.student_edit", school_id=school_id))
 
         # --- Update Users table ---
@@ -661,7 +670,7 @@ def section_add():
         course_id = request.form.get("course_id")
         year_id = request.form.get("year_id")
         teacher_name = request.form.get("teacher_name", "").strip()
-        teacher_id = None
+        teacher_id = request.form.get("teacher.id")
 
         # Convert ed_lvl_id and course_id to int if possible
         try:
@@ -706,18 +715,22 @@ def section_add():
             flash("Section name already exists.", "info")
             return redirect(url_for("admin.section_add"))
 
-        if teacher_name: 
-            teacher = db.session.execute(text("""
-                SELECT tp.id FROM TeacherProfile tp
-                JOIN Users u ON tp.user_id = u.id
-                WHERE CONCAT(u.first_name, ' ', u.middle_name, ' ', u.last_name) = :full_name
-                AND u.status = 1 AND u.role = 'teacher'
-            """), {"full_name": teacher_name}).first()
-            if teacher:
-                teacher_id = teacher.id
-            else:
-                flash("Teacher not found. Section will be created without a teacher.", "info")
-                return redirect(url_for("admin.section_add"))
+        # if teacher_name: 
+        #     teacher = db.session.execute(text("""
+        #         SELECT tp.id FROM TeacherProfile tp
+        #         JOIN Users u ON tp.user_id = u.id
+        #         WHERE CONCAT(u.first_name, ' ', u.middle_name, ' ', u.last_name) = :full_name
+        #         AND u.status = 1 AND u.role = 'teacher'
+        #     """), {"full_name": teacher_name}).first()
+        #     if teacher:
+        #         teacher_id = teacher.id
+        #     else:
+        #         flash("Teacher not found. Section will be created without a teacher.", "info")
+        #         return redirect(url_for("admin.section_add"))
+
+        if teacher_id:
+            flash("Teacher not found. Section will be created without a teacher.", "info")
+            return redirect(url_for("admin.section_add"))
 
         # Insert into Section
         db.session.execute(text("""

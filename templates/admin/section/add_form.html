@@ -57,7 +57,7 @@
         />
         <datalist id="teachersList">
             {% for teacher in teachers %}
-            <option value="{{ teacher.first_name }} {{ teacher.middle_name }} {{ teacher.last_name }}" data-id="{{ teacher.id }}"></option>
+            <option value="{{ teacher.first_name }} {{ teacher.middle_name or '' }} {{ teacher.last_name }}" data-id="{{ teacher.id }}"></option>
             {% endfor %}
         </datalist>
         </div>

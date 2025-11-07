@@ -100,4 +100,35 @@
     </div>
   </form>
 </section>
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet"/>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const educationSelect = document.getElementById("educationSelect");
+
+  const sectionSelect = new TomSelect("#sectionSelect", {
+    valueField: "id",
+    labelField: "text",
+    searchField: ["text"],
+    create: false,
+    placeholder: "Search and select a section...",
+    load: function(query, callback) {
+      const education_level_id = educationSelect.value;
+      if (!education_level_id) return callback();
+
+      fetch(`/admin/api/sections/search?education_level_id=${education_level_id}&q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => callback(data))
+        .catch(() => callback());
+    }
+  });
+
+  // Refresh sections when education level changes
+  educationSelect.addEventListener("change", () => {
+    sectionSelect.clearOptions();
+    sectionSelect.clear(true);
+  });
+});
+</script>
 {% endblock %}
