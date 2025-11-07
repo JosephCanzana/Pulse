@@ -29,7 +29,7 @@
   <!-- Main Form -->
   <form id="edit-lesson-form"
         action="{{ url_for('teacher.edit_lesson', class_id=class_id, lesson_id=lesson.id) }}"
-        onsubmit="return openConfirmFormModal(event, this, 'Update Lesson', 'Are you sure you want to update this lesson?')"
+        
         method="POST" enctype="multipart/form-data"
         class="grid grid-cols-1 md:grid-cols-2 gap-12">
 

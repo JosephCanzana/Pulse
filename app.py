@@ -1,5 +1,5 @@
 # utilities
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import text
 from datetime import date, datetime
@@ -42,11 +42,6 @@ DEFAULT_PASSWORD = "mcmY_1946"
 HARD_PASS_RE = "^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$"
 MID_PASS_RE = "/^(?=.*[A-Z])(?=.*\d).{8,}$/"
 
-# TEST
-@app.route("/testdb")
-def testdb():
-    tables = db.session.execute(text("SHOW TABLES")).fetchall()
-    return {"tables": [t[0] for t in tables]}
 
 @app.template_filter('datetimeformat')
 def datetimeformat(value, format='%I:%M %p'):
@@ -123,6 +118,14 @@ def ensure_daily_inspiration():
                 VALUES (:q, :v, :m, :d)
             """), {"q": quote_id, "v": verse_id, "m": message_id, "d": today})
             db.session.commit()
+
+
+
+UPLOAD_FOLDER = "uploads/lessons"
+
+@app.route('/uploads/<filename>')
+def download_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
 # ==== ADMIN BLUEPRINT =====
 app.register_blueprint(admin_bp)
