@@ -1151,7 +1151,10 @@ def department_edit(id):
 @login_required
 def subject():
     show_archive = session.get("show_archive_subject", False)
-    query = text("""
+    search = request.args.get("search", "").strip()
+
+    # Base SQL
+    query = """
         SELECT 
             Subject.id,
             Subject.name,
@@ -1160,11 +1163,30 @@ def subject():
         FROM Subject
         LEFT JOIN EducationLevel ON Subject.education_level_id = EducationLevel.id
         WHERE Subject.status = :status
-        ORDER BY Subject.name
-    """)
-    
-    subjects = db.session.execute(query, {"status": int(not show_archive)}).fetchall()
-    return render_template("admin/subject/list.html", subjects=subjects, show_archive=show_archive)
+    """
+
+    params = {"status": int(not show_archive)}
+
+    # Add search condition if provided
+    if search:
+        query += """
+            AND (
+                Subject.name LIKE :search OR
+                EducationLevel.name LIKE :search
+            )
+        """
+        params["search"] = f"%{search}%"
+
+    query += " ORDER BY Subject.name"
+
+    subjects = db.session.execute(text(query), params).mappings().all()
+
+    return render_template(
+        "admin/subject/list.html",
+        subjects=subjects,
+        show_archive=show_archive,
+        search=search
+    )
 
 # Subject add
 @admin_bp.route("/subject/add", methods=["POST", "GET"])

@@ -9,19 +9,34 @@
 
 <!-- Page Header -->
 <div class="flex flex-wrap items-center justify-between mb-8 gap-3">
-  <!-- Toggle Archive View -->
-  <a href="{{ url_for('admin.subject_archive_switch') }}"
-    class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
-    <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">archive</span>
-    {{ 'Show Active Subjects' if show_archive else 'Show Archived Subjects' }}
-  </a>
+  
+  <!-- Search Bar -->
+  <form method="get" action="{{ url_for('admin.subject') }}" 
+        class="flex items-center gap-2 bg-[var(--clr-surface)]/60 border border-[var(--clr-border)] rounded-full px-4 py-2 shadow-sm focus-within:ring-2 focus-within:ring-[var(--clr-primary)] transition-all w-full sm:w-auto sm:min-w-[280px]">
+    <span class="material-symbols-rounded text-[var(--clr-txt-secondary)]">search</span>
+    <input type="text" name="search" value="{{ search or '' }}" 
+           placeholder="Search subject or level..."
+           class="bg-transparent outline-none w-full text-[var(--clr-txt-primary)] placeholder-[var(--clr-txt-secondary)]">
+    {% if search %}
+      <a href="{{ url_for('admin.subject') }}" 
+         class="material-symbols-rounded text-[var(--clr-txt-secondary)] hover:text-[var(--clr-error)] transition-all">close</a>
+    {% endif %}
+  </form>
 
-  <!-- Add New Subject -->
-  <a href="{{ url_for('admin.subject_add') }}" 
-     class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
-    <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">add_circle</span>
-    Add Subject
-  </a>
+  <div class="flex items-center gap-3 flex-wrap">
+    <!-- Toggle Archive View -->
+    <a href="{{ url_for('admin.subject_archive_switch') }}"
+      class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
+      <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">archive</span>
+    </a>
+
+    <!-- Add New Subject -->
+    <a href="{{ url_for('admin.subject_add') }}" 
+      class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
+      <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">add_circle</span>
+      Add Subject
+    </a>
+  </div>
 </div>
 
 <!-- Title -->
@@ -44,7 +59,6 @@
       <tr class="border-t border-[var(--clr-border)] hover:bg-[var(--clr-glass-border)]/40 transition-all">
         <td class="px-4 py-3 whitespace-nowrap">{{ s.name }}</td>
         <td class="px-4 py-3 whitespace-nowrap">{{ s.education_level_name or 'N/A' }}</td>
-
         <td class="px-4 py-3 text-center">
           <div class="flex justify-center gap-2">
 
@@ -91,7 +105,6 @@
               </button>
             </form>
             {% endif %}
-
           </div>
         </td>
       </tr>

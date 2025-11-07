@@ -942,6 +942,12 @@
   .bg-\[var\(--clr-surface\)\] {
     background-color: var(--clr-surface);
   }
+  .bg-\[var\(--clr-surface\)\]\/60 {
+    background-color: var(--clr-surface);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--clr-surface) 60%, transparent);
+    }
+  }
   .bg-\[var\(--clr-surface\,\#1e1e1e\)\] {
     background-color: var(--clr-surface,#1e1e1e);
   }
@@ -2222,6 +2228,11 @@
   .sm\:w-auto {
     @media (width >= 40rem) {
       width: auto;
+    }
+  }
+  .sm\:min-w-\[280px\] {
+    @media (width >= 40rem) {
+      min-width: 280px;
     }
   }
   .sm\:grid-cols-2 {
