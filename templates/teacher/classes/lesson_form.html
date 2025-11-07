@@ -71,11 +71,12 @@
         <h3 class="text-xl font-semibold text-[color:var(--clr-txt-primary)]">Existing Lessons</h3>
 
         {% if lessons %}
-        <form id="orderForm" method="POST" action="{{ url_for('teacher.update_lesson_order', class_id=class_id) }}">
+        <form id="orderForm" method="POST" action="{{ url_for('teacher.update_lesson_order', class_id=class_id) }}"
+        onsubmit="return openConfirmFormModal(event, this, 'Add Student', 'Are you sure you want to add this student?')">
           <input type="hidden" name="order" id="orderInput" value="">
           <button type="submit"
                   class="px-4 py-2 rounded-lg bg-[color:var(--clr-success)] text-white text-sm font-medium hover:opacity-90 transition">
-            Update Order
+            Update Lesson Order
           </button>
         </form>
         {% endif %}

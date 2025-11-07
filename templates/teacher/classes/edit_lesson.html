@@ -26,25 +26,10 @@
     </button>
   </div>
 
-  <!-- Flash Messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="space-y-2 mb-8">
-        {% for category, message in messages %}
-          <div class="p-4 rounded-lg text-white shadow-sm
-                      {% if category == 'success' %}bg-green-500{% elif category == 'error' %}bg-red-500{% else %}bg-blue-500{% endif %}
-                      flex justify-between items-center">
-            <span>{{ message }}</span>
-            <button type="button" class="ml-4 text-white hover:opacity-80" onclick="this.parentElement.remove()">✕</button>
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-
   <!-- Main Form -->
   <form id="edit-lesson-form"
         action="{{ url_for('teacher.edit_lesson', class_id=class_id, lesson_id=lesson.id) }}"
+        onsubmit="return openConfirmFormModal(event, this, 'Update Lesson', 'Are you sure you want to update this lesson?')"
         method="POST" enctype="multipart/form-data"
         class="grid grid-cols-1 md:grid-cols-2 gap-12">
 
@@ -61,7 +46,7 @@
       <div>
         <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Description</label>
         <textarea name="description" rows="10"
-                  class="w-full bg-transparent border border-gray-200 rounded-lg text-[var(--clr-txt-primary)] text-base leading-relaxed focus:border-[var(--clr-primary)] focus:ring-1 focus:ring-[var(--clr-primary)] focus:outline-none transition p-3 resize-y min-h-[220px]">{{ lesson.description }}</textarea>
+                  class="w-full bg-[var(--clr-glass-light)] border border-gray-200 rounded-lg text-[var(--clr-txt-primary)] text-base leading-relaxed focus:border-[var(--clr-primary)] focus:ring-1 focus:ring-[var(--clr-primary)] focus:outline-none transition p-3 resize-y min-h-[220px]">{{ lesson.description }}</textarea>
       </div>
     </div>
 
@@ -70,12 +55,15 @@
       <!-- Current File -->
       <div>
         <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Current File</label>
-        {% if lesson.files and lesson.files|length > 0 %}
-          <div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-            <span class="text-sm text-gray-700 truncate">{{ lesson.files[0].filename }}</span>
-            <a href="{{ url_for('static', filename='uploads/' + lesson.files[0].filename) }}"
-               target="_blank"
-               class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] text-sm font-medium transition">View</a>
+        {% if lesson_files and lesson_files|length > 0 %}
+          {% set file = lesson_files[0] %}
+          <div class="flex items-center justify-between bg-[var(--clr-surface)] border border-gray-200 rounded-lg px-4 py-3">
+            <span class="text-sm text-[var(-clr-txt-primary)] truncate">{{ file.file_name }}</span>
+            <a href="{{ url_for('static', filename=file.file_path.replace('static/', '')) }}"
+              target="_blank"
+              class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] text-sm font-medium transition">
+              View
+            </a>
           </div>
         {% else %}
           <p class="text-sm text-gray-500 italic">No file attached.</p>

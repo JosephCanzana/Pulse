@@ -106,8 +106,11 @@
                 <td class="px-4 py-3 text-sm">{{ lesson.lesson_number }}</td>
                 <td class="px-4 py-3 text-sm">{{ lesson.title }}</td>
                 <td class="px-4 py-3 text-sm">
-                  <a href="{{ url_for('teacher.manage_lesson', lesson_id=lessons.lesson_id, class_id=class_info.class_id) }}" 
-                     class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] font-medium transition-all duration-200">View</a>
+                  <a href="{{ url_for('teacher.edit_lesson', class_id=class_info.class_id, lesson_id=lesson.id) }}"
+   class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] font-medium transition-all duration-200">
+  Edit
+</a>
+
                 </td>
               </tr>
               {% endfor %}
@@ -145,7 +148,7 @@
             {% for student in students %}
             <tr class="hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-colors">
               <td class="px-4 py-3 text-sm">{{ student.full_name }}</td>
-              <td class="px-4 py-3 text-sm">{{ student.year_id }}</td>
+              <td class="px-4 py-3 text-sm">{{ student.year }}</td>
               <td class="px-4 py-3 text-sm">{{ student.enrollment_status }}</td>
             </tr>
             {% endfor %}

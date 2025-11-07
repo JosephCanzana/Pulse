@@ -1,10 +1,87 @@
+{% set page_title = "About" %}
 {% extends "layout.html" %}
-  
+
 {% block title %}
-  about
+  About
 {% endblock %}
 
 {% block main %}
-<h1>About</h1>
+<section class="w-full h-full flex flex-col items-center justify-center  text-[var(--clr-txt-primary)]">
 
+  <!-- Card Container -->
+  <div class="w-full max-w-3xl bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] shadow-xl rounded-2xl p-8 space-y-8 transition-colors duration-300">
+
+    <!-- Header -->
+    <header class="text-center space-y-2">
+      <h1 class="text-4xl font-semibold text-[var(--clr-primary)]">About Pulse</h1>
+      <p class="text-sm text-[var(--clr-txt-secondary)]">Version <span class="font-medium">v1.0.0</span></p>
+    </header>
+
+    <!-- Description -->
+    <section class="text-center leading-relaxed">
+      <p class="text-base">
+        <strong>Pulse</strong> is a modern Learning Management System (LMS) built to be responsive, intuitive, and effortless for both teenagers and older users. 
+        Designed with simplicity and performance in mind, Pulse aims to provide a seamless experience dedicated to the students and teachers of 
+        <span class="font-medium">Holy Cross College, Nueva Ecija</span>.
+      </p>
+    </section>
+
+    <!-- Developer Info -->
+    <section class="space-y-3 text-center">
+      <h2 class="text-lg font-semibold text-[var(--clr-primary)]">Developed By</h2>
+      <p class="text-base font-medium">Group 2 — Project Pulse</p>
+
+      <ul class="text-sm text-[var(--clr-txt-secondary)] space-y-1">
+        <li>Joseph Canzana — Full Stack Developer / Project Manager</li>
+        <li>Anthony Dichoso — Frontend Developer</li>
+        <li>Paulo Liwanag — UI/UX Designer</li>
+        <li>Tristan Herrera — Research & Quality Assurance</li>
+        <li>Clarence Menor — Documentation Assitant</li>
+        <li>Hazel Panahon — Database Assitant</li>
+        <li>Justine Julio — Quality Assurance</li>
+      </ul>
+
+
+      <p class="text-sm text-[var(--clr-txt-secondary)] mt-3">
+        Submitted as a Final Project for 
+        <strong>Object-Oriented Programming (OOP)</strong> and 
+        <strong>Data Structures & Algorithms (DSA)</strong> courses.
+      </p>
+
+      <p class="text-sm text-[var(--clr-txt-secondary)]">
+        Under the guidance of 
+        <strong>Prof. Rohan Taar</strong> and 
+        <strong>Prof. John Philip Diamat</strong>
+      </p>
+    </section>
+
+
+    <!-- Legal Links (placeholder) -->
+    <section class="flex flex-col md:flex-row justify-center gap-6 text-center">
+      <a href="#" class="text-sm text-[var(--clr-txt-secondary)] cursor-not-allowed opacity-70">
+        Privacy Policy (Coming Soon)
+      </a>
+      <a href="#" class="text-sm text-[var(--clr-txt-secondary)] cursor-not-allowed opacity-70">
+        Terms of Service (Coming Soon)
+      </a>
+    </section>
+
+    <!-- Credits -->
+    <section class="text-center space-y-1">
+      <h3 class="text-lg font-semibold text-[var(--clr-primary)]">Credits</h3>
+      <p class="text-sm text-[var(--clr-txt-secondary)]">
+        Built using Flask, TailwindCSS, and MySQL.<br>
+        Icons by Google Icons.
+      </p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-sm text-[var(--clr-txt-secondary)] border-t border-[var(--clr-border)] pt-4 space-y-1">
+      <p>“Learning should never lose its pulse.”</p>
+      <p class="italic">This is the Project Pulse — God bless!</p>
+      <p class="mt-1">© 2025 Pulse. All rights reserved.</p>
+    </footer>
+
+  </div>
+</section>
 {% endblock %}

@@ -67,6 +67,8 @@
 
   --clr-glow-primary: rgba(96, 165, 250, 0.25);
   --clr-glow-tertiary: rgba(147, 197, 253, 0.25);
+  --blur-background: blur(12px);
+  --blur-overlay: blur(6px);
 }
 
 

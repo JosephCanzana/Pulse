@@ -1,4 +1,5 @@
 from flask import render_template, session, Blueprint, flash, request,url_for, redirect
+import json
 from flask_login import login_required, current_user
 from sqlalchemy import text
 from helpers import *
@@ -143,12 +144,15 @@ def view_class(class_id):
 
     # Fetch students
     students_query = text("""
-        SELECT CONCAT(u.first_name, ' ', COALESCE(u.middle_name,''), ' ', u.last_name) AS full_name,
-               sp.year_id,
-               cs.status AS enrollment_status
+        SELECT 
+            CONCAT(u.first_name, ' ', COALESCE(u.middle_name, ''), ' ', u.last_name) AS full_name,
+            sp.year_id,
+            yl.name AS year,
+            cs.status AS enrollment_status
         FROM ClassStudent cs
         JOIN StudentProfile sp ON cs.student_id = sp.id
         JOIN Users u ON sp.user_id = u.id
+        JOIN YearLevel yl ON sp.year_id = yl.id
         WHERE cs.class_id = :class_id
         ORDER BY u.last_name
     """)
@@ -303,7 +307,6 @@ def update_lesson_order(class_id):
         flash("No order data received.", "danger")
         return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
-    import json
     try:
         order_list = json.loads(order_data)
         for item in order_list:
@@ -356,9 +359,13 @@ def edit_lesson(class_id, lesson_id):
             file.save(filepath)
 
             insert_file = text("""
-                INSERT INTO LessonFile (lesson_id, file_name, file_path, file_type, uploaded_at)
-                VALUES (:lesson_id, :file_name, :file_path, :file_type, NOW())
-            """)
+                            UPDATE LessonFile
+                            SET file_name = :file_name,
+                                file_path = :file_path,
+                                file_type = :file_type,
+                                uploaded_at = NOW()
+                            WHERE lesson_id = :lesson_id
+                        """)
             db.session.execute(insert_file, {
                 "lesson_id": lesson_id,
                 "file_name": filename,
@@ -370,7 +377,7 @@ def edit_lesson(class_id, lesson_id):
         flash("Lesson updated successfully!", "success")
         return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
-    # Fetch lesson
+    # Fetch lesson info
     lesson = db.session.execute(text("""
         SELECT * FROM Lesson WHERE id = :lesson_id
     """), {"lesson_id": lesson_id}).mappings().first()
@@ -379,7 +386,17 @@ def edit_lesson(class_id, lesson_id):
         flash("Lesson not found.", "danger")
         return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
-    return render_template("teacher/classes/edit_lesson.html", lesson=lesson, class_id=class_id)
+    # ✅ Fetch lesson files
+    lesson_files = db.session.execute(text("""
+        SELECT * FROM LessonFile WHERE lesson_id = :lesson_id
+    """), {"lesson_id": lesson_id}).mappings().all()
+
+    return render_template(
+        "teacher/classes/edit_lesson.html",
+        lesson=lesson,
+        lesson_files=lesson_files,  # Pass to template
+        class_id=class_id
+    )
 
 
 # Delete Lesson
