@@ -124,7 +124,7 @@ def class_hierarchy():
     if not teacher_id:
         return jsonify([])
 
-    # Get teacher's education level first
+    # Get teacher's education level
     teacher_info = db.session.execute(
         text("SELECT education_level_id FROM TeacherProfile WHERE id = :teacher_id"),
         {"teacher_id": teacher_id}
@@ -136,7 +136,7 @@ def class_hierarchy():
     education_level_id = teacher_info["education_level_id"]
 
     if query_type == "subjects":
-        # Fetch subjects the teacher can teach based on education level
+        # Subjects the teacher can teach
         result = db.session.execute(
             text("""
                 SELECT s.id, s.name
@@ -149,13 +149,16 @@ def class_hierarchy():
         return jsonify([dict(r) for r in result])
 
     if query_type == "sections":
-        # Fetch all sections under the same education level
+        # Sections under the teacher's education level
         result = db.session.execute(
             text("""
                 SELECT sec.id, sec.name, sec.academic_year
                 FROM Section sec
-                JOIN EducationLevel e ON e.id = sec.education_level_id
-                WHERE sec.education_level_id = :education_level_id
+                LEFT JOIN Course co ON sec.course_id = co.id
+                LEFT JOIN YearLevel yl ON sec.year_id = yl.id
+                LEFT JOIN EducationLevel el_course ON co.education_level_id = el_course.id
+                LEFT JOIN EducationLevel el_year ON yl.education_level_id = el_year.id
+                WHERE (COALESCE(el_course.id, el_year.id) = :education_level_id)
                   AND sec.status = 1
             """),
             {"education_level_id": education_level_id}
