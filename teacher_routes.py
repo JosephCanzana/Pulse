@@ -409,7 +409,7 @@ def delete_lesson(class_id, lesson_id):
     return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
 # ============================
-# Manage Student
+# Manage Student Per Class
 # ============================
 @teacher_bp.route("/classes/view/<int:class_id>/add-student", methods=["GET", "POST"])
 @login_required
@@ -523,20 +523,22 @@ def remove_student_from_class(class_id):
 @teacher_bp.route("/sections", methods=["GET"])
 @login_required
 def manage_sections():
-    """Display all sections handled by the current teacher."""
+    """Display all sections handled by the current teacher, with search and archive filter."""
     teacher_id = get_teacher_id()
     if not teacher_id:
         return apology("Teacher profile not found.", 404)
 
-    sections = db.session.execute(text("""
-        SELECT 
+    show_archive = session.get("show_archive_section", False)
+    search = request.args.get("search", "").strip()
+
+    base_query = """
+        SELECT
             sec.id AS section_id,
             sec.name AS section_name,
-            yl.name AS year_level,
-            co.name AS course_name,
-            el.name AS education_level,
             sec.academic_year,
-            sec.status,
+            yl.name AS year_name,
+            co.name AS course_name,
+            el.name AS education_level_name,
             COUNT(sp.id) AS student_count
         FROM Section sec
         LEFT JOIN YearLevel yl ON sec.year_id = yl.id
@@ -544,11 +546,34 @@ def manage_sections():
         LEFT JOIN EducationLevel el ON co.education_level_id = el.id
         LEFT JOIN StudentProfile sp ON sp.section_id = sec.id
         WHERE sec.teacher_id = :teacher_id
-        GROUP BY sec.id, sec.name, yl.name, co.name, el.name, sec.academic_year, sec.status
-        ORDER BY el.name, co.name, yl.name, sec.name
-    """), {"teacher_id": teacher_id}).mappings().all()
+          AND sec.status = :status
+    """
 
-    return render_template("teacher/section/list.html", sections=sections)
+    params = {"teacher_id": teacher_id, "status": 0 if show_archive else 1}
+
+    if search:
+        base_query += """
+            AND (
+                sec.name LIKE :search
+                OR sec.academic_year LIKE :search
+                OR co.name LIKE :search
+                OR yl.name LIKE :search
+                OR el.name LIKE :search
+            )
+        """
+        params["search"] = f"%{search}%"
+
+    base_query += " GROUP BY sec.id, sec.name, yl.name, co.name, el.name, sec.academic_year, sec.status"
+    base_query += " ORDER BY el.name, co.name, yl.name, sec.name"
+
+    sections = db.session.execute(text(base_query), params).mappings().all()
+
+    return render_template(
+        "teacher/section/list.html",
+        sections=sections,
+        show_archive=show_archive,
+        search=search
+    )
 
 # ============================
 # Edit Section
@@ -646,31 +671,35 @@ def edit_section(section_id):
 # ============================
 # Archive / Activate Section
 # ============================
-@teacher_bp.route("/sections/toggle/<int:section_id>", methods=["POST"])
+@teacher_bp.route("/section/archive/<int:section_id>", methods=["POST", "GET"])
 @login_required
 def toggle_section_status(section_id):
-    """Activate or archive a section."""
-    teacher_id = get_teacher_id()
-
-    section = db.session.execute(text("""
-        SELECT status FROM Section WHERE id = :id AND teacher_id = :teacher_id
-    """), {"id": section_id, "teacher_id": teacher_id}).mappings().first()
-
-    if not section:
-        flash("Section not found.", "danger")
-        return redirect(url_for("teacher.manage_sections"))
-
-    new_status = 0 if section.status else 1
-    db.session.execute(text("""
-        UPDATE Section SET status = :new_status WHERE id = :id
-    """), {"new_status": new_status, "id": section_id})
+    db.session.execute(
+        text("""
+            UPDATE Section
+            SET status = CASE
+                WHEN status = 1 THEN 0
+                ELSE 1
+            END
+            WHERE id = :section_id
+        """),
+        {"section_id": section_id}
+    )
     db.session.commit()
+    flash("Section archive status updated.", "success")
+    return redirect(url_for("teacher.manage_sections"))
 
-    msg = "Section archived successfully." if new_status == 0 else "Section reactivated successfully."
-    flash(msg, "success")
+# Section toggle archive
+@teacher_bp.route("/section/archive")
+@login_required
+def section_archive_switch():
+    session["show_archive_section"] = not session.get("show_archive_section", False)
     return redirect(url_for("teacher.manage_sections"))
 
 
+# ============================
+# Manage student per section
+# ============================
 @teacher_bp.route("/sections/<int:section_id>/students", methods=["GET", "POST"])
 @login_required
 def section_manage_students(section_id):
