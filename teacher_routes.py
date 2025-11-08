@@ -696,8 +696,8 @@ def section_manage_students(section_id):
             flash("No students selected.", "warning")
             return redirect(url_for("teacher.section_manage_students", section_id=section_id))
 
-        # Bulk update using WHERE IN
-        db.session.execute(text("""
+        # Bulk update using WHERE id IN (...)
+        db.session.execute(text(f"""
             UPDATE StudentProfile
             SET section_id = :section_id
             WHERE id IN :ids
@@ -719,23 +719,33 @@ def section_manage_students(section_id):
     """), {"section_id": section_id}).mappings().all()
 
     # ============================
-    # GET: Unassigned Students (with search)
+    # GET: Unassigned Students (with search by ID, name, or section)
     # ============================
     search_query = request.args.get("q", "").strip()
     if search_query:
         unassigned_students = db.session.execute(text("""
-            SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email
+            SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email,
+                   s.name AS section_name
             FROM StudentProfile sp
             JOIN Users u ON sp.user_id = u.id
+            LEFT JOIN Section s ON sp.section_id = s.id
             WHERE sp.section_id IS NULL
-              AND (u.first_name LIKE :search OR u.middle_name LIKE :search OR u.last_name LIKE :search OR u.email LIKE :search)
+              AND (
+                    CAST(sp.id AS CHAR) LIKE :search OR
+                    u.first_name LIKE :search OR
+                    u.middle_name LIKE :search OR
+                    u.last_name LIKE :search OR
+                    s.name LIKE :search
+                  )
             ORDER BY u.last_name ASC
         """), {"search": f"%{search_query}%"}).mappings().all()
     else:
         unassigned_students = db.session.execute(text("""
-            SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email
+            SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email,
+                   s.name AS section_name
             FROM StudentProfile sp
             JOIN Users u ON sp.user_id = u.id
+            LEFT JOIN Section s ON sp.section_id = s.id
             WHERE sp.section_id IS NULL
             ORDER BY u.last_name ASC
         """)).mappings().all()

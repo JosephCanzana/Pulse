@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
 
-{% block title %}Manage Section Students{% endblock %}
+{% block title %}Add Students to Section{% endblock %}
 
 {% block main %}
 <div class="w-full h-full">
-
+    
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
@@ -12,19 +12,19 @@
                class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--clr-surface)] text-[var(--clr-txt-secondary)] shadow-sm hover:text-[var(--clr-primary)] hover:shadow transition">
                 <span class="material-symbols-outlined text-2xl">arrow_back</span>
             </a>
-            <h1 class="text-3xl font-bold text-[var(--clr-primary)]">Manage Students for Section: {{ section.name }}</h1>
+            <h1 class="text-3xl font-bold text-[var(--clr-primary)]">Manage Students in {{ section.name }}</h1>
         </div>
     </div>
 
     <!-- Split layout -->
     <div class="flex flex-col lg:flex-row gap-6 flex-1 overflow-hidden">
-
-        <!-- Left: Assigned Students -->
+        
+        <!-- Left: Existing Students -->
         <div class="lg:w-1/2 flex flex-col bg-[var(--clr-surface)] rounded-2xl shadow-md overflow-hidden">
             <div class="p-4 border-b border-[var(--clr-border)]">
                 <h2 class="text-xl font-semibold text-[var(--clr-txt-primary)] flex items-center gap-2">
                     <span class="material-symbols-outlined text-[var(--clr-primary)]">groups</span>
-                    Assigned Students
+                    Existing Students
                 </h2>
             </div>
             <div class="overflow-y-auto p-4 space-y-3 custom-scroll">
@@ -32,14 +32,13 @@
                     {% for s in assigned_students %}
                     <div class="flex items-center justify-between bg-[var(--clr-surface-alt)] p-4 rounded-xl shadow-sm hover:shadow transition">
                         <div>
-                            <p class="font-medium text-[var(--clr-txt-primary)]">{{ s.first_name }} {{ s.second_name or '' }} {{ s.last_name }}</p>
-                            <p class="text-sm text-[var(--clr-txt-secondary)]">{{ s.email }}</p>
+                            <p class="font-medium text-[var(--clr-txt-primary)]">{{ s.first_name }} {{ s.last_name }}</p>
+                            <p class="text-sm text-[var(--clr-txt-secondary)]">{{ s.section_name or "No Section" }} | {{ s.email }}</p>
                         </div>
                         <form method="POST" action="{{ url_for('teacher.remove_student_from_section', section_id=section.id, student_id=s.student_id) }}"
-                              onsubmit="return openConfirmFormModal(event, this, 'Remove Student', 'This will remove the studetn from this section. Continue?')">
+                              onsubmit="return openConfirmFormModal(event, this, 'Remove Student', 'This will unassign the student from this section. Continue?')">
                             <button type="submit"
-                                    class="flex items-center gap-1 bg-[var(--clr-error)] text-white px-3 py-1 rounded-full hover:opacity-90 transition"
-                                    onsubmit="">
+                                    class="flex items-center gap-1 bg-[var(--clr-error)] text-white px-3 py-1 rounded-full hover:opacity-90 transition">
                                 <span class="material-symbols-outlined text-sm">delete</span>
                                 Remove
                             </button>
@@ -47,12 +46,12 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <p class="text-[var(--clr-txt-muted)] italic">No students currently assigned to this section.</p>
+                    <p class="text-[var(--clr-txt-muted)] italic">No students are currently enrolled in this section.</p>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Right: Unassigned Students / Add -->
+        <!-- Right: Add/Search Students -->
         <div class="lg:w-1/2 flex flex-col bg-[var(--clr-surface)] rounded-2xl shadow-md overflow-hidden">
             <div class="p-4 border-b border-[var(--clr-border)] flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-[var(--clr-txt-primary)] flex items-center gap-2">
@@ -61,10 +60,9 @@
                 </h2>
             </div>
 
-            <!-- Search Form -->
             <div class="p-4 border-b border-[var(--clr-border)]">
-                <form method="GET" class="flex gap-2">
-                    <input type="text" name="q" placeholder="Search unassigned students..."
+                <form method="GET" class="flex gap-2 flex-wrap items-center">
+                    <input type="text" name="q" placeholder="Search by ID, name, or section"
                         value="{{ search_query }}"
                         class="flex-1 bg-[var(--clr-surface-alt)] border border-[var(--clr-border)] rounded-lg px-4 py-2 text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
                     <button type="submit"
@@ -96,8 +94,8 @@
                             <input type="checkbox" name="student_ids" value="{{ student.student_id }}"
                                 class="h-4 w-4 text-[var(--clr-primary)] border-[var(--clr-border)] rounded">
                             <div>
-                                <p class="font-medium text-[var(--clr-txt-primary)]">{{ student.first_name }} {{ student.second_name or '' }} {{ student.last_name }}</p>
-                                <p class="text-sm text-[var(--clr-txt-secondary)]">{{ student.email }}</p>
+                                <p class="font-medium text-[var(--clr-txt-primary)]">{{ student.first_name }} {{ student.last_name }}</p>
+                                <p class="text-sm text-[var(--clr-txt-secondary)]">{{ student.section_name or "No Section" }} | {{ student.email }}</p>
                             </div>
                         </div>
                         <button type="submit" name="student_ids" value="{{ student.student_id }}"
@@ -109,14 +107,13 @@
                     {% endfor %}
                 </form>
                 {% else %}
-                    <p class="text-[var(--clr-txt-muted)] italic">No unassigned students available.</p>
+                    <p class="text-[var(--clr-txt-muted)] italic">No students found to add.</p>
                 {% endif %}
             </div>
         </div>
-
     </div>
 
-    <!-- Script: Select All -->
+    <!-- Script -->
     <script>
         const selectAllCheckbox = document.getElementById('select-all');
         if (selectAllCheckbox) {
