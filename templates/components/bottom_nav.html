@@ -23,7 +23,7 @@
       </a>
       <a href="#" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
         <span class="material-symbols-outlined">menu_book</span>
-        <span class="text-xs mt-1">Subjects</span>
+        <span class="text-xs mt-1">Classes</span>
       </a>
     {% else %}
       <a href="{{ url_for('student.dashboard') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('student.dashboard') %}text-[var(--clr-primary)]{% endif %}">
@@ -88,7 +88,10 @@
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">home</span> Dashboard
         </a>
         <a href="{{ url_for('teacher.classes') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">menu_book</span> Subjects
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">menu_book</span> Classes
+        </a>
+        <a href="{{ url_for('teacher.manage_sections') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">nest_multi_room</span>Sections
         </a>
       {% else %}
         <a href="{{ url_for('student.dashboard') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">

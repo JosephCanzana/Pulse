@@ -45,6 +45,9 @@
           <a href="{{ url_for('teacher.classes') }}" class="btn-side-bar-collapsed {% if request.path == url_for('teacher.classes') %}btn-side-bar-collapsed-active{% endif %}">
             <span class="material-symbols-outlined">menu_book</span>
           </a>
+          <a href="{{ url_for('teacher.manage_sections') }}" class="btn-side-bar-collapsed {% if request.path == url_for('teacher.manage_sections') %}btn-side-bar-collapsed-active{% endif %}">
+            <span class="material-symbols-outlined">nest_multi_room</span>
+          </a>
 
         {% else %}
           <a href="{{ url_for('student.dashboard') }}" class="btn-side-bar-collapsed {% if request.path == url_for('student.dashboard') %}btn-side-bar-collapsed-active{% endif %}">
@@ -115,6 +118,9 @@
           </a>
           <a href="{{ url_for('teacher.classes') }}" class="btn-side-bar-expand {% if request.path == url_for('teacher.classes') %}btn-side-bar-expanded-active{% endif %}">
             <span class="material-symbols-outlined">menu_book</span><span class="ml-4">Classes</span>
+          </a>
+          <a href="{{ url_for('teacher.manage_sections') }}" class="btn-side-bar-expand {% if request.path == url_for('teacher.manage_sections') %}btn-side-bar-expanded-active{% endif %}">
+            <span class="material-symbols-outlined">nest_multi_room</span><span class="ml-4">Sections</span>
           </a>
           
 

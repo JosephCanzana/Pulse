@@ -516,3 +516,261 @@ def remove_student_from_class(class_id):
     flash("Student removed successfully.", "success")
     return redirect(url_for("teacher.manage_student", class_id=class_id))
 
+
+# ============================
+# Manage Sections (Adviser)
+# ============================
+@teacher_bp.route("/sections", methods=["GET"])
+@login_required
+def manage_sections():
+    """Display all sections handled by the current teacher."""
+    teacher_id = get_teacher_id()
+    if not teacher_id:
+        return apology("Teacher profile not found.", 404)
+
+    sections = db.session.execute(text("""
+        SELECT 
+            sec.id AS section_id,
+            sec.name AS section_name,
+            yl.name AS year_level,
+            co.name AS course_name,
+            el.name AS education_level,
+            sec.academic_year,
+            sec.status,
+            COUNT(sp.id) AS student_count
+        FROM Section sec
+        LEFT JOIN YearLevel yl ON sec.year_id = yl.id
+        LEFT JOIN Course co ON sec.course_id = co.id
+        LEFT JOIN EducationLevel el ON co.education_level_id = el.id
+        LEFT JOIN StudentProfile sp ON sp.section_id = sec.id
+        WHERE sec.teacher_id = :teacher_id
+        GROUP BY sec.id, sec.name, yl.name, co.name, el.name, sec.academic_year, sec.status
+        ORDER BY el.name, co.name, yl.name, sec.name
+    """), {"teacher_id": teacher_id}).mappings().all()
+
+    return render_template("teacher/section/list.html", sections=sections)
+
+# ============================
+# Edit Section
+# ============================
+@teacher_bp.route("/sections/edit/<int:section_id>", methods=["GET", "POST"])
+@login_required
+def edit_section(section_id):
+    """Edit section information like name, academic year, course, and year level."""
+    teacher_id = get_teacher_id()
+
+    # Fetch the section with its education level
+    section = db.session.execute(text("""
+        SELECT 
+            s.id,
+            s.name,
+            s.academic_year,
+            s.status,
+            s.course_id,
+            s.year_id,
+            c.education_level_id AS education_lvl_id
+        FROM Section s
+        JOIN Course c ON s.course_id = c.id
+        WHERE s.id = :id AND s.teacher_id = :teacher_id
+    """), {"id": section_id, "teacher_id": teacher_id}).mappings().first()
+
+    if not section:
+        flash("Section not found or not assigned to you.", "danger")
+        return redirect(url_for("teacher.manage_sections"))
+
+    # Fetch all education levels
+    education_levels = db.session.execute(text("""
+        SELECT id, name FROM EducationLevel
+    """)).mappings().all()
+
+    # Fetch related courses and year levels based on current education level
+    courses = db.session.execute(text("""
+        SELECT id, name FROM Course
+        WHERE education_level_id = :lvl_id AND status = 1
+    """), {"lvl_id": section.education_lvl_id}).mappings().all()
+
+    year_levels = db.session.execute(text("""
+        SELECT id, name FROM YearLevel
+        WHERE education_level_id = :lvl_id
+    """), {"lvl_id": section.education_lvl_id}).mappings().all()
+
+    # Handle form submission
+    if request.method == "POST":
+        name = request.form.get("name", "").strip().capitalize()
+        academic_year = request.form.get("academic_year", "").strip()
+        education_lvl_id = request.form.get("education_lvl_id")
+        course_id = request.form.get("course_id")
+        year_lvl_id = request.form.get("year_lvl_id")
+        status = request.form.get("status", "1")
+
+        # Validation
+        if not name or not academic_year or not education_lvl_id or not course_id or not year_lvl_id:
+            flash("Please fill out all required fields.", "warning")
+            return redirect(request.url)
+
+        try:
+            db.session.execute(text("""
+                UPDATE Section
+                SET name = :name,
+                    academic_year = :academic_year,
+                    course_id = :course_id,
+                    year_id = :year_lvl_id,
+                    status = :status
+                WHERE id = :section_id AND teacher_id = :teacher_id
+            """), {
+                "name": name,
+                "academic_year": academic_year,
+                "course_id": course_id,
+                "year_lvl_id": year_lvl_id,
+                "status": status,
+                "section_id": section_id,
+                "teacher_id": teacher_id
+            })
+            db.session.commit()
+            flash("Section updated successfully!", "success")
+            return redirect(url_for("teacher.manage_sections"))
+        except Exception as e:
+            db.session.rollback()
+            print("Error updating section:", e)
+            flash("An error occurred while updating the section.", "danger")
+
+    return render_template(
+        "teacher/section/edit.html",
+        section=section,
+        education_levels=education_levels,
+        courses=courses,
+        year_levels=year_levels
+    )
+
+
+# ============================
+# Archive / Activate Section
+# ============================
+@teacher_bp.route("/sections/toggle/<int:section_id>", methods=["POST"])
+@login_required
+def toggle_section_status(section_id):
+    """Activate or archive a section."""
+    teacher_id = get_teacher_id()
+
+    section = db.session.execute(text("""
+        SELECT status FROM Section WHERE id = :id AND teacher_id = :teacher_id
+    """), {"id": section_id, "teacher_id": teacher_id}).mappings().first()
+
+    if not section:
+        flash("Section not found.", "danger")
+        return redirect(url_for("teacher.manage_sections"))
+
+    new_status = 0 if section.status else 1
+    db.session.execute(text("""
+        UPDATE Section SET status = :new_status WHERE id = :id
+    """), {"new_status": new_status, "id": section_id})
+    db.session.commit()
+
+    msg = "Section archived successfully." if new_status == 0 else "Section reactivated successfully."
+    flash(msg, "success")
+    return redirect(url_for("teacher.manage_sections"))
+
+
+@teacher_bp.route("/sections/<int:section_id>/students", methods=["GET", "POST"])
+@login_required
+def section_manage_students(section_id):
+    """View students assigned to this section and unassigned students, with search.
+       Also handles adding students to this section (POST)."""
+    teacher_id = get_teacher_id()
+
+    # Verify section belongs to this teacher
+    section = db.session.execute(text("""
+        SELECT * FROM Section WHERE id = :id AND teacher_id = :teacher_id
+    """), {"id": section_id, "teacher_id": teacher_id}).mappings().first()
+
+    if not section:
+        flash("Section not found or not assigned to you.", "danger")
+        return redirect(url_for("teacher.manage_sections"))
+
+    # ============================
+    # Handle POST (Add Students)
+    # ============================
+    if request.method == "POST":
+        student_ids = request.form.getlist("student_ids")
+        if not student_ids:
+            flash("No students selected.", "warning")
+            return redirect(url_for("teacher.section_manage_students", section_id=section_id))
+
+        # Bulk update using WHERE IN
+        db.session.execute(text("""
+            UPDATE StudentProfile
+            SET section_id = :section_id
+            WHERE id IN :ids
+        """), {"section_id": section_id, "ids": tuple(student_ids)})
+        db.session.commit()
+
+        flash(f"Added {len(student_ids)} student(s) to this section.", "success")
+        return redirect(url_for("teacher.section_manage_students", section_id=section_id))
+
+    # ============================
+    # GET: Assigned Students
+    # ============================
+    assigned_students = db.session.execute(text("""
+        SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email
+        FROM StudentProfile sp
+        JOIN Users u ON sp.user_id = u.id
+        WHERE sp.section_id = :section_id
+        ORDER BY u.last_name ASC
+    """), {"section_id": section_id}).mappings().all()
+
+    # ============================
+    # GET: Unassigned Students (with search)
+    # ============================
+    search_query = request.args.get("q", "").strip()
+    if search_query:
+        unassigned_students = db.session.execute(text("""
+            SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email
+            FROM StudentProfile sp
+            JOIN Users u ON sp.user_id = u.id
+            WHERE sp.section_id IS NULL
+              AND (u.first_name LIKE :search OR u.middle_name LIKE :search OR u.last_name LIKE :search OR u.email LIKE :search)
+            ORDER BY u.last_name ASC
+        """), {"search": f"%{search_query}%"}).mappings().all()
+    else:
+        unassigned_students = db.session.execute(text("""
+            SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email
+            FROM StudentProfile sp
+            JOIN Users u ON sp.user_id = u.id
+            WHERE sp.section_id IS NULL
+            ORDER BY u.last_name ASC
+        """)).mappings().all()
+
+    return render_template(
+        "teacher/section/students.html",
+        section=section,
+        assigned_students=assigned_students,
+        unassigned_students=unassigned_students,
+        search_query=search_query
+    )
+
+
+@teacher_bp.route("/sections/<int:section_id>/students/remove/<int:student_id>", methods=["POST"])
+@login_required
+def remove_student_from_section(section_id, student_id):
+    """Unassign a student from the section."""
+    teacher_id = get_teacher_id()
+
+    # Verify teacher owns this section
+    section = db.session.execute(text("""
+        SELECT id FROM Section WHERE id = :id AND teacher_id = :teacher_id
+    """), {"id": section_id, "teacher_id": teacher_id}).mappings().first()
+
+    if not section:
+        flash("Unauthorized or invalid section.", "danger")
+        return redirect(url_for("teacher.manage_sections"))
+
+    # Unassign student (set section_id to NULL)
+    db.session.execute(text("""
+        UPDATE StudentProfile
+        SET section_id = NULL
+        WHERE id = :student_id
+    """), {"student_id": student_id})
+
+    db.session.commit()
+    flash("Student successfully unassigned from section.", "success")
+    return redirect(url_for("teacher.section_manage_students", section_id=section_id))

@@ -1,0 +1,142 @@
+{% set page_title = "Edit Section" %}
+{% extends "layout.html" %}
+
+{% block title %}
+  Edit Section
+{% endblock %}
+
+{% block main %}
+<section class="w-full h-full flex flex-col justify-center px-10 py-10 text-[var(--clr-txt-primary)] transition-all duration-300">
+
+  <!-- Header -->
+  <header class="text-center mb-6">
+    <h1 class="text-3xl font-bold text-[var(--clr-primary)]">Edit Section</h1>
+    <p class="text-[var(--clr-txt-secondary)] text-sm mt-1">Modify section details below</p>
+  </header>
+
+  <!-- Form -->
+  <form method="POST" id="editSectionForm"
+        class="bg-white dark:bg-[var(--clr-bg-secondary)] p-8 rounded-2xl shadow-md max-w-3xl mx-auto space-y-6 border border-gray-200">
+
+    <!-- Section Name -->
+    <div>
+      <label for="name" class="block mb-2 font-medium">Section Name</label>
+      <input type="text" id="name" name="name" value="{{ section.name }}" required
+             class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--clr-primary)] outline-none transition-all duration-200" />
+    </div>
+
+    <!-- Academic Year -->
+    <div>
+      <label for="academic_year" class="block mb-2 font-medium">Academic Year</label>
+      <input type="text" id="academic_year" name="academic_year"
+             value="{{ section.academic_year }}" required
+             placeholder="e.g. 2025-2026"
+             class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--clr-primary)] outline-none transition-all duration-200" />
+    </div>
+
+    <!-- Education Level -->
+    <div>
+      <label for="education_lvl_id" class="block mb-2 font-medium">Education Level</label>
+      <select id="education_lvl_id" name="education_lvl_id" required
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--clr-primary)] outline-none transition-all duration-200">
+        <option value="">Select Education Level</option>
+        {% for lvl in education_levels %}
+          <option value="{{ lvl.id }}" {% if lvl.id == section.education_lvl_id %}selected{% endif %}>{{ lvl.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Course -->
+    <div>
+      <label for="course_id" class="block mb-2 font-medium">Course</label>
+      <select id="course_id" name="course_id" required
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--clr-primary)] outline-none transition-all duration-200">
+        <option value="">Select Course</option>
+        {% for course in courses %}
+          <option value="{{ course.id }}" {% if course.id == section.course_id %}selected{% endif %}>{{ course.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Year Level -->
+    <div>
+      <label for="year_lvl_id" class="block mb-2 font-medium">Year Level</label>
+      <select id="year_lvl_id" name="year_lvl_id" required
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--clr-primary)] outline-none transition-all duration-200">
+        <option value="">Select Year Level</option>
+        {% for year in year_levels %}
+          <option value="{{ year.id }}" {% if year.id == section.year_id %}selected{% endif %}>{{ year.name }}</option>
+
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Status -->
+    <div>
+      <label for="status" class="block mb-2 font-medium">Status</label>
+      <select id="status" name="status"
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--clr-primary)] outline-none transition-all duration-200">
+        <option value="1" {% if section.status == 1 %}selected{% endif %}>Active</option>
+        <option value="0" {% if section.status == 0 %}selected{% endif %}>Archived</option>
+      </select>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex justify-end items-center gap-4 pt-4">
+      <a href="{{ url_for('teacher.manage_sections') }}"
+         class="px-5 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all duration-200">
+         Cancel
+      </a>
+      <button type="submit"
+              class="px-6 py-2 bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)] text-white rounded-lg shadow transition-all duration-300">
+              Save Changes
+      </button>
+    </div>
+
+  </form>
+</section>
+
+<!-- AJAX Script -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const levelSelect = document.getElementById("education_lvl_id");
+  const courseSelect = document.getElementById("course_id");
+  const yearSelect = document.getElementById("year_lvl_id");
+
+  // Helper to populate a dropdown
+  const populateSelect = (selectElem, data, selectedValue = null) => {
+    selectElem.innerHTML = '<option value="">Select</option>';
+    data.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item.id;
+      opt.textContent = item.name;
+      if (selectedValue && parseInt(selectedValue) === item.id) opt.selected = true;
+      selectElem.appendChild(opt);
+    });
+  };
+
+  // When Education Level changes → update Course & YearLevel
+  levelSelect.addEventListener("change", async () => {
+    const levelId = levelSelect.value;
+
+    // Clear selects first
+    populateSelect(courseSelect, []);
+    populateSelect(yearSelect, []);
+
+    if (!levelId) return;
+
+    // Fetch courses
+    const [coursesRes, yearsRes] = await Promise.all([
+      fetch(`/api/student-hierarchy?type=courses&education_level_id=${levelId}`),
+      fetch(`/api/student-hierarchy?type=year_levels&education_level_id=${levelId}`)
+    ]);
+
+    const courses = await coursesRes.json();
+    const years = await yearsRes.json();
+
+    populateSelect(courseSelect, courses);
+    populateSelect(yearSelect, years);
+  });
+});
+</script>
+{% endblock %}
