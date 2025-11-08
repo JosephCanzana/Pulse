@@ -194,5 +194,12 @@ CREATE TABLE IF NOT EXISTS StudentLessonProgress (
     UNIQUE KEY unique_progress(class_id, lesson_id, student_id)
 );
 
+CREATE TABLE IF NOT EXISTS IdCounter (
+    year INT PRIMARY KEY,
+    counter INT NOT NULL
+);
+
 INSERT INTO Users (first_name, middle_name, last_name, email, school_id, gender, password, role, is_verified, status) VALUES
 ('Admin', 'A', 'User', 'administrator@holycross.edu.ph', 'LMS001', 'Other', 'adminpassword', 'admin', 1, 1);
+
+INSERT INTO IdCounter (year, counter) VALUES (2025, 1000);

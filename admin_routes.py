@@ -5,10 +5,13 @@ from flask_login import login_required
 from sqlalchemy import text
 from helpers import *
 from database import db
+from datetime import datetime
 
 # ==== GLOBAL VARIABLES ====
 DEFAULT_PASSWORD = "mcmY_1946"
 ADMIN_DELETABLE_ROWS = ("Users", "Subject", "Course", "Department", "Section", "Class")
+NOW = datetime.now()
+ACADEMIC_YEAR = str(NOW.year) + '-' + str((NOW.year + 1))
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -56,6 +59,59 @@ def search_sections():
         {"id": r["id"], "text": f"{r['course_name']} - {r['year_name']} - {r['section_name']}"}
         for r in results
     ])
+
+def next_id_preview():
+    """
+    Returns the next ID for display purposes only (does NOT save/increment the counter).
+    """
+    now = datetime.now()
+    year = now.year
+    START_COUNTER = 1111  # <-- start from 1111
+
+    result = db.session.execute(
+        text("SELECT counter FROM IdCounter WHERE year = :year"),
+        {"year": year}
+    ).fetchone()
+
+    if result is None:
+        counter = START_COUNTER
+    else:
+        counter = result[0] + 1
+
+    return f"{str(counter).zfill(4)}{year}"
+
+def generate_next_id():
+    """
+    Increment the counter in IdCounter and return a new school ID.
+    Format: YEAR + 4-digit counter, e.g., 20251111
+    """
+    now = datetime.now()
+    year = now.year
+    START_COUNTER = 1000
+
+
+    result = db.session.execute(
+        text("SELECT counter FROM IdCounter WHERE year = :year"),
+        {"year": year}
+    ).fetchone()
+
+    if result is None:
+        counter = START_COUNTER
+        # Insert initial row
+        db.session.execute(
+            text("INSERT INTO IdCounter (year, counter) VALUES (:year, :counter)"),
+            {"year": year, "counter": counter}
+        )
+    else:
+        counter = result[0] + 1
+        # Update counter
+        db.session.execute(
+            text("UPDATE IdCounter SET counter = :counter WHERE year = :year"),
+            {"counter": counter, "year": year}
+        )
+
+    # Return formatted ID: YEAR + 4-digit counter
+    return f"{str(counter).zfill(4)}{year}"
 
 
 # =======================
@@ -247,6 +303,8 @@ def student_add():
         last = request.form.get("last_name", "").strip().capitalize()
         school_id = request.form.get("school_id", "").strip()
         gender = request.form.get("gender", "").capitalize()
+        # Auto-generate school ID
+        school_id = generate_next_id()
         email = f"{school_id}@holycross.edu.ph"
 
         # Basic validation
@@ -289,7 +347,8 @@ def student_add():
     return render_template(
         "admin/student/add_form.html",
         education_lvls=education_lvls,
-        sections=sections
+        sections=sections,
+        prev_school_id=next_id_preview()
     )
 
 # Student edit
@@ -498,52 +557,68 @@ def teacher():
 @login_required
 def teacher_add():
     if request.method == "POST":
+        # --- USER form part ---
+        first = (request.form.get("first_name") or "").strip().capitalize()
+        second = (request.form.get("second_name") or "").strip().capitalize()
+        last = (request.form.get("last_name") or "").strip().capitalize()
+        form_school_id = request.form.get("school_id")
+        gender = (request.form.get("gender") or "").strip().capitalize()
         
-        # USER form part
-        first = request.form.get("first_name").capitalize()
-        second = request.form.get("second_name").capitalize()
-        last = request.form.get("last_name").capitalize()
-        school_id = request.form.get("school_id")
-        gender = request.form.get("gender").capitalize()
-        # convert school id to email
+
+        # Check required fields
+        if not first or not last or not form_school_id or not gender:
+            flash("Please fill up all required fields.", "info")
+            return redirect(url_for("admin.teacher_add"))
+
+        # Convert school_id to int
+        try:
+            form_school_id = int(form_school_id)
+        except (TypeError, ValueError):
+            flash("School ID must be an integer.", "warning")
+            return redirect(url_for("admin.teacher_add"))
+
+        # Auto-generate school ID
+        school_id = generate_next_id()
         email = f"{school_id}@holycross.edu.ph"
 
-        if first == None or last == None or school_id == None or gender == None:
-            flash("Please fill up form.", "info")
-            return redirect(url_for("admin.teacher_add"))
-        
-        try:
-            school_id = int(school_id)
-        except (TypeError, ValueError):
-            flash("School ID must be an integer", "warning")
-            return redirect(url_for('admin_teacher_add'))
-
-            
-        # Get existing course to avoid duplicate
+        # Check for existing school ID
         if is_exist(db, school_id, "school_id", "Users"):
-            flash("The school id already exist.", "info")
+            flash("The school ID already exists.", "info")
+            generate_next_id()
             return redirect(url_for("admin.teacher_add"))
-        
-        # First, second, and last name is already existing
-        if is_exist(db, first, "first_name", "Users") and is_exist(db, second, "middle_name", "Users") and is_exist(db, last, "last_name", "Users"):
-            flash("The name already exist.", "info")
+
+        # Check for existing full name
+        if (
+            is_exist(db, first, "first_name", "Users") and
+            is_exist(db, second, "middle_name", "Users") and
+            is_exist(db, last, "last_name", "Users")
+        ):
+            flash("The name already exists.", "info")
             return redirect(url_for("admin.teacher_add"))
 
         # Add user in db
         user = add_user(db, first, second, last, email, school_id, gender, "teacher")
         user_id = user["id"]
 
-        # teacher profile form
+        # --- TEACHER PROFILE form ---
         department_id = request.form.get("department_id")
         lvl_id = request.form.get("lvl_id")
 
         assign_teacher_profile(db, user_id, department_id, lvl_id)
+
+        flash("Teacher added successfully!", "success")
         return redirect(url_for("admin.teacher_add"))
 
     else:
+        # GET request — render form
         departments = db.session.execute(text("SELECT * FROM Department")).mappings().all()
         lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
-        return render_template("admin/teacher/add_form.html", departments=departments, lvls=lvls)
+        return render_template(
+            "admin/teacher/add_form.html",
+            departments=departments,
+            lvls=lvls,
+            school_id_prev=next_id_preview()
+        )
 
 # Teacher edit
 @admin_bp.route("/teacher/edit/<string:school_id>", methods=["POST", "GET"])
@@ -833,7 +908,8 @@ def section_add():
         courses=courses,
         years=years,
         education_lvls=education_lvls,
-        teachers=teachers
+        teachers=teachers,
+        academic_year=ACADEMIC_YEAR
     )
 
 # Section Edit

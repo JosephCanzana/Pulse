@@ -1,25 +1,24 @@
 from flask import render_template, session, Blueprint, flash, request,url_for, redirect
-import json
 from flask_login import login_required, current_user
-from sqlalchemy import text
-from helpers import *
-from database import db
-import os
 from werkzeug.utils import secure_filename
+from sqlalchemy import text
+from database import db
+from helpers import *
+import json
+import os
+from datetime import datetime
 
 teacher_bp = Blueprint('teacher', __name__, url_prefix='/teacher')
 
+# GLOBAL VARIABLE
 UPLOAD_FOLDER = "uploads/lessons"
 
-
 def get_teacher_id():
-    """Helper function to get the teacher ID for the current user."""
     result = db.session.execute(
         text("SELECT id FROM TeacherProfile WHERE user_id = :user_id"),
         {"user_id": current_user.get_id()}
     ).mappings().first()
     return result["id"] if result else None
-
 
 @teacher_bp.route("/")
 @login_required
