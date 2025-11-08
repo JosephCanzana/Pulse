@@ -63,6 +63,26 @@
               <option value="completed"></option>
             </datalist>
           </div>
+          <div>
+            <label class="block text-[var(--clr-txt-secondary)]" for="class_color">Class Color</label>
+            <div class="flex items-center gap-3 mt-1">
+              <input 
+                type="color" 
+                id="class_color" 
+                name="class_color" 
+                class="h-10 w-16 border rounded-lg cursor-pointer" 
+                value="{{ class_info.class_color or '#2196f3' }}">
+
+              <!-- Reset button -->
+              <button 
+                type="button" 
+                id="reset_color_btn"
+                class="px-3 py-2 text-sm rounded-lg bg-[var(--clr-primary)] text-white hover:opacity-90 transition">
+                Reset
+              </button>
+            </div>
+          </div>
+
         </div>
 
         <div class="mt-6 flex gap-2">
@@ -161,6 +181,15 @@
 </section>
 
 <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const colorInput = document.getElementById("class_color");
+    const resetBtn = document.getElementById("reset_color_btn");
+
+    resetBtn.addEventListener("click", () => {
+      const defaultColor = "#2196f3";
+      colorInput.value = defaultColor;
+    });
+  });
   const editBtn = document.getElementById('edit-btn');
   const cancelBtn = document.getElementById('cancel-btn');
   const viewMode = document.getElementById('view-mode');

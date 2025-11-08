@@ -78,19 +78,21 @@ def classes():
         return apology("Teacher profile not found.", 404)
 
     query = text("""
-        SELECT 
-            c.id AS class_id,
-            s.name AS subject_name,
-            sec.name AS section_name,
-            el.name AS education_level
-        FROM Class c
-        JOIN Subject s ON c.subject_id = s.id
-        JOIN Section sec ON c.section_id = sec.id
-        JOIN Course co ON sec.course_id = co.id
-        JOIN EducationLevel el ON co.education_level_id = el.id
-        WHERE c.teacher_id = :teacher_id
-        ORDER BY el.name, sec.name, s.name
-    """)
+    SELECT 
+        c.id AS class_id,
+        s.name AS subject_name,
+        sec.name AS section_name,
+        el.name AS education_level,
+        c.color
+    FROM Class c
+    JOIN Subject s ON c.subject_id = s.id
+    JOIN Section sec ON c.section_id = sec.id
+    JOIN Course co ON sec.course_id = co.id
+    JOIN EducationLevel el ON co.education_level_id = el.id
+    WHERE c.teacher_id = :teacher_id
+    ORDER BY el.name, sec.name, s.name
+""")
+
 
     teacher_classes = db.session.execute(query, {"teacher_id": teacher_id}).mappings().all()
 

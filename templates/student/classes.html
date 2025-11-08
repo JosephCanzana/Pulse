@@ -18,44 +18,64 @@
 
   <!-- ACTIVE CLASSES -->
   <div>
-    <h2 class="text-xl font-semibold mb-4 text-[var(--clr-txt-secondary)]">Active Classes</h2>
-    {% if active_classes %}
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {% for c in active_classes %}
-        {% set accent = c.color if c.color else 'var(--clr-primary)' %}
+  <h2 class="text-xl font-semibold mb-4 text-[var(--clr-txt-secondary)]">Active Classes</h2>
 
-        <div class="relative group rounded-2xl overflow-hidden border border-[var(--clr-border)] bg-[var(--clr-surface)] shadow-sm hover:shadow-[0_0_15px_var(--clr-glow-primary)] transition-all duration-300 hover:-translate-y-[3px]">
+  {% if active_classes %}
+  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {% for c in active_classes %}
+    {% set accent = c.color if c.color else 'var(--clr-primary)' %}
 
-          <!-- Accent Strip -->
-          <div class="absolute left-0 top-0 h-full w-1.5" style="background-color: {{ accent }};"></div>
+    <div class="relative group rounded-2xl overflow-hidden border border-[var(--clr-border)] bg-[var(--clr-surface)] shadow-sm
+                transition-all duration-300 hover:-translate-y-[3px]"
+         style="box-shadow: 0 0 0 var(--tw-shadow-color);">
+      
+      <!-- Accent Strip -->
+      <div class="absolute left-0 top-0 h-full w-1.5"
+           style="background-color: {{ accent }};"></div>
 
-          <!-- Card Content -->
-          <div class="relative p-6 pl-8">
-            <h3 class="text-lg font-semibold text-[var(--clr-txt-primary)] mb-1 tracking-wide">
-              {{ c.subject_name }}
-            </h3>
-            <p class="text-sm text-[var(--clr-txt-secondary)] flex items-center gap-1">
-              <span class="material-symbols-rounded text-base text-[var(--clr-txt-muted)]">group</span>
-              Section: {{ c.section_name }}
-            </p>
-            <p class="text-sm text-[var(--clr-txt-secondary)] flex items-center gap-1">
-              <span class="material-symbols-rounded text-base text-[var(--clr-txt-muted)]">person</span>
-              Teacher: {{ c.teacher_name }}
-            </p>
-
-            <a href="{{ url_for('student.view_lessons', class_id=c.id) }}"
-               class="inline-flex items-center gap-2 mt-5 px-4 py-2 rounded-lg bg-[{{ accent }}] text-white text-sm font-medium shadow hover:shadow-[0_0_8px_{{ accent }}] hover:scale-[1.03] transition-all duration-200">
-              <span class="material-symbols-rounded text-base">menu_book</span>
-              View Lessons
-            </a>
-          </div>
+      <!-- Card Content -->
+      <div class="relative p-6 pl-8 flex flex-col justify-between">
+        <div>
+          <h3 class="text-lg font-semibold text-[var(--clr-txt-primary)] mb-1 tracking-wide group-hover:text-[var(--clr-primary)] transition-colors">
+            {{ c.subject_name }}
+          </h3>
+          <p class="text-sm text-[var(--clr-txt-secondary)] flex items-center gap-1 mb-1">
+            <span class="material-symbols-rounded text-base text-[var(--clr-txt-muted)]">group</span>
+            Section: {{ c.section_name }}
+          </p>
+          <p class="text-sm text-[var(--clr-txt-secondary)] flex items-center gap-1">
+            <span class="material-symbols-rounded text-base text-[var(--clr-txt-muted)]">person</span>
+            Teacher: {{ c.teacher_name }}
+          </p>
         </div>
-        {% endfor %}
+
+        <!-- View Lessons Button -->
+        <a href="{{ url_for('student.view_lessons', class_id=c.id) }}"
+           class="inline-flex items-center gap-2 mt-5 px-4 py-2 rounded-lg text-white text-sm font-medium shadow
+                  transition-all duration-200 relative overflow-hidden"
+           style="background-color: {{ accent }};
+                  box-shadow: 0 0 0 {{ accent }};
+                  color: white;"
+           onmouseover="this.style.boxShadow='0 0 12px {{ accent }}'"
+           onmouseout="this.style.boxShadow='0 0 0 {{ accent }}'">
+          <span class="material-symbols-rounded text-base">menu_book</span>
+          View Lessons
+        </a>
       </div>
-    {% else %}
-      <p class="text-[var(--clr-txt-muted)] italic">No active classes found.</p>
-    {% endif %}
+
+      <!-- Hover Glow -->
+      <div class="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition duration-500"
+           style="box-shadow: 0 0 15px {{ accent }};"></div>
+    </div>
+
+    {% endfor %}
   </div>
+
+  {% else %}
+  <p class="text-[var(--clr-txt-muted)] italic">No active classes found.</p>
+  {% endif %}
+</div>
+
 
 </section>
 {% endblock %}

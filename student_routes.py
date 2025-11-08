@@ -90,9 +90,14 @@ def dashboard():
 @login_required
 def view_classes():
     query = text("""
-        SELECT c.id, s.name AS subject_name, sec.name AS section_name,
-               c.status, t.user_id AS teacher_user_id, 
-               CONCAT(u.first_name, ' ', u.last_name) AS teacher_name
+        SELECT 
+            c.id,
+            s.name AS subject_name,
+            sec.name AS section_name,
+            c.status,
+            c.color,
+            t.user_id AS teacher_user_id,
+            CONCAT(u.first_name, ' ', u.last_name) AS teacher_name
         FROM ClassStudent cs
         JOIN Class c ON cs.class_id = c.id
         JOIN Subject s ON c.subject_id = s.id
