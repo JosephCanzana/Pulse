@@ -6,15 +6,15 @@
 {% endblock %}
 
 {% block main %}
-<section class="w-full h-full px-6 py-10 space-y-6 text-[var(--clr-txt-primary)] transition-all duration-300">
+<section class="w-full h-full space-y-6 text-[var(--clr-txt-primary)] transition-all duration-300">
 
   <!-- Header -->
   <div class="flex flex-wrap items-center justify-between">
     <h1 class="text-2xl font-bold text-[var(--clr-primary)]">My Advisory Sections</h1>
   </div>
 
-  <!-- Table -->
-  <div class="overflow-x-auto bg-white dark:bg-[var(--clr-bg-secondary)] rounded-2xl shadow-md border border-gray-200">
+  <!-- Table Container -->
+  <div class="overflow-x-auto bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-md border border-[var(--clr-border)]">
     <table class="min-w-full text-sm text-left border-collapse">
       <thead class="bg-[var(--clr-primary)] text-white">
         <tr>
@@ -28,9 +28,9 @@
           <th class="px-5 py-3 font-semibold text-center">Actions</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200">
+      <tbody class="divide-y divide-[var(--clr-border-strong)]">
         {% for section in sections %}
-        <tr class="hover:bg-[var(--clr-bg-hover)] transition-all duration-200">
+        <tr class="hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-all duration-200">
           <td class="px-5 py-3 font-medium">{{ section.section_name }}</td>
           <td class="px-5 py-3">{{ section.course_name or '—' }}</td>
           <td class="px-5 py-3">{{ section.year_level or '—' }}</td>
@@ -39,26 +39,38 @@
           <td class="px-5 py-3 text-center">{{ section.student_count }}</td>
           <td class="px-5 py-3 text-center">
             {% if section.status %}
-              <span class="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">Active</span>
+              <span class="px-3 py-1 text-xs font-semibold bg-[var(--clr-success)]/20 text-[var(--clr-success)] rounded-full">Active</span>
             {% else %}
-              <span class="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full">Archived</span>
+              <span class="px-3 py-1 text-xs font-semibold bg-[var(--clr-error)]/20 text-[var(--clr-error)] rounded-full">Archived</span>
             {% endif %}
           </td>
-          <td class="px-5 py-3 text-center space-x-2">
+          <td class="px-5 py-3 text-center flex justify-center items-center gap-2">
+
+            <!-- Edit Button -->
             <a href="{{ url_for('teacher.edit_section', section_id=section.section_id) }}"
-               class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] font-medium">Edit</a>
-            <form action="{{ url_for('teacher.toggle_section_status', section_id=section.section_id) }}"
-                  method="POST" class="inline">
+               class="flex items-center justify-center px-3 py-1 rounded-lg bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-glow-primary)] text-[var(--clr-primary)] hover:text-white shadow transition-all duration-200">
+               <span class="material-symbols-outlined text-sm">edit</span>
+            </a>
+
+            <!-- Archive / Activate Button -->
+            <form action="{{ url_for('teacher.toggle_section_status', section_id=section.section_id) }}" method="POST" class="inline">
               <button type="submit"
-                      class="text-[var(--clr-accent)] hover:text-[var(--clr-secondary)] font-medium">
-                {{ 'Archive' if section.status else 'Activate' }}
+                      class="flex items-center justify-center px-3 py-1 rounded-lg bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-warning)] text-[var(--clr-warning)] hover:text-white shadow transition-all duration-200">
+                <span class="material-symbols-outlined text-sm">archive</span>
               </button>
             </form>
+
+            <!-- View Button -->
+            <a href="{{ url_for('teacher.section_manage_students', section_id=section.section_id) }}"
+               class="flex items-center justify-center px-3 py-1 rounded-lg bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-glow-tertiary)] text-[var(--clr-tertiary)] hover:text-white shadow transition-all duration-200">
+               <span class="material-symbols-outlined text-sm">visibility</span>
+            </a>
+
           </td>
         </tr>
         {% else %}
         <tr>
-          <td colspan="8" class="text-center py-6 text-[var(--clr-txt-secondary)]">
+          <td colspan="8" class="text-center py-6 text-[var(--clr-txt-muted)]">
             No sections found.
           </td>
         </tr>
