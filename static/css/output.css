@@ -573,9 +573,6 @@
   .max-w-\[90\%\] {
     max-width: 90%;
   }
-  .max-w-\[250px\] {
-    max-width: 250px;
-  }
   .max-w-full {
     max-width: 100%;
   }
@@ -1014,28 +1011,10 @@
       background-color: color-mix(in oklab, var(--color-gray-500) 20%, transparent);
     }
   }
-  .bg-green-100 {
-    background-color: var(--color-green-100);
-  }
-  .bg-green-100\/80 {
-    background-color: color-mix(in srgb, oklch(96.2% 0.044 156.743) 80%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-green-100) 80%, transparent);
-    }
-  }
   .bg-green-500\/20 {
     background-color: color-mix(in srgb, oklch(72.3% 0.219 149.579) 20%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-green-500) 20%, transparent);
-    }
-  }
-  .bg-red-100 {
-    background-color: var(--color-red-100);
-  }
-  .bg-red-100\/80 {
-    background-color: color-mix(in srgb, oklch(93.6% 0.032 17.717) 80%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-red-100) 80%, transparent);
     }
   }
   .bg-transparent {
@@ -1491,17 +1470,11 @@
   .text-green-600 {
     color: var(--color-green-600);
   }
-  .text-green-700 {
-    color: var(--color-green-700);
-  }
   .text-red-500 {
     color: var(--color-red-500);
   }
   .text-red-600 {
     color: var(--color-red-600);
-  }
-  .text-red-700 {
-    color: var(--color-red-700);
   }
   .text-transparent {
     color: transparent;
@@ -1952,16 +1925,6 @@
       }
     }
   }
-  .hover\:bg-\[var\(--clr-glow-primary\)\]\/10 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--clr-glow-primary);
-        @supports (color: color-mix(in lab, red, red)) {
-          background-color: color-mix(in oklab, var(--clr-glow-primary) 10%, transparent);
-        }
-      }
-    }
-  }
   .hover\:bg-\[var\(--clr-glow-tertiary\)\] {
     &:hover {
       @media (hover: hover) {
@@ -2011,13 +1974,6 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--clr-secondary);
-      }
-    }
-  }
-  .hover\:bg-\[var\(--clr-success\)\] {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--clr-success);
       }
     }
   }

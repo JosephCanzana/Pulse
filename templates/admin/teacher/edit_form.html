@@ -54,14 +54,14 @@
     
     <!-- Right Column -->
     <div class="flex flex-col gap-4">
-
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Email</label>
         <input type="email" value="{{ teacher.email }}" readonly class="input-field text-[var(--clr-txt-muted)] cursor-not-allowed" />
       </div>
+
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
-        <select name="lvl_id" required class="input-field">
+        <select name="lvl_id" id="editEducationLevelSelect" required class="input-field">
           {% for lvl in lvls %}
             <option value="{{ lvl.id }}" {% if lvl.id == teacher.education_level_id %}selected{% endif %}>{{ lvl.name }}</option>
           {% endfor %}
@@ -70,7 +70,7 @@
 
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Department</label>
-        <select name="department_id" required class="input-field">
+        <select name="department_id" id="editDepartmentSelect"  class="input-field">
           {% for dept in departments %}
             <option value="{{ dept.id }}" {% if dept.id == teacher.department_id %}selected{% endif %}>{{ dept.name }}</option>
           {% endfor %}
@@ -78,9 +78,9 @@
       </div>
 
     </div>
+
     <!-- Buttons -->
     <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
-      <!-- Go Back -->
       <a href="{{ url_for('admin.teacher') }}"
          class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
                 hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
@@ -88,7 +88,6 @@
         ← Go Back
       </a>
 
-      <!-- Save Changes -->
       <button type="submit"
               class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
                      bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
@@ -100,4 +99,40 @@
 
   </form>
 </section>
+
+<script>
+  const departmentSelect = document.getElementById('editDepartmentSelect');
+  const educationSelect = document.getElementById('editEducationLevelSelect');
+  const previousDepartmentId = "{{ teacher.department_id or '' }}";
+
+  function loadDepartments(levelId, preselectedId = null) {
+    departmentSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+    fetch(`/api/teacher-hierarchy?type=departments&education_level_id=${levelId}`)
+      .then(res => res.json())
+      .then(data => {
+        departmentSelect.innerHTML = '<option value="" disabled selected>Select department</option>';
+        data.forEach(dept => {
+          const option = document.createElement('option');
+          option.value = dept.id;
+          option.textContent = dept.name;
+          if(preselectedId && dept.id == preselectedId) option.selected = true;
+          departmentSelect.appendChild(option);
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        departmentSelect.innerHTML = '<option value="" disabled selected>Error loading departments</option>';
+      });
+  }
+
+  // Initial load with preselected department
+  if(educationSelect.value) {
+    loadDepartments(educationSelect.value, previousDepartmentId);
+  }
+
+  // Update departments when education level changes
+  educationSelect.addEventListener('change', function() {
+    loadDepartments(this.value);
+  });
+</script>
 {% endblock %}

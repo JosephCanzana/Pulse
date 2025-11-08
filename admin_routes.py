@@ -338,7 +338,7 @@ def student_add():
         assign_student_profile(db, user_id, education_lvl, course_id, section_id, year_id)
 
         flash("Succesfully added", "succes")
-        return redirect(url_for("admin.student"))
+        return redirect(url_for("admin.student_add"))
 
     # GET request
     education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
@@ -601,8 +601,8 @@ def teacher_add():
         user_id = user["id"]
 
         # --- TEACHER PROFILE form ---
-        department_id = request.form.get("department_id")
-        lvl_id = request.form.get("lvl_id")
+        department_id = request.form.get("department_id") or None  # allow None
+        lvl_id = request.form.get("lvl_id") or None
 
         assign_teacher_profile(db, user_id, department_id, lvl_id)
 
@@ -642,18 +642,18 @@ def teacher_edit(school_id):
 
     if request.method == "POST":
         # Get form data
-        first = request.form.get("first_name").capitalize()
-        second = request.form.get("second_name").capitalize() if request.form.get("second_name") else None
-        last = request.form.get("last_name").capitalize()
-        gender = request.form.get("gender").capitalize()
+        first = request.form.get("first_name").strip().capitalize()
+        second = request.form.get("second_name").strip().capitalize() if request.form.get("second_name") else None
+        last = request.form.get("last_name").strip().capitalize()
+        gender = request.form.get("gender").strip().capitalize()
         school_id_new = request.form.get("school_id")
-        department_id = request.form.get("department_id")
-        lvl_id = request.form.get("lvl_id")
+        department_id = request.form.get("department_id") or None  # allow None
+        lvl_id = request.form.get("lvl_id") or None
         reset_account = request.form.get("reset_account") == "1"
 
         new_email = f"{school_id_new}@holycross.edu.ph"
 
-        if not (first and last and gender and department_id and lvl_id):
+        if not (first and last and gender and lvl_id):
             flash("Please complete all required fields.", "warning")
             return redirect(url_for("admin.teacher_edit", school_id=school_id))
 
@@ -677,6 +677,7 @@ def teacher_edit(school_id):
             "user_id": teacher["user_id"]
         })
 
+
         # Update TeacherProfile
         db.session.execute(text("""
             UPDATE TeacherProfile
@@ -688,7 +689,6 @@ def teacher_edit(school_id):
             "lvl_id": lvl_id,
             "user_id": teacher["user_id"]
         })
-
         # Reset account if triggered
         if reset_account:
             db.session.execute(text("""
@@ -759,7 +759,7 @@ def section():
         FROM Section
         LEFT JOIN Course ON Section.course_id = Course.id
         LEFT JOIN YearLevel ON Section.year_id = YearLevel.id
-        LEFT JOIN EducationLevel ON Course.education_level_id = EducationLevel.id
+        LEFT JOIN EducationLevel ON Section.education_lvl_id = EducationLevel.id
         LEFT JOIN TeacherProfile ON Section.teacher_id = TeacherProfile.id
         LEFT JOIN Users ON TeacherProfile.user_id = Users.id
         WHERE Section.status = :status
@@ -767,7 +767,7 @@ def section():
 
     params = {"status": 0 if show_archive else 1}
 
-    # Add search filter if keyword exists
+    # 🔍 Optional search
     if search:
         base_query += """
             AND (
@@ -856,14 +856,25 @@ def section_add():
             WHERE name = :name 
               AND academic_year = :academic_year 
               AND year_id = :year_id 
-              AND (:course_id IS NULL AND course_id IS NULL OR course_id = :course_id)
+              AND education_lvl_id = :education_lvl_id
+              AND (
+                    (:course_id IS NULL AND course_id IS NULL) 
+                    OR course_id = :course_id
+                  )
         """
         duplicate = db.session.execute(
             text(duplicate_query),
-            {"name": name, "academic_year": academic_year, "year_id": year_id, "course_id": course_id}
+            {
+                "name": name,
+                "academic_year": academic_year,
+                "year_id": year_id,
+                "education_lvl_id": ed_lvl_id,
+                "course_id": course_id
+            }
         ).first()
+
         if duplicate:
-            flash("Section name already exists for this academic year.", "info")
+            flash("Section name already exists for this academic year and level.", "info")
             return redirect(url_for("admin.section_add"))
 
         # --- Teacher validation ---
@@ -872,17 +883,23 @@ def section_add():
                 text("SELECT id FROM TeacherProfile WHERE id = :id"), {"id": teacher_id}
             ).first()
             if not teacher_exists:
-                teacher_id = None  # Allow section creation without a teacher
+                teacher_id = None
                 flash("Teacher not found. Section will be created without a teacher.", "info")
 
         # --- Insert Section ---
         db.session.execute(
             text("""
-                INSERT INTO Section (name, academic_year, course_id, year_id, teacher_id)
-                VALUES (:name, :academic_year, :course_id, :year_id, :teacher_id)
+                INSERT INTO Section (name, academic_year, education_lvl_id, course_id, year_id, teacher_id)
+                VALUES (:name, :academic_year, :education_lvl_id, :course_id, :year_id, :teacher_id)
             """),
-            {"name": name, "academic_year": academic_year, "course_id": course_id,
-             "year_id": year_id, "teacher_id": teacher_id}
+            {
+                "name": name,
+                "academic_year": academic_year,
+                "education_lvl_id": ed_lvl_id,
+                "course_id": course_id,
+                "year_id": year_id,
+                "teacher_id": teacher_id
+            }
         )
         db.session.commit()
 
@@ -917,10 +934,9 @@ def section_add():
 @login_required
 def section_edit(section_id):
     section = db.session.execute(text("""
-        SELECT s.*, y.id AS year_id, y.name AS year_name, y.education_level_id, e.name AS education_level_name
+        SELECT s.*, e.name AS education_level_name
         FROM Section s
-        LEFT JOIN YearLevel y ON s.year_id = y.id
-        LEFT JOIN EducationLevel e ON y.education_level_id = e.id
+        LEFT JOIN EducationLevel e ON s.education_lvl_id = e.id
         WHERE s.id = :section_id
     """), {"section_id": section_id}).mappings().first()
 
@@ -934,21 +950,28 @@ def section_edit(section_id):
         ed_lvl_id = request.form.get("education_lvl_id")
         course_id = request.form.get("course_id")
         year_id = request.form.get("year_id")
-        teacher_name = request.form.get("teacher_name", None).strip()
+        teacher_name = request.form.get("teacher_name", "").strip()
         teacher_id = None
 
-        # Convert ed_lvl_id and course_id to int if possible
+        # --- Convert IDs ---
         try:
             ed_lvl_id = int(ed_lvl_id)
         except (TypeError, ValueError):
-            ed_lvl_id = None
+            flash("Invalid education level selected.", "warning")
+            return redirect(url_for("admin.section_edit", section_id=section_id))
 
         try:
             course_id = int(course_id) if course_id else None
         except (TypeError, ValueError):
             course_id = None
 
-        # Validation
+        try:
+            year_id = int(year_id)
+        except (TypeError, ValueError):
+            flash("Invalid year selected.", "warning")
+            return redirect(url_for("admin.section_edit", section_id=section_id))
+
+        # --- Validation ---
         if not (name and academic_year and year_id and ed_lvl_id):
             flash("All fields are required!", "warning")
             return redirect(url_for("admin.section_edit", section_id=section_id))
@@ -960,38 +983,46 @@ def section_edit(section_id):
         if ed_lvl_id in [1, 2]:
             course_id = None
 
-        # Check duplicate name excluding current section
+        # --- Duplicate check ---
         duplicate = db.session.execute(text("""
-                SELECT 1 FROM Section
-                WHERE name = :name 
-                AND academic_year = :academic_year
-                AND id != :section_id
-            """), {"name": name, "academic_year": academic_year, "section_id": section_id}).first()
-
+            SELECT 1 FROM Section
+            WHERE name = :name 
+              AND academic_year = :academic_year
+              AND education_lvl_id = :education_lvl_id
+              AND id != :section_id
+        """), {
+            "name": name,
+            "academic_year": academic_year,
+            "education_lvl_id": ed_lvl_id,
+            "section_id": section_id
+        }).first()
 
         if duplicate:
-            flash("Section name already exists.", "info")
+            flash("Section name already exists for this level and academic year.", "info")
             return redirect(url_for("admin.section_edit", section_id=section_id))
-        
-        if teacher_name: 
+
+        # --- Teacher lookup ---
+        if teacher_name:
             teacher = db.session.execute(text("""
-                SELECT tp.id FROM TeacherProfile tp
+                SELECT tp.id 
+                FROM TeacherProfile tp
                 JOIN Users u ON tp.user_id = u.id
                 WHERE CONCAT(u.first_name, ' ', u.middle_name, ' ', u.last_name) = :full_name
-                AND u.status = 1 AND u.role = 'teacher'
-            """), {"full_name": teacher_name}).first()
-        
-            if teacher:
-                teacher_id = teacher.id
-            else:
-                flash("Teacher not found. Section will be created without a teacher.", "info")
-                return redirect(url_for("admin.section_add"))
+                  AND u.status = 1 AND u.role = 'teacher'
+            """), {"full_name": teacher_name}).mappings().first()
 
-        # Update section
+            if teacher:
+                teacher_id = teacher["id"]
+            else:
+                flash("Teacher not found. Section will be saved without a teacher.", "info")
+                teacher_id = None
+
+        # --- Update Section ---
         db.session.execute(text("""
             UPDATE Section
             SET name = :name,
                 academic_year = :academic_year,
+                education_lvl_id = :education_lvl_id,
                 course_id = :course_id,
                 year_id = :year_id,
                 teacher_id = :teacher_id
@@ -999,47 +1030,44 @@ def section_edit(section_id):
         """), {
             "name": name,
             "academic_year": academic_year,
+            "education_lvl_id": ed_lvl_id,
             "course_id": course_id,
             "year_id": year_id,
-            "section_id": section_id,
-            "teacher_id": teacher_id
+            "teacher_id": teacher_id,
+            "section_id": section_id
         })
         db.session.commit()
+
         flash("Section updated successfully!", "success")
         return redirect(url_for("admin.section"))
-    else:
-        education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
-        courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
-        years = db.session.execute(text("""
-            SELECT y.id, y.name, y.education_level_id, e.name AS education_level_name
-            FROM YearLevel y
-            LEFT JOIN EducationLevel e ON y.education_level_id = e.id
-        """)).mappings().all()
 
-        teachers = db.session.execute(
-        text("""
-            SELECT TeacherProfile.id, Users.first_name, Users.middle_name, Users.last_name
-            FROM TeacherProfile
-            JOIN Users ON TeacherProfile.user_id = Users.id
-            WHERE Users.status = 1 AND Users.role = 'teacher'
-            ORDER BY Users.last_name, Users.first_name
-        """)).mappings().all()
+    # --- GET request ---
+    education_lvls = db.session.execute(text("SELECT * FROM EducationLevel")).mappings().all()
+    courses = db.session.execute(text("SELECT * FROM Course")).mappings().all()
+    years = db.session.execute(text("SELECT * FROM YearLevel")).mappings().all()
+    teachers = db.session.execute(text("""
+        SELECT TeacherProfile.id, Users.first_name, Users.middle_name, Users.last_name
+        FROM TeacherProfile
+        JOIN Users ON TeacherProfile.user_id = Users.id
+        WHERE Users.status = 1 AND Users.role = 'teacher'
+        ORDER BY Users.last_name, Users.first_name
+    """)).mappings().all()
 
-        current_teacher_name = ""
-        if section['teacher_id']:
-            teacher = next((t for t in teachers if t['id'] == section['teacher_id']), None)
-            if teacher:
-                current_teacher_name = f"{teacher['first_name']} {teacher['middle_name']} {teacher['last_name']}"
+    current_teacher_name = ""
+    if section["teacher_id"]:
+        teacher = next((t for t in teachers if t["id"] == section["teacher_id"]), None)
+        if teacher:
+            current_teacher_name = f"{teacher['first_name']} {teacher['middle_name']} {teacher['last_name']}"
 
-        return render_template(
-            "admin/section/edit_form.html",
-            section=section,
-            courses=courses,
-            years=years,
-            education_lvls=education_lvls,
-            teachers=teachers,
-            current_teacher_name=current_teacher_name
-        )
+    return render_template(
+        "admin/section/edit_form.html",
+        section=section,
+        courses=courses,
+        years=years,
+        education_lvls=education_lvls,
+        teachers=teachers,
+        current_teacher_name=current_teacher_name
+    )
 
 # Section Archive
 @admin_bp.route("/section/archive/<int:section_id>", methods=["POST", "GET"])

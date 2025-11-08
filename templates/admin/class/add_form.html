@@ -27,7 +27,7 @@
     <div class="flex flex-col gap-4">
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Teacher</label>
-        <select name="teacher_id" required class="input-field">
+        <select id="teacherSelect" name="teacher_id" required class="input-field">
           <option value="" disabled selected>Select teacher</option>
           {% for t in teachers %}
             <option value="{{ t.id }}">{{ t.first_name }} {{ t.last_name }}</option>
@@ -37,7 +37,7 @@
 
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Subject</label>
-        <select name="subject_id" required class="input-field">
+        <select id="subjectSelect" name="subject_id" required class="input-field">
           <option value="" disabled selected>Select subject</option>
           {% for s in subjects %}
             <option value="{{ s.id }}">{{ s.name }}</option>
@@ -50,7 +50,7 @@
     <div class="flex flex-col gap-4">
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section</label>
-        <select name="section_id" required class="input-field">
+        <select id="sectionSelect" name="section_id" required class="input-field">
           <option value="" disabled selected>Select section</option>
           {% for sec in sections %}
             <option value="{{ sec.id }}">{{ sec.name }}</option>
@@ -77,4 +77,63 @@
     </div>
   </form>
 </section>
+
+<!-- AJAX Script -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const teacherSelect = document.getElementById('teacherSelect');
+  const sectionSelect = document.getElementById('sectionSelect');
+  const subjectSelect = document.getElementById('subjectSelect');
+
+  teacherSelect.addEventListener('change', function() {
+    const teacherId = this.value;
+
+    if (!teacherId) return;
+
+    // Load Sections
+    sectionSelect.innerHTML = '<option value="" disabled selected>Loading sections...</option>';
+    fetch(`/api/class-hierarchy?type=sections&teacher_id=${teacherId}`)
+      .then(res => res.json())
+      .then(data => {
+        sectionSelect.innerHTML = '<option value="" disabled selected>Select section</option>';
+        if (data.length === 0) {
+          sectionSelect.innerHTML = '<option value="" disabled>No sections available</option>';
+        } else {
+          data.forEach(sec => {
+            const option = document.createElement('option');
+            option.value = sec.id;
+            option.textContent = `${sec.name} (${sec.academic_year})`;
+            sectionSelect.appendChild(option);
+          });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        sectionSelect.innerHTML = '<option value="" disabled>Error loading sections</option>';
+      });
+
+    // Load Subjects
+    subjectSelect.innerHTML = '<option value="" disabled selected>Loading subjects...</option>';
+    fetch(`/api/class-hierarchy?type=subjects&teacher_id=${teacherId}`)
+      .then(res => res.json())
+      .then(data => {
+        subjectSelect.innerHTML = '<option value="" disabled selected>Select subject</option>';
+        if (data.length === 0) {
+          subjectSelect.innerHTML = '<option value="" disabled>No subjects available</option>';
+        } else {
+          data.forEach(sub => {
+            const option = document.createElement('option');
+            option.value = sub.id;
+            option.textContent = sub.name;
+            subjectSelect.appendChild(option);
+          });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        subjectSelect.innerHTML = '<option value="" disabled>Error loading subjects</option>';
+      });
+  });
+});
+</script>
 {% endblock %}

@@ -92,6 +92,79 @@ def student_hierarchy():
 
     return jsonify([])
 
+@app.route("/api/teacher-hierarchy")
+def teacher_hierarchy():
+    """
+    AJAX endpoint for populating teacher-related dropdowns.
+    Example: Education Level -> Departments
+    """
+    query_type = request.args.get("type")
+    level_id = request.args.get("education_level_id")
+
+    if query_type == "departments" and level_id:
+        result = db.session.execute(
+            text("SELECT id, name FROM Department WHERE education_level_id = :level_id AND status = 1"),
+            {"level_id": level_id}
+        ).mappings().all()
+        return jsonify([dict(r) for r in result])
+
+    return jsonify([])
+
+@app.route("/api/class-hierarchy")
+def class_hierarchy():
+    """
+    AJAX endpoint for Class form:
+    - teacher -> subjects
+    - teacher -> education level -> sections
+    (Any section under the same education level as the teacher)
+    """
+    query_type = request.args.get("type")
+    teacher_id = request.args.get("teacher_id")
+
+    if not teacher_id:
+        return jsonify([])
+
+    # Get teacher's education level first
+    teacher_info = db.session.execute(
+        text("SELECT education_level_id FROM TeacherProfile WHERE id = :teacher_id"),
+        {"teacher_id": teacher_id}
+    ).mappings().first()
+
+    if not teacher_info:
+        return jsonify([])
+
+    education_level_id = teacher_info["education_level_id"]
+
+    if query_type == "subjects":
+        # Fetch subjects the teacher can teach based on education level
+        result = db.session.execute(
+            text("""
+                SELECT s.id, s.name
+                FROM Subject s
+                WHERE s.education_level_id = :education_level_id
+                  AND s.status = 1
+            """),
+            {"education_level_id": education_level_id}
+        ).mappings().all()
+        return jsonify([dict(r) for r in result])
+
+    if query_type == "sections":
+        # Fetch all sections under the same education level
+        result = db.session.execute(
+            text("""
+                SELECT sec.id, sec.name, sec.academic_year
+                FROM Section sec
+                JOIN EducationLevel e ON e.id = sec.education_level_id
+                WHERE sec.education_level_id = :education_level_id
+                  AND sec.status = 1
+            """),
+            {"education_level_id": education_level_id}
+        ).mappings().all()
+        return jsonify([dict(r) for r in result])
+
+    return jsonify([])
+
+
 # Daily Random Quotes
 last_checked_date = None
 

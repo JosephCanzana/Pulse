@@ -72,18 +72,22 @@ CREATE TABLE IF NOT EXISTS TeacherProfile (
 -- Section table
 CREATE TABLE IF NOT EXISTS Section (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    education_lvl_id INT,
     name VARCHAR(50) NOT NULL,
     year_id INT,
     course_id INT,
-    academic_year VARCHAR(20), 
+    academic_year VARCHAR(20),
     teacher_id INT NULL,
     status BOOLEAN NOT NULL DEFAULT TRUE,
+    
+    FOREIGN KEY (education_lvl_id) REFERENCES EducationLevel(id)
+        ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (year_id) REFERENCES YearLevel(id)
         ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (course_id) REFERENCES Course(id)
         ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (teacher_id) REFERENCES TeacherProfile(id)
-    ON DELETE SET NULL ON UPDATE CASCADE
+        ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- Subject table

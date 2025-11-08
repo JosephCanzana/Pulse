@@ -109,23 +109,25 @@ def view_class(class_id):
 
     # Fetch class info with joined names (now includes color)
     class_query = text("""
-        SELECT 
-            c.id AS class_id,
-            c.subject_id,
-            c.section_id,
-            c.status AS class_status,
-            c.color AS class_color,
-            s.name AS subject_name,
-            sec.name AS section_name,
-            co.name AS course_name,
-            el.name AS education_level
-        FROM Class c
-        JOIN Subject s ON c.subject_id = s.id
-        JOIN Section sec ON c.section_id = sec.id
-        LEFT JOIN Course co ON sec.course_id = co.id
-        LEFT JOIN EducationLevel el ON co.education_level_id = el.id
-        WHERE c.id = :class_id
-    """)
+    SELECT 
+        c.id AS class_id,
+        c.subject_id,
+        c.section_id,
+        c.status AS class_status,
+        c.color AS class_color,
+        s.name AS subject_name,
+        sec.name AS section_name,
+        co.name AS course_name,
+        COALESCE(el_from_course.name, el_from_year.name) AS education_level
+    FROM Class c
+    JOIN Subject s ON c.subject_id = s.id
+    JOIN Section sec ON c.section_id = sec.id
+    LEFT JOIN Course co ON sec.course_id = co.id
+    LEFT JOIN EducationLevel el_from_course ON co.education_level_id = el_from_course.id
+    LEFT JOIN YearLevel yl ON sec.year_id = yl.id
+    LEFT JOIN EducationLevel el_from_year ON yl.education_level_id = el_from_year.id
+    WHERE c.id = :class_id
+""")
     class_info = db.session.execute(class_query, {"class_id": class_id}).mappings().first()
 
     if not class_info:
@@ -516,20 +518,34 @@ def remove_student_from_class(class_id):
     return redirect(url_for("teacher.manage_student", class_id=class_id))
 
 
+
 # ============================
-# Manage Sections (Adviser)
+# Manage Sections (Teacher)
 # ============================
 @teacher_bp.route("/sections", methods=["GET"])
 @login_required
 def manage_sections():
-    """Display all sections handled by the current teacher, with search and archive filter."""
+    """Display all sections accessible to the current teacher (by education level), with search and archive filter."""
     teacher_id = get_teacher_id()
     if not teacher_id:
         return apology("Teacher profile not found.", 404)
 
+    # Get the teacher's education level
+    teacher = db.session.execute(text("""
+        SELECT tp.education_level_id
+        FROM TeacherProfile tp
+        WHERE tp.id = :teacher_id
+    """), {"teacher_id": teacher_id}).mappings().first()
+
+    if not teacher:
+        flash("Teacher profile not found or incomplete.", "danger")
+        return redirect(url_for("teacher.dashboard"))
+
+    teacher_lvl_id = teacher.education_level_id
     show_archive = session.get("show_archive_section", False)
     search = request.args.get("search", "").strip()
 
+    # Updated query: show all sections in the same education level as the teacher
     base_query = """
         SELECT
             sec.id AS section_id,
@@ -538,17 +554,21 @@ def manage_sections():
             yl.name AS year_name,
             co.name AS course_name,
             el.name AS education_level_name,
-            COUNT(sp.id) AS student_count
+            COUNT(sp.id) AS student_count,
+            tp.id AS assigned_teacher_id,
+            CONCAT(u.first_name, ' ', u.last_name) AS assigned_teacher_name
         FROM Section sec
         LEFT JOIN YearLevel yl ON sec.year_id = yl.id
         LEFT JOIN Course co ON sec.course_id = co.id
         LEFT JOIN EducationLevel el ON co.education_level_id = el.id
         LEFT JOIN StudentProfile sp ON sp.section_id = sec.id
-        WHERE sec.teacher_id = :teacher_id
+        LEFT JOIN TeacherProfile tp ON sec.teacher_id = tp.id
+        LEFT JOIN Users u ON tp.user_id = u.id
+        WHERE el.id = :teacher_lvl_id
           AND sec.status = :status
     """
 
-    params = {"teacher_id": teacher_id, "status": 0 if show_archive else 1}
+    params = {"teacher_lvl_id": teacher_lvl_id, "status": 0 if show_archive else 1}
 
     if search:
         base_query += """
@@ -558,12 +578,16 @@ def manage_sections():
                 OR co.name LIKE :search
                 OR yl.name LIKE :search
                 OR el.name LIKE :search
+                OR u.first_name LIKE :search
+                OR u.last_name LIKE :search
             )
         """
         params["search"] = f"%{search}%"
 
-    base_query += " GROUP BY sec.id, sec.name, yl.name, co.name, el.name, sec.academic_year, sec.status"
-    base_query += " ORDER BY el.name, co.name, yl.name, sec.name"
+    base_query += """
+        GROUP BY sec.id, sec.name, yl.name, co.name, el.name, sec.academic_year, sec.status, tp.id, u.first_name, u.last_name
+        ORDER BY el.name, co.name, yl.name, sec.name
+    """
 
     sections = db.session.execute(text(base_query), params).mappings().all()
 
@@ -574,16 +598,30 @@ def manage_sections():
         search=search
     )
 
+
 # ============================
-# Edit Section
+# Edit Section (Teacher)
 # ============================
 @teacher_bp.route("/sections/edit/<int:section_id>", methods=["GET", "POST"])
 @login_required
 def edit_section(section_id):
-    """Edit section information like name, academic year, course, and year level."""
+    """Edit section information (only if in the same education level as the teacher)."""
     teacher_id = get_teacher_id()
 
-    # Fetch the section with its education level
+    # Get the teacher’s education level
+    teacher = db.session.execute(text("""
+        SELECT education_level_id
+        FROM TeacherProfile
+        WHERE id = :teacher_id
+    """), {"teacher_id": teacher_id}).mappings().first()
+
+    if not teacher:
+        flash("Teacher profile not found or incomplete.", "danger")
+        return redirect(url_for("teacher.manage_sections"))
+
+    teacher_lvl_id = teacher.education_level_id
+
+    # Fetch the section ensuring it belongs to the teacher's education level
     section = db.session.execute(text("""
         SELECT 
             s.id,
@@ -595,40 +633,36 @@ def edit_section(section_id):
             c.education_level_id AS education_lvl_id
         FROM Section s
         JOIN Course c ON s.course_id = c.id
-        WHERE s.id = :id AND s.teacher_id = :teacher_id
-    """), {"id": section_id, "teacher_id": teacher_id}).mappings().first()
+        WHERE s.id = :id
+          AND c.education_level_id = :teacher_lvl_id
+    """), {"id": section_id, "teacher_lvl_id": teacher_lvl_id}).mappings().first()
 
     if not section:
-        flash("Section not found or not assigned to you.", "danger")
+        flash("Section not found or not in your education level.", "danger")
         return redirect(url_for("teacher.manage_sections"))
 
-    # Fetch all education levels
-    education_levels = db.session.execute(text("""
-        SELECT id, name FROM EducationLevel
-    """)).mappings().all()
+    # Load dropdown options
+    education_levels = db.session.execute(text("SELECT id, name FROM EducationLevel")).mappings().all()
 
-    # Fetch related courses and year levels based on current education level
     courses = db.session.execute(text("""
         SELECT id, name FROM Course
         WHERE education_level_id = :lvl_id AND status = 1
-    """), {"lvl_id": section.education_lvl_id}).mappings().all()
+    """), {"lvl_id": teacher_lvl_id}).mappings().all()
 
     year_levels = db.session.execute(text("""
         SELECT id, name FROM YearLevel
         WHERE education_level_id = :lvl_id
-    """), {"lvl_id": section.education_lvl_id}).mappings().all()
+    """), {"lvl_id": teacher_lvl_id}).mappings().all()
 
-    # Handle form submission
+    # Handle POST request (update section)
     if request.method == "POST":
         name = request.form.get("name", "").strip().capitalize()
         academic_year = request.form.get("academic_year", "").strip()
-        education_lvl_id = request.form.get("education_lvl_id")
         course_id = request.form.get("course_id")
         year_lvl_id = request.form.get("year_lvl_id")
         status = request.form.get("status", "1")
 
-        # Validation
-        if not name or not academic_year or not education_lvl_id or not course_id or not year_lvl_id:
+        if not name or not academic_year or not course_id or not year_lvl_id:
             flash("Please fill out all required fields.", "warning")
             return redirect(request.url)
 
@@ -640,15 +674,14 @@ def edit_section(section_id):
                     course_id = :course_id,
                     year_id = :year_lvl_id,
                     status = :status
-                WHERE id = :section_id AND teacher_id = :teacher_id
+                WHERE id = :section_id
             """), {
                 "name": name,
                 "academic_year": academic_year,
                 "course_id": course_id,
                 "year_lvl_id": year_lvl_id,
                 "status": status,
-                "section_id": section_id,
-                "teacher_id": teacher_id
+                "section_id": section_id
             })
             db.session.commit()
             flash("Section updated successfully!", "success")
@@ -665,7 +698,6 @@ def edit_section(section_id):
         courses=courses,
         year_levels=year_levels
     )
-
 
 # ============================
 # Archive / Activate Section

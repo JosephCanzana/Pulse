@@ -57,7 +57,7 @@
     <div class="flex flex-col gap-4">
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
-        <select name="lvl_id" required class="input-field">
+        <select name="lvl_id" id="educationLevelSelect" required class="input-field">
           <option value="" disabled selected>Select education level</option>
           {% for lvl in lvls %}
             <option value="{{ lvl.id }}">{{ lvl.name }}</option>
@@ -67,7 +67,7 @@
 
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Department</label>
-        <select name="department_id" required class="input-field">
+        <select name="department_id" id="departmentSelect" class="input-field">
           <option value="" disabled selected>Select department</option>
           {% for department in departments %}
             <option value="{{ department.id }}">{{ department.name }}</option>
@@ -78,23 +78,20 @@
 
     <!-- Buttons -->
     <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
-      <!-- Go Back -->
       <a type="button" href="{{ url_for('admin.teacher') }}"
-              class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
-                     hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
-                     transition-all duration-200">
+         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
+                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
+                transition-all duration-200">
         ← Go Back
       </a>
 
-      <!-- Restore -->
-      <button type="button"  onclick="restoreLastEntry('#teacherForm', 'lastTeacherForm')"
+      <button type="button" onclick="restoreLastEntry('#teacherForm', 'lastTeacherForm')"
               class="px-6 py-2 rounded-lg text-[var(--clr-primary)] text-sm font-medium border border-[var(--clr-primary)]
                      hover:bg-[var(--clr-primary)] hover:text-white
                      transition-all duration-200">
         Restore Last Entry
       </button>
 
-      <!-- Submit -->
       <button type="submit"
               class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
                      bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
@@ -105,4 +102,31 @@
     </div>
   </form>
 </section>
+
+<script>
+  // When education level changes, fetch departments via AJAX
+  document.getElementById('educationLevelSelect').addEventListener('change', function() {
+    const levelId = this.value;
+    const departmentSelect = document.getElementById('departmentSelect');
+    
+    // Clear current options
+    departmentSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+
+    fetch(`/api/teacher-hierarchy?type=departments&education_level_id=${levelId}`)
+      .then(response => response.json())
+      .then(data => {
+        departmentSelect.innerHTML = '<option value="" disabled selected>Select department</option>';
+        data.forEach(dept => {
+          const option = document.createElement('option');
+          option.value = dept.id;
+          option.textContent = dept.name;
+          departmentSelect.appendChild(option);
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        departmentSelect.innerHTML = '<option value="" disabled selected>Error loading departments</option>';
+      });
+  });
+</script>
 {% endblock %}
