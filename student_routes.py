@@ -123,11 +123,31 @@ def view_lessons(class_id):
     # Get class status
     class_status_query = text("SELECT status FROM Class WHERE id = :class_id")
     class_status = db.session.execute(class_status_query, {'class_id': class_id}).scalar()
+    class_info_query = text("""
+        SELECT 
+            c.id,
+            c.teacher_id,
+            c.subject_id,
+            c.section_id,
+            c.status,
+            c.color,
+            c.created_at,
+            c.updated_at,
+            t.user_id AS teacher_user_id,
+            s.name AS subject_name,
+            sec.name AS section_name
+        FROM Class c
+        LEFT JOIN TeacherProfile t ON c.teacher_id = t.id
+        LEFT JOIN Subject s ON c.subject_id = s.id
+        LEFT JOIN Section sec ON c.section_id = sec.id
+        WHERE c.id = :class_id
+    """)
+    class_info = db.session.execute(class_info_query, {'class_id': class_id}).mappings().first()
 
     # Fetch lessons with progress and files
     query = text("""
         SELECT l.id, l.lesson_number, l.title, l.description,
-               slp.status, slp.completed_at,
+               slp.status, slp.completed_at, slp.started_at,
                lf.id AS file_id, lf.file_name, lf.file_path, lf.file_type
         FROM Lesson l
         LEFT JOIN StudentLessonProgress slp 
@@ -153,7 +173,8 @@ def view_lessons(class_id):
         "student/lessons.html",
         lessons=lessons,
         class_id=class_id,
-        class_status=class_status  # Pass the status to the template
+        class_status=class_status,
+        class_info=class_info
     )
 
 # ==============================
