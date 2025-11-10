@@ -1,63 +1,111 @@
 {% set page_title = "Teaching" %}
 {% extends "layout.html" %}
+
 {% block title %}My Classes{% endblock %}
 
 {% block main %}
 <section class="p-0">
-  <header class="mb-6">
+
+  <!-- Page Header -->
+  <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
+      <header class="mb-6">
     <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Class I Teach</h1>
     <p class="text-[var(--clr-txt-muted)] mt-1">Subjects you’re currently handling</p>
   </header>
 
-  {% if classes %}
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-  {% for item in classes %}
-  <div 
-    class="group relative bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between">
+    <!-- Left: Status Filter & Search -->
+    <div class="flex flex-wrap items-center gap-3">
 
-    <!-- Accent Color Bar -->
-    <div class="h-1.5 w-full" style="background: {{ item.color or 'var(--clr-secondary)' }}"></div>
-
-    <!-- Card Content -->
-    <div class="p-5 flex-1 flex flex-col justify-between">
-      <div>
-        <h2 class="text-lg font-semibold text-[var(--clr-txt-primary)] mb-2 transition">
-          {{ item.subject_name }}
-        </h2>
-        <div class="space-y-1 text-sm">
-          <p class="text-[var(--clr-txt-secondary)]">
-            <span class="font-medium">Section:</span>
-            <span class="text-[var(--clr-txt-muted)]">{{ item.section_name }}</span>
-          </p>
-          <p class="text-[var(--clr-txt-secondary)]">
-            <span class="font-medium">Level:</span>
-            <span class="text-[var(--clr-txt-muted)]">{{ item.education_level }}</span>
-          </p>
+      <!-- Search Bar -->
+      <form method="get" class="flex items-center gap-2">
+        {% if selected_status %}
+          <input type="hidden" name="status" value="{{ selected_status }}">
+        {% endif %}
+        <div class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] px-4 py-2 focus-within:ring-2 focus-within:ring-[var(--clr-primary)] transition-all">
+          <span class="material-symbols-rounded text-[var(--clr-txt-secondary)]">search</span>
+          <input type="text" name="search" value="{{ search or '' }}"
+                 placeholder="Search subject, section, or level..."
+                 class="bg-transparent focus:outline-none text-[var(--clr-txt-primary)] w-56">
         </div>
+        <button type="submit"
+                class="px-4 py-2 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-md hover:shadow-lg hover:bg-[var(--clr-secondary)] transition-all">
+          Search
+        </button>
+      </form>
+       <!-- Status Filter -->
+      <form method="get" class="flex items-center gap-2">
+        <label for="status" class="text-[var(--clr-txt-secondary)] font-medium">Status:</label>
+        <select name="status" id="status" onchange="this.form.submit()"
+                class="px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] backdrop-blur-sm text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+          <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All</option>
+          <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
+          <option value="cancelled" {% if selected_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+          <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option>
+        </select>
+
+        <!-- Preserve search term -->
+        {% if search %}
+          <input type="hidden" name="search" value="{{ search }}">
+        {% endif %}
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Class Cards -->
+  {% if classes %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for item in classes %}
+    <div class="group relative bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between">
+
+      <!-- Accent Color Bar -->
+      <div class="h-1.5 w-full" style="background: {{ item.color or 'var(--clr-secondary)' }}"></div>
+
+      <!-- Card Content -->
+      <div class="p-5 flex-1 flex flex-col justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-[var(--clr-txt-primary)] mb-2 transition">
+            {{ item.subject_name }}
+          </h2>
+          <div class="space-y-1 text-sm">
+            <p class="text-[var(--clr-txt-secondary)]">
+              <span class="font-medium">Section:</span>
+              <span class="text-[var(--clr-txt-muted)]">{{ item.section_name }}</span>
+            </p>
+            <p class="text-[var(--clr-txt-secondary)]">
+              <span class="font-medium">Level:</span>
+              <span class="text-[var(--clr-txt-muted)]">{{ item.education_level }}</span>
+            </p>
+            <p class="text-[var(--clr-txt-secondary)]">
+              <span class="font-medium">Status:</span>
+              <span class="text-[var(--clr-txt-muted)]">{{ item.status|capitalize }}</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- View Details Button -->
+        <a href="{{ url_for('teacher.view_class', class_id=item.class_id) }}"
+           class="mt-4 inline-flex items-center gap-1 font-medium relative overflow-hidden transition-all duration-200
+                  after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 after:bg-current
+                  hover:after:w-full after:transition-all after:duration-300"
+           style="color: {{ item.color or 'var(--clr-secondary)' }}">
+          <span class="relative z-10 flex items-center gap-1">
+            View Details
+            <span class="material-symbols-outlined text-base translate-y-[1px]">arrow_forward</span>
+          </span>
+          <span class="absolute inset-0 opacity-0 transition-all duration-300 bg-current rounded-md scale-95 active:opacity-15 active:scale-100"></span>
+        </a>
       </div>
 
-      <!-- View Details Button -->
-      <a href="{{ url_for('teacher.view_class', class_id=item.class_id) }}"
-         class="mt-4 inline-flex items-center gap-1 font-medium relative overflow-hidden transition-all duration-200
-                after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 after:bg-current
-                hover:after:w-full after:transition-all after:duration-300"
-         style="color: {{ item.color or 'var(--clr-secondary)' }}">
-        <span class="relative z-10 flex items-center gap-1">
-          View Details
-          <span class="material-symbols-outlined text-base translate-y-[1px]">arrow_forward</span>
-        </span>
-        <!-- Press ripple / highlight -->
-        <span class="absolute inset-0 opacity-0 transition-all duration-300 bg-current rounded-md scale-95 active:opacity-15 active:scale-100"></span>
-      </a>
+      <!-- Hover Glow -->
+      <div class="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition duration-500"
+           style="box-shadow: 0 0 20px {{ item.color or 'var(--clr-glow-primary)' }};"></div>
     </div>
-
-    <!-- Hover Glow -->
-    <div class="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition duration-500"
-         style="box-shadow: 0 0 20px {{ item.color or 'var(--clr-glow-primary)' }};"></div>
+    {% endfor %}
   </div>
-  {% endfor %}
-</div>
-{% endif %}
+  {% else %}
+  <p class="text-[var(--clr-txt-secondary)] mt-6">No classes found.</p>
+  {% endif %}
 
 </section>
 {% endblock %}

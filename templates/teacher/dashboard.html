@@ -84,47 +84,54 @@
     {% endfor %}
   </section>
 
-  <!-- ADVISORY SECTIONS -->
-  <section class="mb-10">
-    <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] mb-4">
-      Your Advisory Sections
-    </h2>
-
-    {% if sections %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {% for sec in sections %}
-      <div class="bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-xl shadow-sm p-5 hover:shadow-lg hover:scale-[1.01] transition-all duration-200">
-        <h3 class="text-lg font-semibold text-[var(--clr-txt-primary)] mb-1">{{ sec.section_name }}</h3>
-        <p class="text-[var(--clr-txt-secondary)] text-sm leading-6">
-          Course: <span class="text-[var(--clr-txt-muted)]">{{ sec.course_name }}</span><br>
-          Level: <span class="text-[var(--clr-txt-muted)]">{{ sec.education_level }}</span><br>
-          Students: <span class="text-[var(--clr-txt-muted)]">{{ sec.student_count }}</span>
-        </p>
-        <a href="{{ url_for('teacher.section_manage_students', section_id=sec.section_id) }}"
-           class="mt-3 inline-block text-[var(--clr-secondary)] font-medium hover:text-[var(--clr-txt-hover)] transition">
-          View Section →
-        </a>
-      </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="text-center text-[var(--clr-txt-muted)] py-12">
-      No advisory sections assigned yet.
-    </div>
-    {% endif %}
-  </section>
-
   <!-- RECENT ACTIVITY -->
-  <section>
-    <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] mb-4">
-      Recent Activity
-    </h2>
-    <div class="bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-xl shadow-sm p-6">
-      <p class="text-[var(--clr-txt-secondary)]">
+  <section class="mt-8">
+  <!-- Header -->
+  <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] mb-4 flex items-center gap-2">
+    <i class="fa-solid fa-bolt text-[var(--clr-accent)]"></i>
+    Recent Activity
+  </h2>
+
+  <!-- Activity Container -->
+  <div class="bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+
+    {% if lesson_progress %}
+      <ul class="divide-y divide-[var(--clr-border)]">
+        {% for progress in lesson_progress %}
+        <li class="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-[var(--clr-hover)] rounded-xl px-3 transition-colors duration-200">
+          <!-- Student and Lesson Info -->
+          <div class="flex items-center gap-4">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--clr-accent)]/10 flex items-center justify-center text-[var(--clr-accent)] font-semibold">
+              {{ progress.student_name[0] }}
+            </div>
+            <div>
+              <p class="font-medium text-[var(--clr-txt-primary)]">{{ progress.student_name }}</p>
+              <p class="text-sm text-[var(--clr-txt-secondary)]">
+                {{ progress.lesson_title }} — <span class="italic">Class {{ progress.class_id }}</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Time Info -->
+          <div class="text-right">
+            <p class="text-sm text-[var(--clr-txt-secondary)]">
+              Started: {{ progress.started_at.strftime("%b %d, %Y %I:%M %p") if progress.started_at else '—' }}
+            </p>
+            <p class="text-sm text-[var(--clr-accent)] font-medium">
+              Completed: {{ progress.completed_at.strftime("%b %d, %Y %I:%M %p") if progress.completed_at else '—' }}
+            </p>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-[var(--clr-txt-secondary)] italic text-center py-6">
         No recent updates yet. Once your students finish a lesson or class, you’ll see them here.
       </p>
-    </div>
-  </section>
+    {% endif %}
+  </div>
+</section>
+
 </section>
 
 <!-- SCRIPT -->

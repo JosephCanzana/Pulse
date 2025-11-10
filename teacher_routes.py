@@ -27,6 +27,25 @@ def dashboard():
     if not teacher_id:
         return apology("Teacher profile not found.", 404)
 
+    lesson_progress = db.session.execute(text("""
+    SELECT 
+        slp.id,
+        CONCAT(u.first_name, ' ', u.last_name) AS student_name,
+        c.id AS class_id,
+        c.status AS class_status,
+        l.title AS lesson_title,
+        slp.started_at,
+        slp.completed_at
+    FROM StudentLessonProgress slp
+    JOIN StudentProfile sp ON slp.student_id = sp.id
+    JOIN Users u ON sp.user_id = u.id
+    JOIN Class c ON slp.class_id = c.id
+    JOIN Lesson l ON slp.lesson_id = l.id
+    WHERE slp.status = 'completed'
+    ORDER BY slp.completed_at DESC
+    LIMIT 5
+"""))
+
     # --- Fetch teacher advisory sections ---
     query = text("""
         SELECT 
@@ -66,7 +85,8 @@ def dashboard():
         "teacher/dashboard.html",
         name=session.get("first_name"),
         sections=advisory_sections,
-        daily=daily
+        daily=daily,
+        lesson_progress=lesson_progress
     )
 
 @teacher_bp.route("/classes")
@@ -77,28 +97,53 @@ def classes():
     if not teacher_id:
         return apology("Teacher profile not found.", 404)
 
-    query = text("""
+    # Get query parameters
+    selected_status = request.args.get("status", "active")
+    search = request.args.get("search", "").strip()
+
+    # Base SQL
+    query = """
     SELECT 
         c.id AS class_id,
         s.name AS subject_name,
         sec.name AS section_name,
         el.name AS education_level,
-        c.color
+        c.color,
+        c.status
     FROM Class c
     JOIN Subject s ON c.subject_id = s.id
     JOIN Section sec ON c.section_id = sec.id
     JOIN Course co ON sec.course_id = co.id
     JOIN EducationLevel el ON co.education_level_id = el.id
-    WHERE c.teacher_id = :teacher_id AND c. status = 'active'
-    ORDER BY el.name, sec.name, s.name
-""")
+    WHERE c.teacher_id = :teacher_id
+    """
+    params = {"teacher_id": teacher_id}
 
+    # Filter by class status
+    if selected_status != "all":
+        query += " AND c.status = :status"
+        params["status"] = selected_status
 
-    teacher_classes = db.session.execute(query, {"teacher_id": teacher_id}).mappings().all()
+    # Apply search if provided
+    if search:
+        query += """
+        AND (
+            s.name LIKE :search OR
+            sec.name LIKE :search OR
+            el.name LIKE :search
+        )
+        """
+        params["search"] = f"%{search}%"
+
+    query += " ORDER BY el.name, sec.name, s.name"
+
+    teacher_classes = db.session.execute(text(query), params).mappings().all()
 
     return render_template(
         "teacher/classes/list.html",
-        classes=teacher_classes
+        classes=teacher_classes,
+        selected_status=selected_status,
+        search=search
     )
 
 # =============
