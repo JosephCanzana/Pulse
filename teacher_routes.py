@@ -7,6 +7,7 @@ from helpers import *
 import json
 import os
 from datetime import datetime
+from decorators import role_required
 
 teacher_bp = Blueprint('teacher', __name__, url_prefix='/teacher')
 
@@ -22,6 +23,7 @@ def get_teacher_id():
 
 @teacher_bp.route("/")
 @login_required
+@role_required("teacher")
 def dashboard():
     teacher_id = get_teacher_id()
     if not teacher_id:
@@ -91,6 +93,7 @@ def dashboard():
 
 @teacher_bp.route("/classes")
 @login_required
+@role_required("teacher")
 def classes():
     """Display all subjects taught by the current teacher, linked with their sections/classes."""
     teacher_id = get_teacher_id()
@@ -151,6 +154,7 @@ def classes():
 # =============
 @teacher_bp.route("/classes/view/<int:class_id>", methods=["GET", "POST"])
 @login_required
+@role_required("teacher")
 def view_class(class_id):
     """Display class details and allow inline editing of class info, including class color."""
 
@@ -269,6 +273,7 @@ def view_class(class_id):
 # ============================
 @teacher_bp.route("/classes/view/<int:class_id>/lessons", methods=["GET", "POST"])
 @login_required
+@role_required("teacher")
 def manage_lesson(class_id):
     if request.method == "POST":
         title = request.form.get("title")
@@ -348,6 +353,7 @@ def manage_lesson(class_id):
 # Lesson order
 @teacher_bp.route("/classes/view/<int:class_id>/lessons/update-order", methods=["POST"])
 @login_required
+@role_required("teacher")
 def update_lesson_order(class_id):
     order_data = request.form.get("order")
 
@@ -379,6 +385,7 @@ def update_lesson_order(class_id):
 # Edit Lesson
 @teacher_bp.route("/classes/view/<int:class_id>/lessons/edit/<int:lesson_id>", methods=["GET", "POST"])
 @login_required
+@role_required("teacher")
 def edit_lesson(class_id, lesson_id):
     if request.method == "POST":
         title = request.form.get("title")
@@ -450,6 +457,7 @@ def edit_lesson(class_id, lesson_id):
 # Delete Lesson
 @teacher_bp.route("/classes/view/<int:class_id>/lessons/delete/<int:lesson_id>", methods=["POST"])
 @login_required
+@role_required("teacher")
 def delete_lesson(class_id, lesson_id):
     db.session.execute(text("DELETE FROM Lesson WHERE id = :lesson_id"), {"lesson_id": lesson_id})
     db.session.commit()
@@ -461,6 +469,7 @@ def delete_lesson(class_id, lesson_id):
 # ============================
 @teacher_bp.route("/classes/view/<int:class_id>/add-student", methods=["GET", "POST"])
 @login_required
+@role_required("teacher")
 def manage_student(class_id):
     search_query = request.form.get("search", "").strip()
     selected_students = request.form.getlist("student_ids")  # checkboxes for multiple add
@@ -543,6 +552,7 @@ def manage_student(class_id):
 # Remove student
 @teacher_bp.route("/classes/view/<int:class_id>/remove-student", methods=["POST"])
 @login_required
+@role_required("teacher")
 def remove_student_from_class(class_id):
     """
     Remove a student from a class.
@@ -571,6 +581,7 @@ def remove_student_from_class(class_id):
 # ============================
 @teacher_bp.route("/sections", methods=["GET"])
 @login_required
+@role_required("teacher")
 def manage_sections():
     """Display all sections accessible to the current teacher (by education level), with search and archive filter."""
     teacher_id = get_teacher_id()
@@ -651,6 +662,7 @@ def manage_sections():
 # ============================
 @teacher_bp.route("/sections/edit/<int:section_id>", methods=["GET", "POST"])
 @login_required
+@role_required("teacher")
 def edit_section(section_id):
     """Edit section information (only if in the same education level as the teacher)."""
     teacher_id = get_teacher_id()
@@ -789,6 +801,7 @@ def edit_section(section_id):
 # ============================
 @teacher_bp.route("/section/archive/<int:section_id>", methods=["POST", "GET"])
 @login_required
+@role_required("teacher")
 def toggle_section_status(section_id):
     db.session.execute(
         text("""
@@ -808,6 +821,7 @@ def toggle_section_status(section_id):
 # Section toggle archive
 @teacher_bp.route("/section/archive")
 @login_required
+@role_required("teacher")
 def section_archive_switch():
     session["show_archive_section"] = not session.get("show_archive_section", False)
     return redirect(url_for("teacher.manage_sections"))
@@ -818,6 +832,7 @@ def section_archive_switch():
 # ============================
 @teacher_bp.route("/sections/<int:section_id>/students", methods=["GET", "POST"])
 @login_required
+@role_required("teacher")
 def section_manage_students(section_id):
     """View students assigned to this section and unassigned students, with search.
        Also handles adding students to this section (POST)."""
@@ -901,6 +916,7 @@ def section_manage_students(section_id):
 
 @teacher_bp.route("/sections/<int:section_id>/students/remove/<int:student_id>", methods=["POST"])
 @login_required
+@role_required("teacher")
 def remove_student_from_section(section_id, student_id):
     """Unassign a student from the section."""
     teacher_id = get_teacher_id()

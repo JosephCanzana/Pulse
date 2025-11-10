@@ -6,6 +6,7 @@ from sqlalchemy import text
 from helpers import *
 from database import db
 from datetime import datetime
+from decorators import role_required
 
 # ==== GLOBAL VARIABLES ====
 DEFAULT_PASSWORD = "mcmY_1946"
@@ -119,6 +120,7 @@ def generate_next_id():
 # =======================
 @admin_bp.route("/")
 @login_required
+@role_required("admin")
 def dashboard():
     # --- Summary Counts ---
     def get_count(query):
@@ -198,6 +200,7 @@ def dashboard():
 # =======================
 @admin_bp.route("/delete", methods=["POST"])
 @login_required
+@role_required("admin")
 def delete():
     row_id = request.form.get("id")
     table = request.form.get("table")
@@ -221,6 +224,7 @@ def delete():
 
 @admin_bp.route("/reset", methods=["POST"])
 @login_required
+@role_required("admin")
 def reset():
     row_id = request.form.get("id")
     table = request.form.get("table")
@@ -244,6 +248,7 @@ def reset():
 
 @admin_bp.route("/student")
 @login_required
+@role_required("admin")
 def student():
     show_archive = session.get("show_archive_student", False)
     search = request.args.get("search", "").strip()
@@ -296,6 +301,7 @@ def student():
 # Student add
 @admin_bp.route("/student/add", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def student_add():
     if request.method == "POST":
         first = request.form.get("first_name", "").strip().capitalize()
@@ -363,6 +369,7 @@ def student_add():
 # Student edit
 @admin_bp.route("/student/edit/<string:school_id>", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def student_edit(school_id):
     # --- Fetch Student ---
     student = db.session.execute(text("""
@@ -510,6 +517,7 @@ def student_archive(school_id):
 # Student toggle
 @admin_bp.route("/student/archive")
 @login_required
+@role_required("admin")
 def student_archive_switch():
     # Toggle the archive visibility stored in session
     session["show_archive_student"] = not session.get("show_archive_student", False)
@@ -520,6 +528,7 @@ def student_archive_switch():
 # =======================
 @admin_bp.route("/teacher")
 @login_required
+@role_required("admin")
 def teacher():
     show_archive = session.get("show_archive_teacher", False)
     search = request.args.get("search", "").strip()
@@ -574,6 +583,7 @@ def teacher():
 # Teacher add
 @admin_bp.route("/teacher/add", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def teacher_add():
     if request.method == "POST":
         # --- USER form part ---
@@ -642,6 +652,7 @@ def teacher_add():
 # Teacher edit
 @admin_bp.route("/teacher/edit/<string:school_id>", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def teacher_edit(school_id):
     # Get teacher info
     teacher = db.session.execute(text("""
@@ -753,6 +764,7 @@ def teacher_archive(school_id):
 # Teacher toggle archive
 @admin_bp.route("/teacher/archive")
 @login_required
+@role_required("admin")
 def teacher_archive_switch():
     session["show_archive_teacher"] = not session.get("show_archive_teacher", False)
     return redirect(url_for("admin.teacher"))
@@ -762,6 +774,7 @@ def teacher_archive_switch():
 # =======================
 @admin_bp.route("/section")
 @login_required
+@role_required("admin")
 def section():
     show_archive = session.get("show_archive_section", False)
     search = request.args.get("search", "").strip()
@@ -814,6 +827,7 @@ def section():
 # Section Add
 @admin_bp.route("/section/add", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def section_add():
     if request.method == "POST":
         # --- Get form inputs ---
@@ -957,6 +971,7 @@ def section_add():
 # Section Edit
 @admin_bp.route("/section/edit/<int:section_id>", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def section_edit(section_id):
     section = db.session.execute(
     text("""
@@ -1109,6 +1124,7 @@ def section_edit(section_id):
 # Section Archive
 @admin_bp.route("/section/archive/<int:section_id>", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def section_archive(section_id):
     db.session.execute(
         text("""
@@ -1128,6 +1144,7 @@ def section_archive(section_id):
 # Section toggle archive
 @admin_bp.route("/section/archive")
 @login_required
+@role_required("admin")
 def section_archive_switch():
     session["show_archive_section"] = not session.get("show_archive_section", False)
     return redirect(url_for("admin.section"))
@@ -1137,6 +1154,7 @@ def section_archive_switch():
 # =======================
 @admin_bp.route("/course")
 @login_required
+@role_required("admin")
 def course():
     show_archive = session.get("show_archive_course", False)
     search = request.args.get("search", "").strip()
@@ -1177,6 +1195,7 @@ def course():
 # Course add
 @admin_bp.route("/course/add", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def course_add():
     if request.method == "POST":
         
@@ -1211,6 +1230,7 @@ def course_add():
 # Course edit
 @admin_bp.route("/course/edit/<int:id>", methods=["GET", "POST"])
 @login_required
+@role_required("admin")
 def course_edit(id):
     if request.method == "POST":
         name = request.form.get("name").capitalize().strip()
@@ -1244,6 +1264,7 @@ def course_edit(id):
 # Course Archive
 @admin_bp.route("/course/archive/<int:course_id>", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def course_archive(course_id):
     db.session.execute(
         text("""
@@ -1263,6 +1284,7 @@ def course_archive(course_id):
 # Section toggle archive
 @admin_bp.route("/course/archive")
 @login_required
+@role_required("admin")
 def course_archive_switch():
     session["show_archive_course"] = not session.get("show_archive_course", False)
     return redirect(url_for("admin.course"))
@@ -1273,6 +1295,7 @@ def course_archive_switch():
 # =======================
 @admin_bp.route("/department")
 @login_required
+@role_required("admin")
 def department():
     # Retrieve archive visibility setting from session
     show_archive = session.get("show_archive_department", False)
@@ -1323,6 +1346,7 @@ def department():
 # Department add
 @admin_bp.route("/department/add", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def department_add():
     if request.method == "POST":
         name = request.form.get("name").capitalize().strip()
@@ -1350,6 +1374,7 @@ def department_add():
 # Department edit
 @admin_bp.route("/department/edit/<int:id>", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def department_edit(id):
     if request.method == "POST":
         name = request.form.get("name").capitalize().strip()
@@ -1385,6 +1410,7 @@ def department_edit(id):
 # Department Archive
 @admin_bp.route("/department/archive/<int:department_id>", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def department_archive(department_id):
     db.session.execute(
         text("""
@@ -1404,6 +1430,7 @@ def department_archive(department_id):
 # Section toggle archive
 @admin_bp.route("/department/archive")
 @login_required
+@role_required("admin")
 def department_archive_switch():
     session["show_archive_department"] = not session.get("show_archive_department", False)
     return redirect(url_for("admin.department"))
@@ -1414,6 +1441,7 @@ def department_archive_switch():
 # =======================
 @admin_bp.route("/subject")
 @login_required
+@role_required("admin")
 def subject():
     show_archive = session.get("show_archive_subject", False)
     search = request.args.get("search", "").strip()
@@ -1456,6 +1484,7 @@ def subject():
 # Subject add
 @admin_bp.route("/subject/add", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def subject_add():
     if request.method == "POST":
         subject_name = request.form.get("name").strip().capitalize()
@@ -1484,6 +1513,7 @@ def subject_add():
 # Subject edit
 @admin_bp.route("/subject/edit/<int:id>", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def subject_edit(id):
     if request.method == "POST":
         name = request.form.get("name").strip().capitalize()    
@@ -1524,6 +1554,7 @@ def subject_edit(id):
 # Subject archive
 @admin_bp.route("/subject/archive/<int:subject_id>", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def subject_archive(subject_id):
     # Toggle status (1 = active, 0 = archived)
     db.session.execute(
@@ -1543,6 +1574,7 @@ def subject_archive(subject_id):
 # Subject Archive toggle
 @admin_bp.route("/subject/archive")
 @login_required
+@role_required("admin")
 def subject_archive_switch():
     # Toggle visibility flag in session
     session["show_archive_subject"] = not session.get("show_archive_subject", False)
@@ -1553,6 +1585,7 @@ def subject_archive_switch():
 # =======================
 @admin_bp.route("/class", methods=["GET", "POST"])
 @login_required
+@role_required("admin")
 def class_list():
     selected_status = request.args.get("status", "active") 
     search = request.args.get("search", "").strip()
@@ -1608,6 +1641,7 @@ def class_list():
 # Add Class
 @admin_bp.route("/class/add", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def class_add():
     if request.method == "POST":
         teacher_id = request.form.get("teacher_id")
@@ -1650,6 +1684,7 @@ def class_add():
 # Edit Class
 @admin_bp.route("/class/edit/<int:id>", methods=["POST", "GET"])
 @login_required
+@role_required("admin")
 def class_edit(id):
     if request.method == "POST":
         teacher_id = request.form.get("teacher_id")
@@ -1691,6 +1726,7 @@ def class_edit(id):
 # Update class status
 @admin_bp.route("/class/status/<int:id>", methods=["POST"])
 @login_required
+@role_required("admin")
 def class_status_update(id):
     new_status = request.form.get("status")  # Expect: 'active', 'cancelled', 'completed'
     if new_status not in ["active", "cancelled", "completed"]:
@@ -1713,6 +1749,7 @@ def class_status_update(id):
 # Toggle showing archived classes in session
 @admin_bp.route("/class/archive")
 @login_required
+@role_required("admin")
 def class_archive_switch():
     session["show_archive_class"] = not session.get("show_archive_class", False)
     return redirect(url_for("admin.class_list"))

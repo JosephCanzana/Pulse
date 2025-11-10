@@ -202,7 +202,7 @@ UPLOAD_FOLDER = "uploads/lessons"
 def download_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
-# ==== ADMIN BLUEPRINT =====
+# ==== BLUEPRINT =====
 app.register_blueprint(admin_bp)
 app.register_blueprint(teacher_bp)
 app.register_blueprint(student_bp)

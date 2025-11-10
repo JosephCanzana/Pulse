@@ -4,7 +4,7 @@ from sqlalchemy import text
 from helpers import *
 from database import db
 from datetime import datetime
-
+from decorators import role_required
 student_bp = Blueprint('student', __name__, url_prefix='/student')
 
 
@@ -13,6 +13,7 @@ student_bp = Blueprint('student', __name__, url_prefix='/student')
 # ==============================
 @student_bp.route("/")
 @login_required
+@role_required("student")
 def dashboard():
     # Main summary counts
     summary_query = text("""
@@ -88,6 +89,7 @@ def dashboard():
 # ==============================
 @student_bp.route("/classes")
 @login_required
+@role_required("student")
 def view_classes():
     query = text("""
         SELECT 
@@ -124,6 +126,7 @@ def view_classes():
 # ==============================
 @student_bp.route("/classes/<int:class_id>/lessons")
 @login_required
+@role_required("student")
 def view_lessons(class_id):
     # Get class status
     class_status_query = text("SELECT status FROM Class WHERE id = :class_id")
@@ -241,6 +244,7 @@ def view_lessons(class_id):
 # ==============================
 @student_bp.route("/lessons/<int:lesson_id>/progress", methods=["POST"])
 @login_required
+@role_required("student")
 def update_lesson_progress(lesson_id):
     student_query = text("SELECT id FROM StudentProfile WHERE user_id = :user_id")
     student = db.session.execute(student_query, {'user_id': current_user.id}).fetchone()
@@ -312,6 +316,7 @@ def update_lesson_progress(lesson_id):
 
 @student_bp.route("/history")
 @login_required
+@role_required("student")
 def history():
     search = request.args.get("search", "").strip().lower()
     query = """
