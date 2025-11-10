@@ -128,6 +128,8 @@ def view_lessons(class_id):
     # Get class status
     class_status_query = text("SELECT status FROM Class WHERE id = :class_id")
     class_status = db.session.execute(class_status_query, {'class_id': class_id}).scalar()
+
+    # Get class info
     class_info_query = text("""
         SELECT 
             c.id,
@@ -149,7 +151,60 @@ def view_lessons(class_id):
     """)
     class_info = db.session.execute(class_info_query, {'class_id': class_id}).mappings().first()
 
-    # Fetch lessons with progress and files
+    # 🔹 Get current student's profile ID
+    student_profile_query = text("SELECT id FROM StudentProfile WHERE user_id = :user_id")
+    student_profile_id = db.session.execute(student_profile_query, {'user_id': current_user.id}).scalar()
+
+    if not student_profile_id:
+        flash("Student profile not found.", "danger")
+        return redirect(url_for("student_bp.dashboard"))
+
+    # 🔹 Fetch all lesson IDs for this class
+    lesson_ids_query = text("SELECT id FROM Lesson WHERE class_id = :class_id")
+    lesson_ids = [row.id for row in db.session.execute(lesson_ids_query, {'class_id': class_id}).mappings()]
+
+    if lesson_ids:
+        # 🔹 Fetch existing progress entries for this student and class
+        existing_progress_query = text("""
+            SELECT lesson_id FROM StudentLessonProgress
+            WHERE class_id = :class_id AND student_id = :student_id
+        """)
+        existing_progress = {row.lesson_id for row in db.session.execute(existing_progress_query, {
+            'class_id': class_id,
+            'student_id': student_profile_id
+        })}
+
+        # 🔹 Insert missing progress entries
+        missing_lessons = [lid for lid in lesson_ids if lid not in existing_progress]
+        if missing_lessons:
+            insert_query = text("""
+                INSERT INTO StudentLessonProgress (class_id, lesson_id, student_id, status)
+                VALUES (:class_id, :lesson_id, :student_id, 'not_started')
+            """)
+            for lesson_id in missing_lessons:
+                db.session.execute(insert_query, {
+                    'class_id': class_id,
+                    'lesson_id': lesson_id,
+                    'student_id': student_profile_id
+                })
+            db.session.commit()
+
+        # 🔹 Remove progress entries for deleted lessons (cleanup)
+        deleted_lessons = [lid for lid in existing_progress if lid not in lesson_ids]
+        if deleted_lessons:
+            delete_query = text("""
+                DELETE FROM StudentLessonProgress
+                WHERE class_id = :class_id AND student_id = :student_id AND lesson_id = :lesson_id
+            """)
+            for lesson_id in deleted_lessons:
+                db.session.execute(delete_query, {
+                    'class_id': class_id,
+                    'student_id': student_profile_id,
+                    'lesson_id': lesson_id
+                })
+            db.session.commit()
+
+    # 🔹 Fetch lessons with progress and files
     query = text("""
         SELECT l.id, l.lesson_number, l.title, l.description,
                slp.status, slp.completed_at, slp.started_at,
@@ -157,20 +212,18 @@ def view_lessons(class_id):
         FROM Lesson l
         LEFT JOIN StudentLessonProgress slp 
             ON l.id = slp.lesson_id 
-            AND slp.student_id = (
-                SELECT sp.id FROM StudentProfile sp WHERE sp.user_id = :user_id
-            )
+            AND slp.student_id = :student_id
         LEFT JOIN LessonFile lf
             ON l.id = lf.lesson_id
         WHERE l.class_id = :class_id
         ORDER BY l.lesson_number ASC
     """)
     lessons = db.session.execute(query, {
-        'user_id': current_user.id,
+        'student_id': student_profile_id,
         'class_id': class_id
     }).fetchall()
 
-    # If the class is completed or cancelled, flash info but allow view
+    # Flash info if class inactive
     if class_status in ('completed', 'cancelled'):
         flash("This class is no longer active. You can view it in your history, but cannot update progress.", "info")
 
@@ -181,6 +234,7 @@ def view_lessons(class_id):
         class_status=class_status,
         class_info=class_info
     )
+
 
 # ==============================
 # Update Lesson Progress (Incremental)

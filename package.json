@@ -8,7 +8,7 @@
     "build:css": "npx @tailwindcss/cli -i ./static/css/src/input.css -o ./static/css/output.css",
     "watch:css": "npx @tailwindcss/cli -i ./static/css/src/input.css -o ./static/css/output.css --watch",
     "watch:flask": "flask --app app --debug run",
-    "build:db": "mysql -u root -r < schema.sql && mysql -u root -r < other_schema.sql && mysql -u root -r < insert.sql"
+    "build:db": "mysql -u root -r < schema.sql && mysql -u root -r < other_schema.sql"
   },
   "repository": {
     "type": "git",

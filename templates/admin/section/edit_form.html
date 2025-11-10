@@ -58,7 +58,7 @@
         />
         <datalist id="teachersList">
             {% for teacher in teachers %}
-            <option value="{{ teacher.first_name }} {{ teacher.middle_name }} {{ teacher.last_name }}" data-id="{{ teacher.id }}"></option>
+            <option value="{{ teacher.first_name }} {{ teacher.middle_name or '' }} {{ teacher.last_name }}" data-id="{{ teacher.id }}"></option>
             {% endfor %}
         </datalist>
         </div>
@@ -72,7 +72,7 @@
           <option value="" disabled>Select education level</option>
           {% for lvl in education_lvls %}
             <option value="{{ lvl.id }}"
-              {% if lvl.id == section.education_level_id %}selected{% endif %}>
+              {% if lvl.id == section.education_lvl_id %}selected{% endif %}>
               {{ lvl.name }}
             </option>
           {% endfor %}

@@ -63,7 +63,6 @@
     <thead class="bg-[var(--clr-surface-alt)]/70 text-[var(--clr-txt-secondary)]">
       <tr>
         <th class="px-4 py-3 text-left">Name</th>
-        <th class="px-4 py-3 text-left">Email</th>
         <th class="px-4 py-3 text-left">School ID</th>
         <th class="px-4 py-3 text-left">Education Level</th>
         <th class="px-4 py-3 text-left">Course</th>
@@ -78,7 +77,6 @@
         {% for s in students %}
         <tr class="border-t border-[var(--clr-border)] hover:bg-[var(--clr-glass-border)]/40 transition-all">
           <td class="px-4 py-3 whitespace-nowrap">{{ s.first_name }} {{ s.last_name }}</td>
-          <td class="px-4 py-3 whitespace-nowrap">{{ s.email }}</td>
           <td class="px-4 py-3 whitespace-nowrap">{{ s.school_id }}</td>
           <td class="px-4 py-3">{{ s.education_level_name or 'N/A' }}</td>
           <td class="px-4 py-3">{{ s.course_name or 'N/A' }}</td>

@@ -1,3 +1,4 @@
+{% set page_title = "My Advisory Class" %}
 {% extends "layout.html" %}
 
 {% block title %}Add Students to Section{% endblock %}
@@ -33,7 +34,7 @@
                     <div class="flex items-center justify-between bg-[var(--clr-surface-alt)] p-4 rounded-xl shadow-sm hover:shadow transition">
                         <div>
                             <p class="font-medium text-[var(--clr-txt-primary)]">{{ s.first_name }} {{ s.last_name }}</p>
-                            <p class="text-sm text-[var(--clr-txt-secondary)]">{{ s.section_name or "No Section" }} | {{ s.email }}</p>
+                            <p class="text-sm text-[var(--clr-txt-secondary)]">ID: {{ s.school_id }}</p>
                         </div>
                         <form method="POST" action="{{ url_for('teacher.remove_student_from_section', section_id=section.id, student_id=s.student_id) }}"
                               onsubmit="return openConfirmFormModal(event, this, 'Remove Student', 'This will unassign the student from this section. Continue?')">
@@ -62,7 +63,7 @@
 
             <div class="p-4 border-b border-[var(--clr-border)]">
                 <form method="GET" class="flex gap-2 flex-wrap items-center">
-                    <input type="text" name="q" placeholder="Search by ID, name, or section"
+                    <input type="text" name="q" placeholder="Search by ID, or name"
                         value="{{ search_query }}"
                         class="flex-1 bg-[var(--clr-surface-alt)] border border-[var(--clr-border)] rounded-lg px-4 py-2 text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
                     <button type="submit"
@@ -95,7 +96,7 @@
                                 class="h-4 w-4 text-[var(--clr-primary)] border-[var(--clr-border)] rounded">
                             <div>
                                 <p class="font-medium text-[var(--clr-txt-primary)]">{{ student.first_name }} {{ student.last_name }}</p>
-                                <p class="text-sm text-[var(--clr-txt-secondary)]">{{ student.section_name or "No Section" }} | {{ student.email }}</p>
+                                <p class="text-sm text-[var(--clr-txt-secondary)]">ID: {{ student.school_id }}</p>
                             </div>
                         </div>
                         <button type="submit" name="student_ids" value="{{ student.student_id }}"

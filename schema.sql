@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS Users (
     status BOOLEAN NOT NULL DEFAULT TRUE,
     gender ENUM('Male','Female','Other'),
     is_verified BOOLEAN NOT NULL DEFAULT FALSE,
-    password VARCHAR(255) NOT NULL DEFAULT 'mcmY_1946',
+    password VARCHAR(255) NOT NULL DEFAULT 'scrypt:32768:8:1$zQ90TifUV57h28Bl$f4b4c07b635d072c608d5191a3cabf224f5aaae76c8ef657712ee5263305a4e550a857aeb682d3ba6f619c8793c1cd16edfad820900bf93a532d59259d5b8664',
     role ENUM('admin','teacher','student') NOT NULL
 );
 
@@ -204,6 +204,37 @@ CREATE TABLE IF NOT EXISTS IdCounter (
 );
 
 INSERT INTO Users (first_name, middle_name, last_name, email, school_id, gender, password, role, is_verified, status) VALUES
-('Admin', 'A', 'User', 'administrator@holycross.edu.ph', 'LMS001', 'Other', 'adminpassword', 'admin', 1, 1);
+('Admin', 'A', 'User', 'administrator@holycross.edu.ph', 'LMS001', 'Other', 'scrypt:32768:8:1$QwMDSjGCa4LlIVnC$7bc8add45125f055440e7ae652b28304382837f083e9a455f0ed29d32e3503b638702e7d0d6f8a8d91a7ac030d6ff5c913e61129515d277f8980a34adfde551e',
+ 'admin', 1, 1); 
 
 INSERT INTO IdCounter (year, counter) VALUES (2025, 1000);
+
+-- ==========================================================
+-- EDUCATION LEVELS
+-- ==========================================================
+INSERT INTO EducationLevel (name) VALUES
+('Elementary'),
+('Junior High'),
+('Senior High'),
+('College');
+
+INSERT INTO YearLevel (name, education_level_id) VALUES
+('Grade 1', 1),
+('Grade 2', 1),
+('Grade 3', 1),
+('Grade 4', 1),
+('Grade 5', 1),
+('Grade 6', 1);
+INSERT INTO YearLevel (name, education_level_id) VALUES
+('Grade 7', 2),
+('Grade 8', 2),
+('Grade 9', 2),
+('Grade 10', 2);
+INSERT INTO YearLevel (name, education_level_id) VALUES
+('Grade 11', 3),
+('Grade 12', 3);
+INSERT INTO YearLevel (name, education_level_id) VALUES
+('1st Year', 4),
+('2nd Year', 4),
+('3rd Year', 4),
+('4th Year', 4);

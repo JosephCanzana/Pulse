@@ -15,13 +15,12 @@ def apology(num=400, message="Error occur"):
 
 def encrypt_password(password):
     # TODO: UNCOMMENT BEFORE FINALIZATION
-    # return generate_password_hash(password, method='scrypt', salt_length=16)
-    return password
+    return generate_password_hash(password, method='scrypt', salt_length=16)
 
-def check_password(p_1, p_2):
+def check_password(p_2, p_1):
     # TODO: UNCOMMENT BEFORE FINALIZATION
-    # return check_password_hash(p_1, p_2)
-    return p_1 == p_2
+    return check_password_hash(p_1, p_2)
+
 
 def is_exist(db, find_value, table_value, table):
     query = text(f"SELECT 1 FROM {table} WHERE {table_value} = :value LIMIT 1")

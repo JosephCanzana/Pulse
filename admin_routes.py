@@ -325,9 +325,6 @@ def student_add():
             flash("The name alread exists.", "error")
             return redirect(url_for("admin.student_add"))
 
-        # Add user
-        user = add_user(db, first, second, last, email, int(school_id), gender, "student")
-        user_id = user["id"]
 
         # Education level and optional section
         education_lvl = request.form.get("education_lvl")
@@ -335,8 +332,20 @@ def student_add():
         year_id = request.form.get("year")
         course_id = request.form.get("course")
 
-        assign_student_profile(db, user_id, education_lvl, course_id, section_id, year_id)
+        try:
+            education_lvl = int(education_lvl)
+        except (TypeError, ValueError):
+            flash("Invalid education level.", "error")
+            return redirect(url_for("admin.student_add"))
 
+        if education_lvl in (3, 4) and not course_id:
+            flash("Senior High and College need a course.", "error")
+            return redirect(url_for("admin.student_add"))
+
+        # Add user
+        user = add_user(db, first, second, last, email, int(school_id), gender, "student")
+        user_id = user["id"]
+        assign_student_profile(db, user_id, education_lvl, course_id, section_id, year_id)
         flash("Succesfully added", "succes")
         return redirect(url_for("admin.student_add"))
 
@@ -393,6 +402,16 @@ def student_edit(school_id):
 
             # --- Email Update ---
             new_email = f"{school_id_new}@holycross.edu.ph"
+            try:
+                education_lvl = int(education_lvl)
+            except (TypeError, ValueError):
+                flash("Invalid education level.", "error")
+                return redirect(url_for("admin.student_add"))
+
+            if education_lvl in (3, 4) and not course_id:
+                flash("Senior High and College need a course.", "error")
+                return redirect(url_for("admin.student_add"))
+
 
             # --- Update Users ---
             db.session.execute(text("""
@@ -803,7 +822,7 @@ def section_add():
         ed_lvl_id = request.form.get("education_lvl_id")
         course_id = request.form.get("course_id")
         year_id = request.form.get("year_id")
-        teacher_id = request.form.get("teacher_id")
+        teacher_name = request.form.get("teacher_name")
 
         # --- Convert IDs to int ---
         try:
@@ -817,16 +836,6 @@ def section_add():
         except (TypeError, ValueError):
             course_id = None
 
-        try:
-            year_id = int(year_id)
-        except (TypeError, ValueError):
-            flash("Invalid year selected.", "warning")
-            return redirect(url_for("admin.section_add"))
-
-        try:
-            teacher_id = int(teacher_id) if teacher_id else None
-        except (TypeError, ValueError):
-            teacher_id = None
 
         # --- Required fields ---
         if not (name and academic_year and year_id and ed_lvl_id):
@@ -849,6 +858,22 @@ def section_add():
         if end != start + 1:
             flash("Academic year must be consecutive (e.g., 2025-2026).")
             return redirect(url_for("admin.section_add"))
+        
+        if teacher_name:
+            teacher = db.session.execute(text("""
+                SELECT tp.id 
+                FROM TeacherProfile tp
+                JOIN Users u ON tp.user_id = u.id
+                WHERE CONCAT(u.first_name, ' ', u.middle_name, ' ', u.last_name) = :full_name
+                  AND u.status = 1 AND u.role = 'teacher'
+            """), {"full_name": teacher_name}).mappings().first()
+
+            if teacher:
+                teacher_id = teacher["id"]
+            else:
+                flash("Teacher not found. Section will be saved without a teacher.", "info")
+                teacher_id = None
+                return redirect(url_for("admin.section_add"))
 
         # --- Duplicate check ---
         duplicate_query = """
@@ -933,12 +958,24 @@ def section_add():
 @admin_bp.route("/section/edit/<int:section_id>", methods=["POST", "GET"])
 @login_required
 def section_edit(section_id):
-    section = db.session.execute(text("""
-        SELECT s.*, e.name AS education_level_name
+    section = db.session.execute(
+    text("""
+        SELECT 
+            s.*,
+            s.education_lvl_id,
+            e.name AS education_level_name,
+            s.year_id,
+            y.name AS year_level_name,
+            s.course_id,
+            c.name AS course_name
         FROM Section s
         LEFT JOIN EducationLevel e ON s.education_lvl_id = e.id
+        LEFT JOIN YearLevel y ON s.year_id = y.id
+        LEFT JOIN Course c ON s.course_id = c.id
         WHERE s.id = :section_id
-    """), {"section_id": section_id}).mappings().first()
+    """),
+    {"section_id": section_id}
+).mappings().first()
 
     if not section:
         flash("Section not found.", "warning")
@@ -1421,7 +1458,7 @@ def subject():
 @login_required
 def subject_add():
     if request.method == "POST":
-        subject_name = request.form.get("name")
+        subject_name = request.form.get("name").strip().capitalize()
         lvl = request.form.get("level")
 
         if not subject_name or not lvl:
@@ -1449,7 +1486,7 @@ def subject_add():
 @login_required
 def subject_edit(id):
     if request.method == "POST":
-        name = request.form.get("name").strip().capitalize()
+        name = request.form.get("name").strip().capitalize()    
         lvl_id = request.form.get("lvl_id")
 
         if not name or not lvl_id:

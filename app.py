@@ -37,10 +37,10 @@ login_manager.login_view = "login"
 login_manager.user_loader(load_user)
 
 # GLOBAL VARIABLES
-DEFAULT_PASSWORD = "mcmY_1946"
+DEFAULT_PASSWORD = generate_password_hash("mcmY_1946")
 # Password regex
 HARD_PASS_RE = "^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$"
-MID_PASS_RE = "/^(?=.*[A-Z])(?=.*\d).{8,}$/"
+MID_PASS_RE = "^(?=.*[A-Z])(?=.*\d).{8,}$"
 
 
 @app.template_filter('datetimeformat')
@@ -194,7 +194,6 @@ def ensure_daily_inspiration():
                 VALUES (:q, :v, :m, :d)
             """), {"q": quote_id, "v": verse_id, "m": message_id, "d": today})
             db.session.commit()
-
 
 
 UPLOAD_FOLDER = "uploads/lessons"
@@ -402,7 +401,7 @@ def account_activation(school_id):
 
         # default password comparison
         if new_pwd == DEFAULT_PASSWORD:
-            flash("Default password is not vaid", "error")
+            flash("Default password is not valid", "error")
             return redirect(url_for("account_activation",  school_id=school_id))
         
         if new_pwd != c_pwd:

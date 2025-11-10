@@ -89,7 +89,7 @@ def classes():
     JOIN Section sec ON c.section_id = sec.id
     JOIN Course co ON sec.course_id = co.id
     JOIN EducationLevel el ON co.education_level_id = el.id
-    WHERE c.teacher_id = :teacher_id
+    WHERE c.teacher_id = :teacher_id AND c. status = 'active'
     ORDER BY el.name, sec.name, s.name
 """)
 
@@ -566,11 +566,11 @@ def manage_sections():
         LEFT JOIN StudentProfile sp ON sp.section_id = sec.id
         LEFT JOIN TeacherProfile tp ON sec.teacher_id = tp.id
         LEFT JOIN Users u ON tp.user_id = u.id
-        WHERE el.id = :teacher_lvl_id
+        WHERE el.id = :teacher_lvl_id AND sec.teacher_id = :teacher_id
           AND sec.status = :status
     """
 
-    params = {"teacher_lvl_id": teacher_lvl_id, "status": 0 if show_archive else 1}
+    params = {"teacher_lvl_id": teacher_lvl_id, "teacher_id": teacher_id, "status": 0 if show_archive else 1}
 
     if search:
         base_query += """
@@ -658,14 +658,50 @@ def edit_section(section_id):
 
     # Handle POST request (update section)
     if request.method == "POST":
+        NOW = datetime.now()
+        ACADEMIC_YEAR = str(NOW.year) + '-' + str((NOW.year + 1))
         name = request.form.get("name", "").strip().capitalize()
-        academic_year = request.form.get("academic_year", "").strip()
+        academic_year = ACADEMIC_YEAR
         course_id = request.form.get("course_id")
         year_lvl_id = request.form.get("year_lvl_id")
+        ed_lvl_id = request.form.get("education_lvl_id")
         status = request.form.get("status", "1")
 
-        if not name or not academic_year or not course_id or not year_lvl_id:
+        if not name or not academic_year or not year_lvl_id:
             flash("Please fill out all required fields.", "warning")
+            return redirect(request.url)
+
+        if ed_lvl_id in [3, 4] and not course_id:
+            flash("Course is required for Senior High and College.", "warning")
+            return redirect(url_for("admin.section_add"))
+        if ed_lvl_id in [1, 2]:
+            course_id = None
+        
+         # --- Duplicate check ---
+        duplicate_query = """
+            SELECT 1 FROM Section
+            WHERE name = :name 
+              AND academic_year = :academic_year 
+              AND year_id = :year_id 
+              AND education_lvl_id = :education_lvl_id
+              AND (
+                    (:course_id IS NULL AND course_id IS NULL) 
+                    OR course_id = :course_id
+                  )
+        """
+        duplicate = db.session.execute(
+            text(duplicate_query),
+            {
+                "name": name,
+                "academic_year": academic_year,
+                "year_id": year_lvl_id,
+                "education_lvl_id": ed_lvl_id,
+                "course_id": course_id
+            }
+        ).first()
+
+        if duplicate:
+            flash("Section name already exists for this academic year and level.", "info")
             return redirect(request.url)
 
         try:
@@ -675,6 +711,7 @@ def edit_section(section_id):
                     academic_year = :academic_year,
                     course_id = :course_id,
                     year_id = :year_lvl_id,
+                    education_lvl_id = :education_lvl_id,
                     status = :status
                 WHERE id = :section_id
             """), {
@@ -683,7 +720,8 @@ def edit_section(section_id):
                 "course_id": course_id,
                 "year_lvl_id": year_lvl_id,
                 "status": status,
-                "section_id": section_id
+                "section_id": section_id,
+                "education_lvl_id": ed_lvl_id
             })
             db.session.commit()
             flash("Section updated successfully!", "success")
@@ -769,25 +807,20 @@ def section_manage_students(section_id):
         flash(f"Added {len(student_ids)} student(s) to this section.", "success")
         return redirect(url_for("teacher.section_manage_students", section_id=section_id))
 
-    # ============================
-    # GET: Assigned Students
-    # ============================
     assigned_students = db.session.execute(text("""
-        SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email
+        SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email, u.school_id
         FROM StudentProfile sp
         JOIN Users u ON sp.user_id = u.id
         WHERE sp.section_id = :section_id
         ORDER BY u.last_name ASC
     """), {"section_id": section_id}).mappings().all()
 
-    # ============================
-    # GET: Unassigned Students (with search by ID, name, or section)
-    # ============================
+
     search_query = request.args.get("q", "").strip()
     if search_query:
         unassigned_students = db.session.execute(text("""
             SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email,
-                   s.name AS section_name
+                   s.name AS section_name                    
             FROM StudentProfile sp
             JOIN Users u ON sp.user_id = u.id
             LEFT JOIN Section s ON sp.section_id = s.id
@@ -804,7 +837,7 @@ def section_manage_students(section_id):
     else:
         unassigned_students = db.session.execute(text("""
             SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email,
-                   s.name AS section_name
+                   s.name AS section_name, u.school_id
             FROM StudentProfile sp
             JOIN Users u ON sp.user_id = u.id
             LEFT JOIN Section s ON sp.section_id = s.id
