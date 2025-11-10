@@ -367,6 +367,15 @@ def login():
         elif role == "teacher":
             return redirect(url_for("teacher.dashboard"))
         else:
+            # Execute the query
+            result = db.session.execute(
+                text("SELECT is_suspended FROM StudentProfile WHERE user_id = :user_id"),
+                {"user_id": user["id"]}
+            ).fetchone()  
+            if result[0]: 
+                flash("You are currently suspended.", "warning")
+                logout_user()
+                return redirect(url_for("index"))
             return redirect(url_for("student.dashboard"))
 
     return render_template("auth/login.html")

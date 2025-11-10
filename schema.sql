@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS StudentProfile (
     section_id INT,
     year_id INT,
     is_suspended BOOLEAN NOT NULL DEFAULT FALSE,
+    points INT NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES Users(id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (education_level_id) REFERENCES EducationLevel(id)

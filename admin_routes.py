@@ -262,6 +262,7 @@ def student():
             Users.email,
             Users.school_id,
             Users.is_verified,
+            StudentProfile.is_suspended AS is_suspended,
             StudentProfile.id AS profile_id,
             EducationLevel.name AS education_level_name,
             Course.name AS course_name,
@@ -496,6 +497,7 @@ def student_edit(school_id):
         sections=sections,
         years=years
     )
+
 # Student archive
 @admin_bp.route("/student/archive/<string:school_id>", methods=["POST", "GET"])
 def student_archive(school_id):
@@ -513,6 +515,26 @@ def student_archive(school_id):
     )
     db.session.commit()
     return redirect(url_for("admin.student"))
+
+# Student archive
+@admin_bp.route("/student/suspended/<string:user_id>", methods=["POST", "GET"])
+def student_suspend(user_id):
+    # Toggle status (example: 1 = active, 0 = archived)
+    db.session.execute(
+        text("""
+            UPDATE StudentProfile
+            SET is_suspended = CASE 
+                WHEN is_suspended = 1 THEN 0
+                ELSE 1
+            END
+            WHERE user_id = :user_id
+        """),
+        {"user_id": user_id}
+    )
+    db.session.commit()
+    flash("Successfully suspended.", "success")
+    return redirect(url_for("admin.student"))
+
 
 # Student toggle
 @admin_bp.route("/student/archive")

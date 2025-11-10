@@ -73,7 +73,7 @@
               <a href="{{ url_for('admin.department_edit', id=d.department_id) }}" 
                  class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-txt-hover)] hover:bg-[var(--clr-glow-tertiary)]/10 hover:shadow-md transition-all">
                 <span class="material-symbols-rounded text-base">edit</span> 
-                Edit
+                
               </a>
 
               <!-- Archive / Unarchive -->
@@ -93,7 +93,7 @@
                   <span class="material-symbols-rounded text-base">
                     {{ 'unarchive' if show_archive else 'archive' }}
                   </span> 
-                  {{ 'Unarchive' if show_archive else 'Archive' }}
+                  
                 </button>
               </form>
 
@@ -109,7 +109,7 @@
                 <button type="submit" 
                         class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
                   <span class="material-symbols-rounded text-base">delete</span> 
-                  Delete
+                  
                 </button>
               </form>
               {% endif %}

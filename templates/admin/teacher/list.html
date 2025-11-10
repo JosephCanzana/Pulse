@@ -85,7 +85,7 @@
               <a href="{{ url_for('admin.teacher_edit', school_id=t.school_id) }}" 
                  class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-txt-hover)] hover:bg-[var(--clr-glow-tertiary)]/10 hover:shadow-md transition-all">
                 <span class="material-symbols-rounded text-base">edit</span> 
-                Edit
+                
               </a>
 
               {% if not show_archive %}
@@ -94,7 +94,7 @@
                       onsubmit="return openConfirmFormModal(event, this, 'Archive Teacher', 'Are you sure you want to archive this teacher?')">
                   <button type="submit" class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-yellow-600 hover:bg-yellow-100/60 hover:shadow-md transition-all">
                     <span class="material-symbols-rounded text-base">archive</span> 
-                    Archive
+                   
                   </button>
                 </form>
 
@@ -105,7 +105,7 @@
                   <input type="hidden" name="table" value="Users">
                   <button type="submit" class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
                     <span class="material-symbols-rounded text-base">refresh</span> 
-                    Reset
+                    
                   </button>
                 </form>
               {% else %}
@@ -114,7 +114,7 @@
                       onsubmit="return openConfirmFormModal(event, this, 'Unarchive Teacher', 'Do you want to unarchive this teacher?')">
                   <button type="submit" class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-green-600 hover:bg-green-100/60 hover:shadow-md transition-all">
                     <span class="material-symbols-rounded text-base">unarchive</span> 
-                    Unarchive
+                    
                   </button>
                 </form>
 
@@ -125,7 +125,7 @@
                   <input type="hidden" name="table" value="Users">
                   <button type="submit" class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
                     <span class="material-symbols-rounded text-base">delete</span> 
-                    Delete
+                    
                   </button>
                 </form>
               {% endif %}

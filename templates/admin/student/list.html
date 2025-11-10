@@ -83,8 +83,13 @@
           <td class="px-4 py-3">{{ s.section_name or 'N/A' }}</td>
           <td class="px-4 py-3">{{ s.academic_year_name or 'N/A' }}</td>
           <td class="px-4 py-3 text-center">
-            {% if s.is_verified %}
-              <span class="text-[var(--clr-success)] font-medium flex items-center justify-center gap-1">
+            {% if s.is_suspended %}
+            <span class="text-[var(--clr-warning)] font-medium flex items-center justify-center gap-1">
+                <span class="material-symbols-rounded text-sm">warning</span>
+                Suspended
+              </span>
+            {% elif s.is_verified %}
+            <span class="text-[var(--clr-success)] font-medium flex items-center justify-center gap-1">
                 <span class="material-symbols-rounded text-sm">check_circle</span>
                 Activated
               </span>
@@ -102,7 +107,7 @@
               <a href="{{ url_for('admin.student_edit', school_id=s.school_id) }}" 
                 class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-txt-hover)] hover:bg-[var(--clr-glow-tertiary)]/10 hover:shadow-md transition-all">
                 <span class="material-symbols-rounded text-base">edit</span> 
-                Edit
+                
               </a>
 
               {% if not show_archive %}
@@ -114,7 +119,7 @@
                   <button type="submit" 
                           class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-yellow-600 hover:bg-yellow-100/60 hover:shadow-md transition-all">
                     <span class="material-symbols-rounded text-base">archive</span> 
-                    Archive
+                    
                   </button>
                 </form>
 
@@ -128,9 +133,37 @@
                   <button type="submit" 
                           class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
                     <span class="material-symbols-rounded text-base">refresh</span> 
-                    Reset
+                    
                   </button>
                 </form>
+                <!-- Suspend / Unblock -->
+                <form action="{{ url_for('admin.student_suspend', user_id=s.user_id) }}" 
+                      method="POST"
+                      class="inline"
+                      onsubmit="return openConfirmFormModal(
+                                  event, 
+                                  this, 
+                                  '{{ 'Unblock Student' if s.is_suspended else 'Suspend Student' }}', 
+                                  'Do you want to {{ 'unblock' if s.is_suspended else 'suspend' }} this student?'
+                              )">
+                  <button type="submit" 
+                          class="flex items-center justify-center gap-1 rounded-full 
+                                px-3 py-1.5 border transition-all
+                                {% if s.is_suspended %}
+                                bg-[var(--clr-success-light)] border-[var(--clr-warning)] text-[var(--clr-warning)] hover:bg-[var(--clr-warning)]/10 hover:shadow-md
+                                {% else %}
+                                bg-[var(--clr-glass-light)] border-[var(--clr-border)] text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md
+                                {% endif %}">
+                    <span class="material-symbols-rounded text-base">
+                      {% if s.is_suspended %}
+                      check
+                      {% else %}
+                      block
+                      {% endif %}
+                    </span>
+                  </button>
+                </form>
+
               {% else %}
                 <!-- Unarchive -->
                 <form action="{{ url_for('admin.student_archive', school_id=s.school_id) }}" 
@@ -140,7 +173,7 @@
                   <button type="submit" 
                           class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-green-600 hover:bg-green-100/60 hover:shadow-md transition-all">
                     <span class="material-symbols-rounded text-base">unarchive</span> 
-                    Unarchive
+                    
                   </button>
                 </form>
 
@@ -154,7 +187,7 @@
                   <button type="submit" 
                           class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
                     <span class="material-symbols-rounded text-base">delete</span> 
-                    Delete
+                    
                   </button>
                 </form>
               {% endif %}
