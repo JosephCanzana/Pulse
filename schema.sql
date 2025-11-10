@@ -204,6 +204,26 @@ CREATE TABLE IF NOT EXISTS IdCounter (
     counter INT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS TrophyLevel (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    required_points INT NOT NULL
+);
+
+INSERT INTO TrophyLevel (name, required_points) VALUES
+('Novice Explorer', 1),
+('Apprentice Learner', 2),
+('Curious Mind', 3),
+('Knowledge Seeker', 5),
+('Rising Scholar', 8),
+('Bright Student', 13),
+('Star Pupil', 21),
+('Ace Learner', 34),
+('Mastermind', 55),
+('Legendary Scholar', 89);
+
+
+
 INSERT INTO Users (first_name, middle_name, last_name, email, school_id, gender, password, role, is_verified, status) VALUES
 ('Admin', 'A', 'User', 'administrator@holycross.edu.ph', 'LMS001', 'Other', 'scrypt:32768:8:1$QwMDSjGCa4LlIVnC$7bc8add45125f055440e7ae652b28304382837f083e9a455f0ed29d32e3503b638702e7d0d6f8a8d91a7ac030d6ff5c913e61129515d277f8980a34adfde551e',
  'admin', 1, 1); 
@@ -239,3 +259,16 @@ INSERT INTO YearLevel (name, education_level_id) VALUES
 ('2nd Year', 4),
 ('3rd Year', 4),
 ('4th Year', 4);
+
+INSERT INTO TrophyLevel (name, required_points) VALUES
+('Rising Star', 25),
+('Shining Scholar', 75),
+('Knowledge Seeker', 150),
+('Master Learner', 300),
+('Academic Achiever', 500),
+('Legendary Scholar', 800),
+('Elite Mind', 1200),
+('Champion of Knowledge', 1800),
+('Luminary', 2500),
+('Sage of Wisdom', 4000);
+

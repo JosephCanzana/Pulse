@@ -9,118 +9,181 @@
 <section class="w-full h-full space-y-6 text-[var(--clr-txt-primary)] transition-all duration-300">
 
   <!-- Header -->
-  <header class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <div>
-      <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">My Advisory Class</h1>
-      <p class="text-[var(--clr-txt-muted)] mt-1">Advisory class you’re currently handling</p>
+  <header class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div class="text-center md:text-left">
+      <h1 class="text-2xl sm:text-3xl font-semibold text-[var(--clr-primary)] leading-tight">
+        My Advisory Class
+      </h1>
+      <p class="text-sm sm:text-base text-[var(--clr-txt-muted)] mt-1">
+        Advisory class you’re currently handling
+      </p>
     </div>
-    
-    <!-- Search & Archive Toggle -->
-    <div class="flex flex-row">
 
-      <form method="GET" class="flex items-center gap-2 w-full max-w-md bg-[var(--clr-surface)] rounded-full shadow-sm border border-[var(--clr-border)] focus-within:ring-2 focus-within:ring-[var(--clr-primary)] transition-all duration-300 px-3 py-1.5">
+    <!-- Search + Archive Button -->
+    <div class="flex flex-col sm:flex-row items-center md:justify-end gap-3 w-full md:w-auto">
+      <form 
+        method="GET"
+        class="flex items-center gap-2 w-full sm:w-72 bg-[var(--clr-surface)] rounded-full shadow-sm border border-[var(--clr-border)] focus-within:ring-2 focus-within:ring-[var(--clr-primary)] transition-all duration-300 px-3 py-1.5">
         <span class="material-symbols-rounded text-[var(--clr-txt-secondary)] text-lg">search</span>
-        <!-- Input Field -->
-        <input type="text" name="search" value="{{ search }}" placeholder="Search sections..." class="w-full bg-transparent focus:outline-none text-[var(--clr-txt-primary)] placeholder-[var(--clr-txt-secondary)] px-2"/>
-        <!-- Submit Button -->
+        <input 
+          type="text"
+          name="search"
+          value="{{ search }}"
+          placeholder="Search sections..."
+          class="w-full bg-transparent focus:outline-none text-[var(--clr-txt-primary)] placeholder-[var(--clr-txt-secondary)] px-2 text-sm sm:text-base"/>
       </form>
-      <a href="{{ url_for('teacher.section_archive_switch') }}" 
-          class="mr-2 ml-2 flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 font-medium shadow-md hover:shadow-lg transition-all duration-300
-          {{ 'text-yellow-600 border-yellow-500 bg-yellow-100/80 hover:bg-yellow-200/80' if show_archive else 'text-[var(--clr-txt-primary)] hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)]' }}">
-          <span class="material-symbols-rounded transition-colors duration-300">
-            {{ 'unarchive' if show_archive else 'archive' }}
-          </span>
-        </a>
-    </div>
 
+      <!-- Archive Toggle -->
+      <a href="{{ url_for('teacher.section_archive_switch') }}" 
+         class="flex items-center justify-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 font-medium shadow-md hover:shadow-lg transition-all duration-300
+         {{ 'text-yellow-600 border-yellow-500 bg-yellow-100/80 hover:bg-yellow-200/80' if show_archive else 'text-[var(--clr-txt-primary)] hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)]' }}">
+        <span class="material-symbols-rounded text-base sm:text-lg transition-colors duration-300">
+          {{ 'unarchive' if show_archive else 'archive' }}
+        </span>
+        <span class="hidden sm:inline">{{ 'Show Active' if show_archive else 'Show Archive' }}</span>
+      </a>
+    </div>
   </header>
 
-  <!-- Table Container -->
-  <div class="overflow-x-auto bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-md border border-[var(--clr-border)]">
-    <table class="min-w-full text-sm text-left border-collapse">
-      <thead class="bg-[var(--clr-primary)] text-white">
-        <tr>
-          <th class="px-5 py-3 font-semibold">Section</th>
-          <th class="px-5 py-3 font-semibold">Course</th>
-          <th class="px-5 py-3 font-semibold">Year Level</th>
-          <th class="px-5 py-3 font-semibold">Education Level</th>
-          <th class="px-5 py-3 font-semibold">Academic Year</th>
-          <th class="px-5 py-3 font-semibold text-center">Students</th>
-          <th class="px-5 py-3 font-semibold text-center">Status</th>
-          <th class="px-5 py-3 font-semibold text-center">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-[var(--clr-border-strong)]">
-        {% for section in sections %}
-        <tr class="hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-all duration-200">
-          <td class="px-5 py-3 font-medium">{{ section.section_name }}</td>
-          <td class="px-5 py-3">{{ section.course_name or '—' }}</td>
-          <td class="px-5 py-3">{{ section.year_name or '—' }}</td>
-          <td class="px-5 py-3">{{ section.education_level_name or '—' }}</td>
-          <td class="px-5 py-3">{{ section.academic_year }}</td>
-          <td class="px-5 py-3 text-center">{{ section.student_count }}</td>
+  <!-- Table (No Side Scroll on Mobile) -->
+  <div class="rounded-2xl border border-[var(--clr-border)] bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] shadow-md overflow-hidden">
+    <div class="hidden sm:block overflow-x-auto">
+      <table class="min-w-full text-sm sm:text-base text-left border-collapse">
+        <thead class="bg-[var(--clr-primary)] text-white">
+          <tr>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">Section</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap">Course</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap hidden md:table-cell">Year Level</th>
+            <th class="px-4 py-3 font-semibold whitespace-nowrap hidden lg:table-cell">Academic Year</th>
+            <th class="px-4 py-3 font-semibold text-center whitespace-nowrap">Students</th>
+            <th class="px-4 py-3 font-semibold text-center whitespace-nowrap">Status</th>
+            <th class="px-4 py-3 font-semibold text-center whitespace-nowrap">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[var(--clr-border-strong)]">
+          {% for section in sections %}
+          <tr class="hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-all duration-200">
+            <td class="px-4 py-3 font-medium">{{ section.section_name }}</td>
+            <td class="px-4 py-3">{{ section.course_name or '—' }}</td>
+            <td class="px-4 py-3 hidden md:table-cell">{{ section.year_name or '—' }}</td>
+            <td class="px-4 py-3 hidden lg:table-cell">{{ section.academic_year }}</td>
+            <td class="px-4 py-3 text-center">{{ section.student_count }}</td>
 
-          <!-- Status -->
-          <td class="px-5 py-3 text-center">
-            {% if not show_archive %}
-              <span class="px-3 py-1 text-xs font-semibold bg-[var(--clr-success)]/20 text-[var(--clr-success)] rounded-full">Active</span>
-            {% else %}
-              <span class="px-3 py-1 text-xs font-semibold bg-[var(--clr-error)]/20 text-[var(--clr-error)] rounded-full">Archived</span>
-            {% endif %}
-          </td>
+            <td class="px-4 py-3 text-center">
+              {% if not show_archive %}
+                <span class="px-2 py-1 text-xs sm:text-sm font-semibold bg-[var(--clr-success)]/20 text-[var(--clr-success)] rounded-full">Active</span>
+              {% else %}
+                <span class="px-2 py-1 text-xs sm:text-sm font-semibold bg-[var(--clr-error)]/20 text-[var(--clr-error)] rounded-full">Archived</span>
+              {% endif %}
+            </td>
 
-          <!-- Actions -->
-          <td class="px-5 py-3 text-center flex justify-center items-center gap-2">
+            <td class="px-4 py-3 text-center">
+              <div class="flex justify-center flex-wrap gap-1 sm:gap-2">
 
-            <!-- Edit -->
-            <a href="{{ url_for('teacher.edit_section', section_id=section.section_id) }}"
-               title="Edit Section"
-               class="flex items-center justify-center px-3 py-1 rounded-lg bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-glow-primary)] text-[var(--clr-primary)] hover:text-white shadow transition-all duration-200">
-              <span class="material-symbols-outlined text-sm">edit</span>
-            </a>
+                <!-- Edit -->
+                <a href="{{ url_for('teacher.edit_section', section_id=section.section_id) }}"
+                   title="Edit"
+                   class="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-md bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-glow-primary)] text-[var(--clr-primary)] hover:text-white shadow transition-all duration-200">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                </a>
 
-            <!-- Archive / Unarchive -->
-            {% if not show_archive %}
-              <!-- Archive -->
-              <form action="{{ url_for('teacher.toggle_section_status', section_id=section.section_id) }}" 
-                    method="POST"
-                    class="inline"
-                    onsubmit="return openConfirmFormModal(event,this,'Archive Section', 'Are you sure you want archive this section?');">
-                <button type="submit" 
-                        class="flex items-center justify-center px-3 py-1 rounded-lg bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-glow-primary)] text-[var(--clr-warning)] hover:text-white shadow transition-all duration-200">
-                  <span class="material-symbols-rounded text-base">archive</span> 
-                </button>
-              </form>
-                          <!-- View -->
-            <a href="{{ url_for('teacher.section_manage_students', section_id=section.section_id) }}"
-               title="View Students"
-               class="flex items-center justify-center px-3 py-1 rounded-lg bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-glow-tertiary)] text-[var(--clr-tertiary)] hover:text-white shadow transition-all duration-200">
-              <span class="material-symbols-outlined text-sm">visibility</span>
-            </a>
-            {% else %}
-              <!-- Unarchive -->
-              <form action="{{ url_for('teacher.toggle_section_status', section_id=section.section_id) }}" 
-                    method="POST"
-                    class="inline"
-                    onsubmit="return openConfirmFormModal(event,this,'Unarchive Section', 'Are you sure you want unarchive this section?');">
-                <button type="submit" 
-                        class="flex items-center justify-center px-3 py-1 rounded-lg bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-glow-primary)] text-[var(--clr-success)] hover:text-white shadow transition-all duration-200">
-                  <span class="material-symbols-rounded text-base">unarchive</span> 
-                </button>
-              </form>
-            {% endif %}
+                {% if not show_archive %}
+                <!-- Archive -->
+                <form action="{{ url_for('teacher.toggle_section_status', section_id=section.section_id) }}" 
+                      method="POST"
+                      class="inline"
+                      onsubmit="return openConfirmFormModal(event,this,'Archive Section', 'Are you sure you want to archive this section?');">
+                  <button type="submit"
+                          class="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-md bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-glow-primary)] text-[var(--clr-warning)] hover:text-white shadow transition-all duration-200">
+                    <span class="material-symbols-rounded text-base">archive</span> 
+                  </button>
+                </form>
 
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="8" class="text-center py-6 text-[var(--clr-txt-muted)]">
-            No sections found.
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+                <!-- View -->
+                <a href="{{ url_for('teacher.section_manage_students', section_id=section.section_id) }}"
+                   title="View Students"
+                   class="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-md bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-glow-tertiary)] text-[var(--clr-tertiary)] hover:text-white shadow transition-all duration-200">
+                  <span class="material-symbols-outlined text-sm">visibility</span>
+                </a>
+                {% else %}
+                <!-- Unarchive -->
+                <form action="{{ url_for('teacher.toggle_section_status', section_id=section.section_id) }}" 
+                      method="POST"
+                      class="inline"
+                      onsubmit="return openConfirmFormModal(event,this,'Unarchive Section', 'Are you sure you want to unarchive this section?');">
+                  <button type="submit"
+                          class="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-md bg-[var(--clr-glass-light)] dark:bg-[var(--clr-glass-dark)] hover:bg-[var(--clr-glow-primary)] text-[var(--clr-success)] hover:text-white shadow transition-all duration-200">
+                    <span class="material-symbols-rounded text-base">unarchive</span> 
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center py-6 text-[var(--clr-txt-muted)] text-sm sm:text-base">
+              No sections found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="sm:hidden divide-y divide-[var(--clr-border-strong)]">
+      {% for section in sections %}
+      <div class="p-4 flex flex-col gap-2 hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-all duration-200">
+        <div class="flex justify-between items-center">
+          <h2 class="font-semibold text-[var(--clr-primary)]">{{ section.section_name }}</h2>
+          {% if not show_archive %}
+            <span class="px-2 py-0.5 text-xs font-semibold bg-[var(--clr-success)]/20 text-[var(--clr-success)] rounded-full">Active</span>
+          {% else %}
+            <span class="px-2 py-0.5 text-xs font-semibold bg-[var(--clr-error)]/20 text-[var(--clr-error)] rounded-full">Archived</span>
+          {% endif %}
+        </div>
+        <p class="text-sm text-[var(--clr-txt-secondary)]">
+          <strong>Course:</strong> {{ section.course_name or '—' }}
+        </p>
+        <p class="text-sm text-[var(--clr-txt-secondary)]">
+          <strong>Students:</strong> {{ section.student_count }}
+        </p>
+        <div class="flex justify-start flex-wrap gap-2 mt-2">
+          <a href="{{ url_for('teacher.edit_section', section_id=section.section_id) }}"
+             class="flex items-center justify-center w-8 h-8 rounded-md bg-[var(--clr-glass-light)] text-[var(--clr-primary)] hover:bg-[var(--clr-glow-primary)] hover:text-white transition-all duration-200">
+            <span class="material-symbols-outlined text-sm">edit</span>
+          </a>
+
+          {% if not show_archive %}
+          <form action="{{ url_for('teacher.toggle_section_status', section_id=section.section_id) }}" 
+                method="POST"
+                onsubmit="return openConfirmFormModal(event,this,'Archive Section','Are you sure you want to archive this section?');">
+            <button type="submit"
+                    class="flex items-center justify-center w-8 h-8 rounded-md bg-[var(--clr-glass-light)] text-[var(--clr-warning)] hover:bg-[var(--clr-glow-primary)] hover:text-white transition-all duration-200">
+              <span class="material-symbols-rounded text-base">archive</span>
+            </button>
+          </form>
+          <a href="{{ url_for('teacher.section_manage_students', section_id=section.section_id) }}"
+             class="flex items-center justify-center w-8 h-8 rounded-md bg-[var(--clr-glass-light)] text-[var(--clr-tertiary)] hover:bg-[var(--clr-glow-tertiary)] hover:text-white transition-all duration-200">
+            <span class="material-symbols-outlined text-sm">visibility</span>
+          </a>
+          {% else %}
+          <form action="{{ url_for('teacher.toggle_section_status', section_id=section.section_id) }}" 
+                method="POST"
+                onsubmit="return openConfirmFormModal(event,this,'Unarchive Section','Are you sure you want to unarchive this section?');">
+            <button type="submit"
+                    class="flex items-center justify-center w-8 h-8 rounded-md bg-[var(--clr-glass-light)] text-[var(--clr-success)] hover:bg-[var(--clr-glow-primary)] hover:text-white transition-all duration-200">
+              <span class="material-symbols-rounded text-base">unarchive</span>
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <p class="text-center py-6 text-[var(--clr-txt-muted)]">No sections found.</p>
+      {% endfor %}
+    </div>
   </div>
 </section>
 {% endblock %}

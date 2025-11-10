@@ -46,7 +46,7 @@ def dashboard():
     WHERE slp.status = 'completed'
     ORDER BY slp.completed_at DESC
     LIMIT 5
-"""))
+""")).mappings().all()
 
     # --- Fetch teacher advisory sections ---
     query = text("""

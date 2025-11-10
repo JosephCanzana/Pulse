@@ -419,7 +419,7 @@ def account_activation(school_id):
         
         if not re.match(HARD_PASS_RE, new_pwd):
             flash("Password must be at least 8 characters long and include an uppercase letter, number, and special character.", "error")
-            return redirect("/profile")
+            return redirect("account_activation")
         elif not re.match(MID_PASS_RE, new_pwd):
             flash("Add atleast one character", "error")
             return redirect("/profile")

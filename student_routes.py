@@ -19,14 +19,19 @@ def dashboard():
     summary_query = text("""
         SELECT 
             COUNT(DISTINCT cs.id) AS total_classes,
-            COUNT(DISTINCT CASE WHEN cs.status = 'completed' THEN cs.id END) AS total_classes_completed,
-            COUNT(DISTINCT CASE WHEN cs.status = 'active' THEN cs.id END) AS total_classes_active,
+            COUNT(DISTINCT CASE WHEN c.status = 'completed' THEN cs.id END) AS total_classes_completed,
+            COUNT(DISTINCT CASE WHEN c.status = 'active' THEN cs.id END) AS total_classes_active,
             COUNT(DISTINCT CASE WHEN sl.status = 'completed' THEN sl.id END) AS total_lessons_completed,
             COUNT(DISTINCT CASE WHEN sl.status = 'in_progress' THEN sl.id END) AS lessons_in_progress
         FROM StudentProfile sp
-        LEFT JOIN ClassStudent cs ON cs.student_id = sp.id
+        LEFT JOIN ClassStudent cs 
+            ON cs.student_id = sp.id
+        LEFT JOIN Class c 
+            ON c.id = cs.class_id
+            AND c.status = 'active'        
         LEFT JOIN StudentLessonProgress sl 
             ON sl.student_id = sp.id
+            AND sl.class_id = c.id        
         WHERE sp.user_id = :user_id
     """)
 
@@ -57,6 +62,25 @@ def dashboard():
 
     recent_progress = db.session.execute(recent_progress_query, {'user_id': current_user.id}).mappings().all()
 
+    points_query = text("""
+    SELECT 
+        sp.points,
+        tl.name AS trophy_name
+    FROM StudentProfile sp
+    LEFT JOIN TrophyLevel tl 
+        ON tl.required_points = (
+            SELECT MAX(required_points)
+            FROM TrophyLevel
+            WHERE required_points <= sp.points
+        )
+    WHERE sp.user_id = :user_id
+""")
+
+    result_trophy = db.session.execute(points_query, {"user_id": current_user.id}).fetchone()
+    points = result_trophy.points if result_trophy else 0
+    trophy_name = result_trophy.trophy_name if result_trophy else None
+
+
     # Daily inspiration
     daily = db.session.execute(text("""
         SELECT di.*, 
@@ -80,7 +104,9 @@ def dashboard():
         total_lessons_completed=result.total_lessons_completed or 0,
         lessons_in_progress=result.lessons_in_progress or 0,
         recent_progress=recent_progress,
-        daily=daily
+        daily=daily,
+        points=points,
+        trophy_name=trophy_name
     )
 
 
@@ -295,7 +321,24 @@ def update_lesson_progress(lesson_id):
                     completed_at = NOW()
                 WHERE id = :id
             """)
+            # Update lesson progress
             db.session.execute(update, {'id': progress.id, 'status': next_status})
+
+            # POINT SYSTEM
+            result = db.session.execute(
+                text("SELECT points FROM StudentProfile WHERE id = :student_id"),
+                {"student_id": student.id}
+            )
+            current_point = result.scalar() or 0  # get the integer value safely
+
+            # increment points
+            new_points = current_point + 1
+
+            db.session.execute(
+                text("UPDATE StudentProfile SET points = :points WHERE id = :student_id"),
+                {"student_id": student.id, "points": new_points}
+            )
+
 
     else:
         # First time clicking → move from not_started → in_progress

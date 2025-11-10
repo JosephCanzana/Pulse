@@ -1,5 +1,5 @@
 <!-- BOTTOM NAVIGATION BAR (Mobile Only) -->
-<div class="sm:hidden fixed bottom-0 left-0 w-full pl-5 pr-5 bg-[var(--clr-glass-light)] backdrop-blur-md border-t border-[var(--clr-glass-border)] shadow-inner z-50">
+<div class="sm:hidden fixed bottom-0 left-0 w-full pl-8 pr-8 bg-[var(--clr-glass-light)] backdrop-blur-md border-t border-[var(--clr-glass-border)] shadow-inner z-50">
   <div class="flex justify-between items-center px-4 py-2">
     
     <!-- Home / Dashboard -->
@@ -21,7 +21,7 @@
         <span class="material-symbols-outlined">home</span>
         <span class="text-xs mt-1">Home</span>
       </a>
-      <a href="#" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
+      <a href="{{ url_for('teacher.classes') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
         <span class="material-symbols-outlined">menu_book</span>
         <span class="text-xs mt-1">Classes</span>
       </a>
@@ -30,7 +30,7 @@
         <span class="material-symbols-outlined">home</span>
         <span class="text-xs mt-1">Home</span>
       </a>
-      <a href="#" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
+      <a href="{{ url_for('student.view_classes') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
         <span class="material-symbols-outlined">book</span>
         <span class="text-xs mt-1">Subjects</span>
       </a>

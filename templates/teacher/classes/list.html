@@ -4,39 +4,42 @@
 {% block title %}My Classes{% endblock %}
 
 {% block main %}
-<section class="p-0">
+<section class="p-0 space-y-6 text-[var(--clr-txt-primary)]">
 
   <!-- Page Header -->
-  <div class="flex flex-wrap items-center justify-between mb-6 gap-3">
-      <header class="mb-6">
-    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Class I Teach</h1>
-    <p class="text-[var(--clr-txt-muted)] mt-1">Subjects you’re currently handling</p>
-  </header>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-    <!-- Left: Status Filter & Search -->
-    <div class="flex flex-wrap items-center gap-3">
+    <!-- Header Text -->
+    <header>
+      <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Class I Teach</h1>
+      <p class="text-[var(--clr-txt-muted)] mt-1">Subjects you’re currently handling</p>
+    </header>
+
+    <!-- Search + Filter Container -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
 
       <!-- Search Bar -->
-      <form method="get" class="flex items-center gap-2">
+      <form method="get" class="flex flex-1 sm:flex-none items-center gap-2">
         {% if selected_status %}
           <input type="hidden" name="status" value="{{ selected_status }}">
         {% endif %}
-        <div class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] px-4 py-2 focus-within:ring-2 focus-within:ring-[var(--clr-primary)] transition-all">
+        <div class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] px-4 py-2 w-full sm:w-72 focus-within:ring-2 focus-within:ring-[var(--clr-primary)] transition-all">
           <span class="material-symbols-rounded text-[var(--clr-txt-secondary)]">search</span>
           <input type="text" name="search" value="{{ search or '' }}"
                  placeholder="Search subject, section, or level..."
-                 class="bg-transparent focus:outline-none text-[var(--clr-txt-primary)] w-56">
+                 class="bg-transparent focus:outline-none text-[var(--clr-txt-primary)] w-full">
         </div>
         <button type="submit"
-                class="px-4 py-2 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-md hover:shadow-lg hover:bg-[var(--clr-secondary)] transition-all">
+                class="hidden sm:block px-4 py-2 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-md hover:shadow-lg hover:bg-[var(--clr-secondary)] transition-all">
           Search
         </button>
       </form>
-       <!-- Status Filter -->
-      <form method="get" class="flex items-center gap-2">
-        <label for="status" class="text-[var(--clr-txt-secondary)] font-medium">Status:</label>
+
+      <!-- Status Filter -->
+      <form method="get" class="flex items-center gap-2 w-full sm:w-auto">
+        <label for="status" class="text-[var(--clr-txt-secondary)] font-medium whitespace-nowrap">Status:</label>
         <select name="status" id="status" onchange="this.form.submit()"
-                class="px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] backdrop-blur-sm text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                class="flex-1 sm:flex-none px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] backdrop-blur-sm text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
           <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All</option>
           <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
           <option value="cancelled" {% if selected_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
@@ -48,8 +51,16 @@
           <input type="hidden" name="search" value="{{ search }}">
         {% endif %}
       </form>
-
     </div>
+  </div>
+
+  <!-- Mobile Search Button -->
+  <div class="block sm:hidden">
+    <button type="submit"
+            form="searchForm"
+            class="w-full py-2 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-md hover:shadow-lg hover:bg-[var(--clr-secondary)] transition-all">
+      Search
+    </button>
   </div>
 
   <!-- Class Cards -->
@@ -93,7 +104,6 @@
             View Details
             <span class="material-symbols-outlined text-base translate-y-[1px]">arrow_forward</span>
           </span>
-          <span class="absolute inset-0 opacity-0 transition-all duration-300 bg-current rounded-md scale-95 active:opacity-15 active:scale-100"></span>
         </a>
       </div>
 
@@ -104,8 +114,7 @@
     {% endfor %}
   </div>
   {% else %}
-  <p class="text-[var(--clr-txt-secondary)] mt-6">No classes found.</p>
+  <p class="text-[var(--clr-txt-secondary)] mt-6 text-center">No classes found.</p>
   {% endif %}
-
 </section>
 {% endblock %}

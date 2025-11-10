@@ -83,7 +83,7 @@
           <td class="px-4 py-3">{{ s.section_name or 'N/A' }}</td>
           <td class="px-4 py-3">{{ s.academic_year_name or 'N/A' }}</td>
           <td class="px-4 py-3 text-center">
-            {% if s.is_suspended %}
+            {% if s.is_suspended or show_archive %}
             <span class="text-[var(--clr-warning)] font-medium flex items-center justify-center gap-1">
                 <span class="material-symbols-rounded text-sm">warning</span>
                 Suspended
