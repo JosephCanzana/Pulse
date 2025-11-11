@@ -999,6 +999,9 @@
   .bg-\[var\(--clr-secondary\)\] {
     background-color: var(--clr-secondary);
   }
+  .bg-\[var\(--clr-success\)\] {
+    background-color: var(--clr-success);
+  }
   .bg-\[var\(--clr-success\)\]\/20 {
     background-color: var(--clr-success);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1283,9 +1286,6 @@
   .pt-12 {
     padding-top: calc(var(--spacing) * 12);
   }
-  .pr-5 {
-    padding-right: calc(var(--spacing) * 5);
-  }
   .pr-7 {
     padding-right: calc(var(--spacing) * 7);
   }
@@ -1316,17 +1316,8 @@
   .pl-4 {
     padding-left: calc(var(--spacing) * 4);
   }
-  .pl-5 {
-    padding-left: calc(var(--spacing) * 5);
-  }
-  .pl-7 {
-    padding-left: calc(var(--spacing) * 7);
-  }
   .pl-8 {
     padding-left: calc(var(--spacing) * 8);
-  }
-  .pl-10 {
-    padding-left: calc(var(--spacing) * 10);
   }
   .text-center {
     text-align: center;

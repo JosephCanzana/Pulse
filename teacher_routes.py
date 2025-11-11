@@ -500,29 +500,44 @@ def manage_student(class_id):
 
     search_pattern = f"%{search_query}%"
 
-    # Students NOT yet in the class with section info
+    # Students NOT yet in the class with section and education level info
     students = db.session.execute(
-        text(
-            """
-            SELECT sp.id AS student_id, u.first_name, u.last_name, u.school_id,
-                   sp.section_id, sec.name AS section_name
+        text("""
+            SELECT 
+                sp.id AS student_id,
+                u.first_name,
+                u.last_name,
+                u.school_id,
+                sp.section_id,
+                sec.name AS section_name,
+                el.name AS education_level_name
             FROM StudentProfile sp
-            JOIN Users u ON sp.user_id = u.id
+            JOIN Users u 
+                ON sp.user_id = u.id
             LEFT JOIN ClassStudent cs 
-                ON cs.student_id = sp.id AND cs.class_id = :class_id
-            LEFT JOIN Section sec ON sp.section_id = sec.id
+                ON cs.student_id = sp.id 
+            AND cs.class_id = :class_id
+            LEFT JOIN Section sec 
+                ON sp.section_id = sec.id
+            LEFT JOIN EducationLevel el
+                ON sp.education_level_id = el.id
             WHERE cs.id IS NULL
-              AND (
-                  u.first_name LIKE :search OR 
-                  u.last_name LIKE :search OR 
-                  u.school_id LIKE :search OR
-                  sec.name LIKE :search
-              )
-            ORDER BY sec.name, u.last_name, u.first_name
-            """
-        ),
-        {"class_id": class_id, "search": search_pattern}
+            AND (
+                u.first_name LIKE :search 
+                OR u.last_name LIKE :search 
+                OR u.school_id LIKE :search 
+                OR sec.name LIKE :search 
+                OR el.name LIKE :search
+            )
+            AND sp.education_level_id = sec.education_lvl_id
+            ORDER BY el.name, sec.name, u.last_name, u.first_name
+        """),
+        {
+            "class_id": class_id,
+            "search": search_pattern
+        }
     ).fetchall()
+
 
     # Students ALREADY in the class with section info
     existing_students = db.session.execute(
@@ -864,7 +879,7 @@ def section_manage_students(section_id):
         """), {"section_id": section_id, "ids": tuple(student_ids)})
         db.session.commit()
 
-        flash(f"Added {len(student_ids)} student(s) to this section.", "success")
+        flash(f"Added student(s) to this section.", "success")
         return redirect(url_for("teacher.section_manage_students", section_id=section_id))
 
     assigned_students = db.session.execute(text("""
@@ -901,9 +916,9 @@ def section_manage_students(section_id):
             FROM StudentProfile sp
             JOIN Users u ON sp.user_id = u.id
             LEFT JOIN Section s ON sp.section_id = s.id
-            WHERE sp.section_id IS NULL
+            WHERE sp.section_id IS NULL AND sp.education_level_id = :sec_ed_lvl
             ORDER BY u.last_name ASC
-        """)).mappings().all()
+        """),{"sec_ed_lvl": section["education_lvl_id"]}).mappings().all()
 
     return render_template(
         "teacher/section/students.html",
