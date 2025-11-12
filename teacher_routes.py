@@ -29,27 +29,8 @@ def dashboard():
     if not teacher_id:
         return apology("Teacher profile not found.", 404)
 
-    lesson_progress = db.session.execute(text("""
-    SELECT 
-        slp.id,
-        CONCAT(u.first_name, ' ', u.last_name) AS student_name,
-        c.id AS class_id,
-        c.status AS class_status,
-        l.title AS lesson_title,
-        slp.started_at,
-        slp.completed_at
-    FROM StudentLessonProgress slp
-    JOIN StudentProfile sp ON slp.student_id = sp.id
-    JOIN Users u ON sp.user_id = u.id
-    JOIN Class c ON slp.class_id = c.id
-    JOIN Lesson l ON slp.lesson_id = l.id
-    WHERE slp.status = 'completed'
-    ORDER BY slp.completed_at DESC
-    LIMIT 15
-""")).mappings().all()
-
     # --- Fetch teacher advisory sections ---
-    query = text("""
+    advisory_sections = db.session.execute(text("""
         SELECT 
             sec.id AS section_id,
             sec.name AS section_name,
@@ -64,11 +45,34 @@ def dashboard():
         WHERE sec.teacher_id = :teacher_id AND sec.status = 1
         GROUP BY sec.id, sec.name, co.name, el.name
         ORDER BY el.name, co.name, sec.name
-    """)
+    """), {"teacher_id": teacher_id}).mappings().all()
 
-    advisory_sections = db.session.execute(query, {"teacher_id": teacher_id}).mappings().all()
+    # --- Fetch lesson progress for students only in teacher's sections ---
+    lesson_progress = db.session.execute(text("""
+    SELECT 
+        slp.id,
+        CONCAT(u.first_name, ' ', u.last_name) AS student_name,
+        c.id AS class_id,
+        sub.name AS subject_name,
+        c.status AS class_status,
+        l.title AS lesson_title,
+        slp.started_at,
+        slp.completed_at
+    FROM StudentLessonProgress slp
+    JOIN StudentProfile sp ON slp.student_id = sp.id
+    JOIN Users u ON sp.user_id = u.id
+    JOIN Class c ON slp.class_id = c.id
+    JOIN Subject sub ON c.subject_id = sub.id
+    JOIN Section sec ON c.section_id = sec.id
+    JOIN Lesson l ON slp.lesson_id = l.id
+    WHERE (slp.status = 'completed' OR slp.status = 'in_progress')
+      AND sec.teacher_id = :teacher_id
+    ORDER BY slp.completed_at DESC
+    LIMIT 15
+"""), {"teacher_id": teacher_id}).mappings().all()
 
-    # --- Fetch daily inspirations (already generated globally) ---
+
+    # --- Fetch daily inspirations ---
     daily = db.session.execute(text("""
         SELECT di.*, 
                q.quote, q.author, 
@@ -82,7 +86,6 @@ def dashboard():
         LIMIT 1
     """)).mappings().first()
 
-    # --- Render Template ---
     return render_template(
         "teacher/dashboard.html",
         name=session.get("first_name"),
@@ -413,21 +416,40 @@ def edit_lesson(class_id, lesson_id):
             filepath = os.path.join(UPLOAD_FOLDER, filename)
             file.save(filepath)
 
-            insert_file = text("""
-                            UPDATE LessonFile
-                            SET file_name = :file_name,
-                                file_path = :file_path,
-                                file_type = :file_type,
-                                uploaded_at = NOW()
-                            WHERE lesson_id = :lesson_id
-                        """)
-            db.session.execute(insert_file, {
-                "lesson_id": lesson_id,
-                "file_name": filename,
-                "file_path": filepath,
-                "file_type": file.mimetype
-            })
+            # Check if a file already exists
+            existing_file = db.session.execute(text("""
+                SELECT id FROM LessonFile WHERE lesson_id = :lesson_id
+            """), {"lesson_id": lesson_id}).first()
+
+            if existing_file:
+                # Update existing file
+                db.session.execute(text("""
+                    UPDATE LessonFile
+                    SET file_name = :file_name,
+                        file_path = :file_path,
+                        file_type = :file_type,
+                        uploaded_at = NOW()
+                    WHERE lesson_id = :lesson_id
+                """), {
+                    "lesson_id": lesson_id,
+                    "file_name": filename,
+                    "file_path": filepath,
+                    "file_type": file.mimetype
+                })
+            else:
+                # Insert new file
+                db.session.execute(text("""
+                    INSERT INTO LessonFile (lesson_id, file_name, file_path, file_type)
+                    VALUES (:lesson_id, :file_name, :file_path, :file_type)
+                """), {
+                    "lesson_id": lesson_id,
+                    "file_name": filename,
+                    "file_path": filepath,
+                    "file_type": file.mimetype
+                })
+
             db.session.commit()
+
 
         flash("Lesson updated successfully!", "success")
         return redirect(url_for("teacher.manage_lesson", class_id=class_id))
@@ -502,41 +524,44 @@ def manage_student(class_id):
 
     # Students NOT yet in the class with section and education level info
     students = db.session.execute(
-        text("""
-            SELECT 
-                sp.id AS student_id,
-                u.first_name,
-                u.last_name,
-                u.school_id,
-                sp.section_id,
-                sec.name AS section_name,
-                el.name AS education_level_name
-            FROM StudentProfile sp
-            JOIN Users u 
-                ON sp.user_id = u.id
-            LEFT JOIN ClassStudent cs 
-                ON cs.student_id = sp.id 
+    text("""
+        SELECT 
+            sp.id AS student_id,
+            u.first_name,
+            u.last_name,
+            u.school_id,
+            sp.section_id,
+            sec.name AS section_name,
+            el.name AS education_level_name
+        FROM StudentProfile sp
+        JOIN Users u 
+            ON sp.user_id = u.id
+        LEFT JOIN ClassStudent cs 
+            ON cs.student_id = sp.id 
             AND cs.class_id = :class_id
-            LEFT JOIN Section sec 
-                ON sp.section_id = sec.id
-            LEFT JOIN EducationLevel el
-                ON sp.education_level_id = el.id
-            WHERE cs.id IS NULL
-            AND (
-                u.first_name LIKE :search 
-                OR u.last_name LIKE :search 
-                OR u.school_id LIKE :search 
-                OR sec.name LIKE :search 
-                OR el.name LIKE :search
-            )
-            AND sp.education_level_id = sec.education_lvl_id
-            ORDER BY el.name, sec.name, u.last_name, u.first_name
-        """),
-        {
-            "class_id": class_id,
-            "search": search_pattern
-        }
-    ).fetchall()
+        LEFT JOIN Section sec 
+            ON sp.section_id = sec.id
+        LEFT JOIN EducationLevel el
+            ON sp.education_level_id = el.id
+        WHERE cs.id IS NULL
+          AND sp.education_level_id = (
+              SELECT id FROM EducationLevel WHERE name = 'College'
+          )
+          AND (
+              u.first_name LIKE :search 
+              OR u.last_name LIKE :search 
+              OR u.school_id LIKE :search 
+              OR sec.name LIKE :search 
+              OR el.name LIKE :search
+          )
+        ORDER BY u.last_name, u.first_name
+    """),
+    {
+        "class_id": class_id,
+        "search": search_pattern
+    }
+).fetchall()
+
 
 
     # Students ALREADY in the class with section info
@@ -883,9 +908,10 @@ def section_manage_students(section_id):
         return redirect(url_for("teacher.section_manage_students", section_id=section_id))
 
     assigned_students = db.session.execute(text("""
-        SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email, u.school_id
+        SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email, u.school_id, yl.name AS year_name
         FROM StudentProfile sp
         JOIN Users u ON sp.user_id = u.id
+        LEFT JOIN YearLevel yl ON sp.year_id = yl.id
         WHERE sp.section_id = :section_id
         ORDER BY u.last_name ASC
     """), {"section_id": section_id}).mappings().all()
@@ -911,14 +937,25 @@ def section_manage_students(section_id):
         """), {"search": f"%{search_query}%"}).mappings().all()
     else:
         unassigned_students = db.session.execute(text("""
-            SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email,
-                   s.name AS section_name, u.school_id
-            FROM StudentProfile sp
-            JOIN Users u ON sp.user_id = u.id
-            LEFT JOIN Section s ON sp.section_id = s.id
-            WHERE sp.section_id IS NULL AND sp.education_level_id = :sec_ed_lvl
-            ORDER BY u.last_name ASC
-        """),{"sec_ed_lvl": section["education_lvl_id"]}).mappings().all()
+                SELECT 
+                    sp.id AS student_id, 
+                    u.first_name, 
+                    u.middle_name AS second_name, 
+                    u.last_name, 
+                    u.email,
+                    s.name AS section_name, 
+                    u.school_id, 
+                    sp.year_id,
+                    yl.name AS year_name
+                FROM StudentProfile sp
+                JOIN Users u ON sp.user_id = u.id
+                LEFT JOIN Section s ON sp.section_id = s.id
+                LEFT JOIN YearLevel yl ON sp.year_id = yl.id
+                WHERE sp.section_id IS NULL 
+                AND sp.education_level_id = :sec_ed_lvl
+                ORDER BY u.last_name ASC
+            """), {"sec_ed_lvl": section["education_lvl_id"]}).mappings().all()
+
 
     return render_template(
         "teacher/section/students.html",

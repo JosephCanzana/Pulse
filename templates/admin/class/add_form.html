@@ -1,21 +1,15 @@
 {% set page_title = "Class" %}
 {% extends "layout.html" %}
 
-{% block title %}
-  Add Class
-{% endblock %}
+{% block title %}Add Class{% endblock %}
 
 {% block main %}
 <section class="w-full h-full flex flex-col justify-center px-10">
-  <!-- Header -->
   <header class="text-center mb-4">
     <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Add Class</h1>
-    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">
-      Fill out the details to create a new class.
-    </p>
+    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">Fill out the details to create a new class.</p>
   </header>
 
-  <!-- Form -->
   <form
     id="classForm"
     action="{{ url_for('admin.class_add') }}"
@@ -23,116 +17,199 @@
     onsubmit="return openConfirmFormModal(event, this, 'Add Class', 'Are you sure you want to add this class?')"
     class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full"
   >
-    <!-- Left Column -->
     <div class="flex flex-col gap-4">
+      <!-- Teacher (visible input WITHOUT name) -->
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Teacher</label>
-        <select id="teacherSelect" name="teacher_id" required class="input-field">
-          <option value="" disabled selected>Select teacher</option>
+        <input list="teacherList" id="teacherInput" class="input-field" placeholder="Select teacher" autocomplete="off" required>
+        <datalist id="teacherList">
           {% for t in teachers %}
-            <option value="{{ t.id }}">{{ t.first_name }} {{ t.last_name }}</option>
+            <option data-id="{{ t.id }}" value="{{ t.first_name }} {{ t.last_name }}"></option>
           {% endfor %}
-        </select>
+        </datalist>
+        <!-- Hidden input that actually gets submitted -->
+        <input type="hidden" name="teacher_id" id="teacherIdHidden" value="">
       </div>
 
+      <!-- Subject -->
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Subject</label>
-        <select id="subjectSelect" name="subject_id" required class="input-field">
-          <option value="" disabled selected>Select subject</option>
+        <input list="subjectList" id="subjectInput" class="input-field" placeholder="Select subject" autocomplete="off" required>
+        <datalist id="subjectList">
           {% for s in subjects %}
-            <option value="{{ s.id }}">{{ s.name }}</option>
+            <option data-id="{{ s.id }}" value="{{ s.name }}"></option>
           {% endfor %}
-        </select>
+        </datalist>
+        <input type="hidden" name="subject_id" id="subjectIdHidden" value="">
       </div>
     </div>
 
-    <!-- Right Column -->
     <div class="flex flex-col gap-4">
+      <!-- Section -->
       <div>
         <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section</label>
-        <select id="sectionSelect" name="section_id" required class="input-field">
-          <option value="" disabled selected>Select section</option>
+        <input list="sectionList" id="sectionInput" class="input-field" placeholder="Select section" autocomplete="off" required>
+        <datalist id="sectionList">
           {% for sec in sections %}
-            <option value="{{ sec.id }}">{{ sec.name }}</option>
+            <option data-id="{{ sec.id }}" value="{{ sec.name }}"></option>
           {% endfor %}
-        </select>
+        </datalist>
+        <input type="hidden" name="section_id" id="sectionIdHidden" value="">
       </div>
     </div>
 
-    <!-- Buttons -->
     <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
-      <a href="{{ url_for('admin.class_list') }}"
-         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
-                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)] transition-all duration-200">
+      <a href="{{ url_for('admin.class_list') }}" class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
+          hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)] transition-all duration-200">
         ← Go Back
       </a>
 
-      <button type="submit"
-              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
-                     bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
-                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
-                     transition-all duration-200">
+      <button type="submit" id="submitBtn"
+              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)] transition-all duration-200">
         Add Class
       </button>
     </div>
   </form>
 </section>
 
-<!-- AJAX Script -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const teacherSelect = document.getElementById('teacherSelect');
-  const sectionSelect = document.getElementById('sectionSelect');
-  const subjectSelect = document.getElementById('subjectSelect');
+  const teacherInput = document.getElementById('teacherInput');
+  const subjectInput = document.getElementById('subjectInput');
+  const sectionInput = document.getElementById('sectionInput');
 
-  teacherSelect.addEventListener('change', function() {
-    const teacherId = this.value;
+  const teacherList = document.getElementById('teacherList');
+  const subjectList = document.getElementById('subjectList');
+  const sectionList = document.getElementById('sectionList');
 
-    if (!teacherId) return;
+  const teacherIdHidden = document.getElementById('teacherIdHidden');
+  const subjectIdHidden = document.getElementById('subjectIdHidden');
+  const sectionIdHidden = document.getElementById('sectionIdHidden');
+
+  // Helper: set hidden id from datalist by matching visible value
+  function setHiddenIdFromDatalist(inputEl, datalistEl, hiddenEl) {
+    const val = inputEl.value.trim();
+    if (!val) {
+      hiddenEl.value = '';
+      return;
+    }
+    const match = Array.from(datalistEl.options).find(opt => opt.value === val);
+    hiddenEl.value = match ? match.getAttribute('data-id') || '' : '';
+  }
+
+  // When user changes the teacher input, set hidden id and trigger subject/section reload
+  teacherInput.addEventListener('change', function() {
+    setHiddenIdFromDatalist(teacherInput, teacherList, teacherIdHidden);
+    const teacherId = teacherIdHidden.value;
+    if (!teacherId) {
+      // No valid id — clear downstream lists/hidden fields
+      subjectList.innerHTML = '';
+      subjectInput.value = '';
+      subjectIdHidden.value = '';
+      sectionList.innerHTML = '';
+      sectionInput.value = '';
+      sectionIdHidden.value = '';
+      return;
+    }
 
     // Load Sections
-    sectionSelect.innerHTML = '<option value="" disabled selected>Loading sections...</option>';
+    sectionList.innerHTML = '';
+    sectionInput.placeholder = 'Loading sections...';
+    sectionInput.value = '';
+    sectionIdHidden.value = '';
     fetch(`/api/class-hierarchy?type=sections&teacher_id=${teacherId}`)
       .then(res => res.json())
       .then(data => {
-        sectionSelect.innerHTML = '<option value="" disabled selected>Select section</option>';
-        if (data.length === 0) {
-          sectionSelect.innerHTML = '<option value="" disabled>No sections available</option>';
+        sectionList.innerHTML = '';
+        if (!Array.isArray(data) || data.length === 0) {
+          sectionInput.placeholder = 'No sections available';
         } else {
           data.forEach(sec => {
-            const option = document.createElement('option');
-            option.value = sec.id;
-            option.textContent = `${sec.name} (${sec.academic_year})`;
-            sectionSelect.appendChild(option);
+            const opt = document.createElement('option');
+            opt.setAttribute('data-id', sec.id);
+            opt.value = `${sec.name} (${sec.academic_year})`;
+            sectionList.appendChild(opt);
           });
+          sectionInput.placeholder = 'Select section';
         }
       })
       .catch(err => {
         console.error(err);
-        sectionSelect.innerHTML = '<option value="" disabled>Error loading sections</option>';
+        sectionList.innerHTML = '';
+        sectionInput.placeholder = 'Error loading sections';
       });
 
     // Load Subjects
-    subjectSelect.innerHTML = '<option value="" disabled selected>Loading subjects...</option>';
+    subjectList.innerHTML = '';
+    subjectInput.placeholder = 'Loading subjects...';
+    subjectInput.value = '';
+    subjectIdHidden.value = '';
     fetch(`/api/class-hierarchy?type=subjects&teacher_id=${teacherId}`)
       .then(res => res.json())
       .then(data => {
-        subjectSelect.innerHTML = '<option value="" disabled selected>Select subject</option>';
-        if (data.length === 0) {
-          subjectSelect.innerHTML = '<option value="" disabled>No subjects available</option>';
+        subjectList.innerHTML = '';
+        if (!Array.isArray(data) || data.length === 0) {
+          subjectInput.placeholder = 'No subjects available';
         } else {
           data.forEach(sub => {
-            const option = document.createElement('option');
-            option.value = sub.id;
-            option.textContent = sub.name;
-            subjectSelect.appendChild(option);
+            const opt = document.createElement('option');
+            opt.setAttribute('data-id', sub.id);
+            opt.value = sub.name;
+            subjectList.appendChild(opt);
           });
+          subjectInput.placeholder = 'Select subject';
         }
       })
       .catch(err => {
         console.error(err);
-        subjectSelect.innerHTML = '<option value="" disabled>Error loading subjects</option>';
+        subjectList.innerHTML = '';
+        subjectInput.placeholder = 'Error loading subjects';
       });
+  });
+
+  // When user chooses subject/section, set their hidden ids
+  subjectInput.addEventListener('change', () => {
+    setHiddenIdFromDatalist(subjectInput, subjectList, subjectIdHidden);
+  });
+  sectionInput.addEventListener('change', () => {
+    setHiddenIdFromDatalist(sectionInput, sectionList, sectionIdHidden);
+  });
+
+  // If user types and blurs, still attempt to resolve to an id
+  teacherInput.addEventListener('blur', () => setHiddenIdFromDatalist(teacherInput, teacherList, teacherIdHidden));
+  subjectInput.addEventListener('blur', () => setHiddenIdFromDatalist(subjectInput, subjectList, subjectIdHidden));
+  sectionInput.addEventListener('blur', () => setHiddenIdFromDatalist(sectionInput, sectionList, sectionIdHidden));
+
+  // Final validation before the confirmation modal opens:
+  const form = document.getElementById('classForm');
+  form.addEventListener('submit', (e) => {
+    // Ensure hidden ids are set
+    setHiddenIdFromDatalist(teacherInput, teacherList, teacherIdHidden);
+    setHiddenIdFromDatalist(subjectInput, subjectList, subjectIdHidden);
+    setHiddenIdFromDatalist(sectionInput, sectionList, sectionIdHidden);
+
+    if (!teacherIdHidden.value) {
+      e.preventDefault();
+      alert('Please choose a teacher from the list (select a valid teacher).');
+      teacherInput.focus();
+      return false;
+    }
+    if (!subjectIdHidden.value) {
+      e.preventDefault();
+      alert('Please choose a subject from the list (select a valid subject).');
+      subjectInput.focus();
+      return false;
+    }
+    if (!sectionIdHidden.value) {
+      e.preventDefault();
+      alert('Please choose a section from the list (select a valid section).');
+      sectionInput.focus();
+      return false;
+    }
+
+    // allow the form to proceed; your openConfirmFormModal will still run
+    return true;
   });
 });
 </script>

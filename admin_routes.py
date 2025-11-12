@@ -1,7 +1,7 @@
 import re
 from flask import render_template, request, redirect, url_for, session, flash, Blueprint, jsonify
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from flask_login import login_required
+from flask_login import login_required, current_user
 from sqlalchemy import text
 from helpers import *
 from database import db

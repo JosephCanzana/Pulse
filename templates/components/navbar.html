@@ -1,5 +1,5 @@
 <!-- NAVBAR -->
-<nav class="sticky top-0 w-full h-15 z-50 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] sm:pl-4 sm:pr-4 pl-4 pr-7 drop-shadow-black shadow-2xs">
+<nav class="sticky top-0 w-full h-15 z-50 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] sm:pl-4 sm:pr-4 pl-4 pr-9 drop-shadow-black shadow-2xs">
     
 <!-- LEFT SIDE -->
     <div class="flex items-center justify-center mp-0.5 ">
@@ -18,7 +18,22 @@
     </div>
 
     <!-- This is for the right side of navbar -->
-    <div class="flex items-center justify-center">
-        <a href="{{ url_for('profile') }}" class="material-symbols-outlined btn-nav-icon">account_circle</a>
+        <!-- RIGHT SIDE (User Profile / Account Icon) -->
+    <div class="flex items-center">
+        <a href="{{ url_for('profile') }}" class="flex items-center justify-center">
+            {% if current_user.is_authenticated %}
+                <!-- User initials -->
+                <div class="w-9 h-9 flex items-center  justify-center rounded-full border-2 border-[var(--clr-border)] text-[var(--clr-primary)] font-bold text-base  hover:brightness-90 transition">
+                    {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
+                </div>
+            {% else %}
+                <!-- Default account icon -->
+                <div class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-300 text-gray-600 hover:bg-gray-400 transition">
+                    <span class="material-symbols-outlined text-lg sm:text-xl">account_circle</span>
+                </div>
+            {% endif %}
+        </a>
     </div>
+
+
 </nav>
