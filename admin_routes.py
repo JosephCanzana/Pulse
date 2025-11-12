@@ -246,13 +246,22 @@ def reset():
     flash("Successfully reset.", "success")
     return redirect(request.referrer)
 
+
+# =======================
+# Student (admin side)
+# =======================
 @admin_bp.route("/student")
 @login_required
 @role_required("admin")
 def student():
     show_archive = session.get("show_archive_student", False)
     search = request.args.get("search", "").strip()
+    education_level_id = request.args.get("education_level")
+    course_id = request.args.get("course")
+    section_id = request.args.get("section")
+    year_id = request.args.get("year")
 
+    # Base query
     base_query = """
         SELECT 
             Users.id AS user_id,
@@ -280,7 +289,7 @@ def student():
 
     params = {"status": 0 if show_archive else 1}
 
-    # Add search filter if present
+    # Search filter
     if search:
         base_query += """
             AND (
@@ -293,11 +302,47 @@ def student():
         """
         params["search"] = f"%{search}%"
 
+    # Additional filters
+    if education_level_id:
+        base_query += " AND StudentProfile.education_level_id = :education_level_id"
+        params["education_level_id"] = education_level_id
+
+    if course_id:
+        base_query += " AND StudentProfile.course_id = :course_id"
+        params["course_id"] = course_id
+
+    if section_id:
+        base_query += " AND StudentProfile.section_id = :section_id"
+        params["section_id"] = section_id
+
+    if year_id:
+        base_query += " AND StudentProfile.year_id = :year_id"
+        params["year_id"] = year_id
+
     base_query += " ORDER BY Users.last_name, Users.first_name"
 
     students = db.session.execute(text(base_query), params).mappings().all()
 
-    return render_template("admin/student/list.html", students=students, show_archive=show_archive, search=search)
+    # Fetch dropdown data for filters
+    education_levels = db.session.execute(text("SELECT id, name FROM EducationLevel")).mappings().all()
+    courses = db.session.execute(text("SELECT id, name FROM Course WHERE status = 1")).mappings().all()
+    sections = db.session.execute(text("SELECT id, name FROM Section WHERE status = 1")).mappings().all()
+    years = db.session.execute(text("SELECT id, name FROM YearLevel")).mappings().all()
+
+    return render_template(
+        "admin/student/list.html",
+        students=students,
+        show_archive=show_archive,
+        search=search,
+        education_levels=education_levels,
+        courses=courses,
+        sections=sections,
+        years=years,
+        education_level_id=education_level_id,
+        course_id=course_id,
+        section_id=section_id,
+        year_id=year_id
+    )
 
 # Student add
 @admin_bp.route("/student/add", methods=["POST", "GET"])
@@ -559,7 +604,10 @@ def student_archive_switch():
 def teacher():
     show_archive = session.get("show_archive_teacher", False)
     search = request.args.get("search", "").strip()
+    education_level_id = request.args.get("education_level")
+    department_id = request.args.get("department")
 
+    # Base query
     base_query = """
         SELECT 
             Users.id AS user_id,
@@ -583,7 +631,7 @@ def teacher():
 
     params = {"status": 0 if show_archive else 1}
 
-    # search filter
+    # Search filter
     if search:
         base_query += """
             AND (
@@ -596,15 +644,32 @@ def teacher():
         """
         params["search"] = f"%{search}%"
 
+    # Additional filters
+    if education_level_id:
+        base_query += " AND TeacherProfile.education_level_id = :education_level_id"
+        params["education_level_id"] = education_level_id
+
+    if department_id:
+        base_query += " AND TeacherProfile.department_id = :department_id"
+        params["department_id"] = department_id
+
     base_query += " ORDER BY Users.last_name, Users.first_name"
 
     teachers = db.session.execute(text(base_query), params).mappings().all()
+
+    # Fetch dropdown data for filters
+    education_levels = db.session.execute(text("SELECT id, name FROM EducationLevel")).mappings().all()
+    departments = db.session.execute(text("SELECT id, name FROM Department WHERE status = 1")).mappings().all()
 
     return render_template(
         "admin/teacher/list.html",
         teachers=teachers,
         show_archive=show_archive,
-        search=search
+        search=search,
+        education_levels=education_levels,
+        departments=departments,
+        education_level_id=education_level_id,
+        department_id=department_id
     )
 
 # Teacher add
@@ -805,6 +870,14 @@ def teacher_archive_switch():
 def section():
     show_archive = session.get("show_archive_section", False)
     search = request.args.get("search", "").strip()
+    course_id = request.args.get("course")
+    year_id = request.args.get("year")
+    education_level_id = request.args.get("education_level")
+
+    # Fetch filters
+    courses = db.session.execute(text("SELECT id, name FROM Course ORDER BY name")).mappings().all()
+    years = db.session.execute(text("SELECT id, name FROM YearLevel ORDER BY name")).mappings().all()
+    education_levels = db.session.execute(text("SELECT id, name FROM EducationLevel ORDER BY name")).mappings().all()
 
     base_query = """
         SELECT 
@@ -840,6 +913,19 @@ def section():
         """
         params["search"] = f"%{search}%"
 
+    # Filters
+    if course_id:
+        base_query += " AND Section.course_id = :course_id"
+        params["course_id"] = course_id
+
+    if year_id:
+        base_query += " AND Section.year_id = :year_id"
+        params["year_id"] = year_id
+
+    if education_level_id:
+        base_query += " AND Section.education_lvl_id = :education_level_id"
+        params["education_level_id"] = education_level_id
+
     base_query += " ORDER BY Section.name"
 
     sections = db.session.execute(text(base_query), params).mappings().all()
@@ -848,8 +934,15 @@ def section():
         "admin/section/list.html",
         sections=sections,
         show_archive=show_archive,
-        search=search
+        search=search,
+        course_id=course_id,
+        year_id=year_id,
+        education_level_id=education_level_id,
+        courses=courses,
+        years=years,
+        education_levels=education_levels
     )
+
 
 # Section Add
 @admin_bp.route("/section/add", methods=["POST", "GET"])
@@ -1185,6 +1278,12 @@ def section_archive_switch():
 def course():
     show_archive = session.get("show_archive_course", False)
     search = request.args.get("search", "").strip()
+    education_level_id = request.args.get("education_level")
+
+    # Fetch education levels for filter dropdown
+    education_levels = db.session.execute(
+        text("SELECT id, name FROM EducationLevel ORDER BY name")
+    ).mappings().all()
 
     base_query = """
         SELECT
@@ -1198,6 +1297,7 @@ def course():
 
     params = {"status": 0 if show_archive else 1}
 
+    # 🔍 Optional search
     if search:
         base_query += """
             AND (
@@ -1207,6 +1307,11 @@ def course():
         """
         params["search"] = f"%{search}%"
 
+    # Filter by education level
+    if education_level_id:
+        base_query += " AND Course.education_level_id = :education_level_id"
+        params["education_level_id"] = education_level_id
+
     base_query += " ORDER BY Course.name"
 
     courses = db.session.execute(text(base_query), params).mappings().all()
@@ -1215,9 +1320,10 @@ def course():
         "admin/course/list.html",
         courses=courses,
         show_archive=show_archive,
-        search=search
+        search=search,
+        education_level_id=education_level_id,
+        education_levels=education_levels
     )
-
 
 # Course add
 @admin_bp.route("/course/add", methods=["POST", "GET"])
@@ -1324,13 +1430,16 @@ def course_archive_switch():
 @login_required
 @role_required("admin")
 def department():
-    # Retrieve archive visibility setting from session
     show_archive = session.get("show_archive_department", False)
-
-    # Get search query from request args
     search = request.args.get("search", "").strip()
+    education_level_id = request.args.get("education_level")
 
-    # Base query with search and EducationLevel info
+    # Fetch all education levels for the filter dropdown
+    education_levels = db.session.execute(
+        text("SELECT id, name FROM EducationLevel ORDER BY name")
+    ).mappings().all()
+
+    # Base query
     query = """
         SELECT
             Department.id AS department_id,
@@ -1343,30 +1452,27 @@ def department():
 
     params = {"status": 0 if show_archive else 1}
 
-    # Add search condition if keyword is provided
+    # Search filter
     if search:
         query += " AND (Department.name LIKE :search OR EducationLevel.name LIKE :search)"
         params["search"] = f"%{search}%"
 
+    # Education level filter
+    if education_level_id:
+        query += " AND Department.education_level_id = :education_level_id"
+        params["education_level_id"] = education_level_id
+
     query += " ORDER BY Department.name"
 
-    # Execute query
     departments = db.session.execute(text(query), params).mappings().all()
-
-    # Label for UI clarity
-    page_state_label = (
-        f"Search Results for '{search}'"
-        if search
-        else "Archived Departments" if show_archive
-        else "Active Departments"
-    )
 
     return render_template(
         "admin/department/list.html",
         departments=departments,
         show_archive=show_archive,
-        page_state_label=page_state_label,
-        search=search  # so we can keep the value in the input field
+        search=search,
+        education_level_id=education_level_id,
+        education_levels=education_levels  # Pass this to template
     )
 
 
@@ -1472,6 +1578,12 @@ def department_archive_switch():
 def subject():
     show_archive = session.get("show_archive_subject", False)
     search = request.args.get("search", "").strip()
+    education_level_id = request.args.get("education_level")
+
+    # Fetch all education levels for the filter dropdown
+    education_levels = db.session.execute(
+        text("SELECT id, name FROM EducationLevel ORDER BY name")
+    ).mappings().all()
 
     # Base SQL
     query = """
@@ -1485,7 +1597,7 @@ def subject():
         WHERE Subject.status = :status
     """
 
-    params = {"status": int(not show_archive)}
+    params = {"status": 0 if show_archive else 1}
 
     # Add search condition if provided
     if search:
@@ -1497,6 +1609,11 @@ def subject():
         """
         params["search"] = f"%{search}%"
 
+    # Filter by education level if selected
+    if education_level_id:
+        query += " AND Subject.education_level_id = :education_level_id"
+        params["education_level_id"] = education_level_id
+
     query += " ORDER BY Subject.name"
 
     subjects = db.session.execute(text(query), params).mappings().all()
@@ -1505,7 +1622,9 @@ def subject():
         "admin/subject/list.html",
         subjects=subjects,
         show_archive=show_archive,
-        search=search
+        search=search,
+        education_level_id=education_level_id,
+        education_levels=education_levels  # pass to template for filter
     )
 
 # Subject add
@@ -1614,16 +1733,20 @@ def subject_archive_switch():
 @login_required
 @role_required("admin")
 def class_list():
-    selected_status = request.args.get("status", "active") 
+    # --- Get filter and search parameters ---
+    selected_status = request.args.get("status", "active").lower()
     search = request.args.get("search", "").strip()
+    subject_id = request.args.get("subject")
+    section_id = request.args.get("section")
+    teacher_id = request.args.get("teacher")
 
-    # Base SQL
+    # --- Base SQL ---
     query = """
         SELECT 
             Class.id AS class_id, 
             Class.status, 
-            Users.first_name, 
-            Users.last_name, 
+            Users.first_name AS teacher_first_name, 
+            Users.last_name AS teacher_last_name, 
             Subject.name AS subject_name, 
             Section.name AS section_name,
             Section.academic_year AS academic_year
@@ -1637,12 +1760,13 @@ def class_list():
 
     params = {}
 
-    # Filter by class status if not "all"
+    # --- Status filter ---
     if selected_status != "all":
+        status_value = 1 if selected_status == "active" else 0
         query += " AND Class.status = :status"
-        params["status"] = selected_status
+        params["status"] = status_value
 
-    # Apply search if provided
+    # --- Search filter ---
     if search:
         query += """
             AND (
@@ -1653,15 +1777,55 @@ def class_list():
         """
         params["search"] = f"%{search}%"
 
+    # --- Subject filter ---
+    if subject_id:
+        query += " AND Class.subject_id = :subject_id"
+        params["subject_id"] = subject_id
+
+    # --- Section filter ---
+    if section_id:
+        query += " AND Class.section_id = :section_id"
+        params["section_id"] = section_id
+
+    # --- Teacher filter ---
+    if teacher_id:
+        query += " AND Class.teacher_id = :teacher_id"
+        params["teacher_id"] = teacher_id
+
     query += " ORDER BY Section.name, Subject.name"
 
     classes = db.session.execute(text(query), params).mappings().all()
+
+    # --- Fetch data for dropdowns ---
+    subjects = db.session.execute(
+        text("SELECT id, name FROM Subject WHERE status=1 ORDER BY name")
+    ).mappings().all()
+
+    sections = db.session.execute(
+        text("SELECT id, name FROM Section WHERE status=1 ORDER BY name")
+    ).mappings().all()
+
+    teachers = db.session.execute(
+        text("""
+            SELECT Users.id, CONCAT(Users.first_name, ' ', Users.last_name) AS full_name
+            FROM Users
+            JOIN TeacherProfile ON Users.id = TeacherProfile.user_id
+            WHERE Users.status=1
+            ORDER BY Users.last_name, Users.first_name
+        """)
+    ).mappings().all()
 
     return render_template(
         "admin/class/list.html",
         classes=classes,
         selected_status=selected_status,
-        search=search
+        search=search,
+        subject_id=subject_id,
+        section_id=section_id,
+        teacher_id=teacher_id,
+        subjects=subjects,
+        sections=sections,
+        teachers=teachers
     )
 
 
