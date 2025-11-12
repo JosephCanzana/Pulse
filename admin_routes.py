@@ -305,14 +305,11 @@ def student():
 @role_required("admin")
 def student_add():
     if request.method == "POST":
-        first = request.form.get("first_name", "").strip().capitalize()
-        second = request.form.get("second_name", "").strip().capitalize()
-        last = request.form.get("last_name", "").strip().capitalize()
+        first = request.form.get("first_name", "").strip().title()
+        second = request.form.get("second_name", "").strip().title()
+        last = request.form.get("last_name", "").strip().title()
         school_id = request.form.get("school_id", "").strip()
         gender = request.form.get("gender", "").capitalize()
-        # Auto-generate school ID
-        school_id = generate_next_id()
-        email = f"{school_id}@holycross.edu.ph"
 
         # Basic validation
         if not all([first, last, school_id, gender]):
@@ -348,6 +345,14 @@ def student_add():
         if education_lvl in (3, 4) and not course_id:
             flash("Senior High and College need a course.", "error")
             return redirect(url_for("admin.student_add"))
+
+        if not all([education_lvl, year_id]):
+            flash("Some fields are missing.", "warning")
+            return redirect(url_for("admin.student_add"))
+
+        # Auto-generate school ID
+        school_id = generate_next_id()
+        email = f"{school_id}@holycross.edu.ph"
 
         # Add user
         user = add_user(db, first, second, last, email, int(school_id), gender, "student")
@@ -609,9 +614,9 @@ def teacher():
 def teacher_add():
     if request.method == "POST":
         # --- USER form part ---
-        first = (request.form.get("first_name") or "").strip().capitalize()
-        second = (request.form.get("second_name") or "").strip().capitalize()
-        last = (request.form.get("last_name") or "").strip().capitalize()
+        first = (request.form.get("first_name") or "").strip().title()
+        second = (request.form.get("second_name") or "").strip().title()
+        last = (request.form.get("last_name") or "").strip().title()
         form_school_id = request.form.get("school_id")
         gender = (request.form.get("gender") or "").strip().capitalize()
         

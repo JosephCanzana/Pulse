@@ -69,6 +69,7 @@ def student_hierarchy():
     course_id = request.args.get("course_id")
     year_id = request.args.get("year_id")
 
+    # Fetch courses
     if query_type == "courses" and level_id:
         result = db.session.execute(
             text("SELECT id, name FROM Course WHERE education_level_id = :level_id AND status = 1"),
@@ -76,6 +77,7 @@ def student_hierarchy():
         ).mappings().all()
         return jsonify([dict(r) for r in result])
 
+    # Fetch year levels
     if query_type == "year_levels" and level_id:
         result = db.session.execute(
             text("SELECT id, name FROM YearLevel WHERE education_level_id = :level_id"),
@@ -83,11 +85,35 @@ def student_hierarchy():
         ).mappings().all()
         return jsonify([dict(r) for r in result])
 
-    if query_type == "sections" and course_id and year_id:
-        result = db.session.execute(
-            text("SELECT id, name, academic_year FROM Section WHERE course_id = :course_id AND year_id = :year_id AND status = 1"),
-            {"course_id": course_id, "year_id": year_id}
-        ).mappings().all()
+    # Fetch sections — smart handling for diff levels
+    if query_type == "sections":
+        if course_id and year_id:
+            # College / Senior High
+            result = db.session.execute(
+                text("""
+                    SELECT id, name, academic_year 
+                    FROM Section 
+                    WHERE course_id = :course_id 
+                      AND year_id = :year_id 
+                      AND status = 1
+                """),
+                {"course_id": course_id, "year_id": year_id}
+            ).mappings().all()
+        elif level_id and year_id:
+            # Elementary / Junior High
+            result = db.session.execute(
+                text("""
+                    SELECT id, name, academic_year 
+                    FROM Section 
+                    WHERE education_lvl_id = :level_id 
+                      AND year_id = :year_id 
+                      AND status = 1
+                """),
+                {"level_id": level_id, "year_id": year_id}
+            ).mappings().all()
+        else:
+            result = []
+
         return jsonify([dict(r) for r in result])
 
     return jsonify([])

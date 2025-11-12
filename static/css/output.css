@@ -999,9 +999,6 @@
   .bg-\[var\(--clr-secondary\)\] {
     background-color: var(--clr-secondary);
   }
-  .bg-\[var\(--clr-success\)\] {
-    background-color: var(--clr-success);
-  }
   .bg-\[var\(--clr-success\)\]\/20 {
     background-color: var(--clr-success);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1026,10 +1023,22 @@
   .bg-\[var\(--clr-surface-alt\)\] {
     background-color: var(--clr-surface-alt);
   }
+  .bg-\[var\(--clr-surface-alt\)\]\/60 {
+    background-color: var(--clr-surface-alt);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--clr-surface-alt) 60%, transparent);
+    }
+  }
   .bg-\[var\(--clr-surface-alt\)\]\/70 {
     background-color: var(--clr-surface-alt);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--clr-surface-alt) 70%, transparent);
+    }
+  }
+  .bg-\[var\(--clr-surface-alt\)\]\/76 {
+    background-color: var(--clr-surface-alt);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--clr-surface-alt) 76%, transparent);
     }
   }
   .bg-\[var\(--clr-warning\)\]\/20 {

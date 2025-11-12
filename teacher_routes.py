@@ -45,7 +45,7 @@ def dashboard():
     JOIN Lesson l ON slp.lesson_id = l.id
     WHERE slp.status = 'completed'
     ORDER BY slp.completed_at DESC
-    LIMIT 5
+    LIMIT 15
 """)).mappings().all()
 
     # --- Fetch teacher advisory sections ---

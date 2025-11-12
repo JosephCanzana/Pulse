@@ -71,22 +71,23 @@ def add_user(db, f_name, s_name, l_name, email, school_id, gender, role):
     user_id = result.lastrowid
     return {"id": user_id}
 
-def assign_student_profile(db, user_id, ed_lvl, course_id, section_id, year_id):
-    db.session.execute(text
-        ("""
+def assign_student_profile(db, user_id, ed_lvl, course_id, section_id=None, year_id=None):
+    db.session.execute(text("""
         INSERT INTO StudentProfile (user_id, education_level_id, course_id, year_id, section_id)
         VALUES (:user_id, :ed_lvl, :course_id, :year_id, :section_id)
-        """),
-        {
-            "user_id" : user_id,
-            "ed_lvl" : ed_lvl,
-            "course_id" : course_id,
-            "section_id" : section_id,
-            "year_id" : year_id
-        }
-    )
+    """), {
+        "user_id": user_id,
+        "ed_lvl": ed_lvl,
+        "course_id": course_id,
+        "section_id": section_id if section_id else None,
+        "year_id": year_id
+    })
     db.session.commit()
-    return db.session.execute(text("SELECT * FROM StudentProfile WHERE user_id = :user_id LIMIT 1"), {"user_id" : user_id}).mappings().first()
+
+    return db.session.execute(
+        text("SELECT * FROM StudentProfile WHERE user_id = :user_id LIMIT 1"),
+        {"user_id": user_id}
+    ).mappings().first()
     
 def assign_teacher_profile(db, user_id, department_id, lvl_id):
     db.session.execute(text(

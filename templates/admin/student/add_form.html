@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     select.disabled = disable;
   }
 
+  // Load courses and year levels when education level changes
   eduSelect.addEventListener("change", async () => {
     const levelId = eduSelect.value;
     resetSelect(courseSelect, "Select course");
@@ -135,9 +136,13 @@ document.addEventListener("DOMContentLoaded", () => {
         fetch(`/api/student-hierarchy?type=year_levels&education_level_id=${levelId}`).then(r => r.json())
       ]);
 
+      // Show courses only if available (for SHS / College)
       if (courses?.length) {
         courseSelect.disabled = false;
         courses.forEach(c => courseSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+      } else {
+        // Hide/disable course select if level has no courses
+        resetSelect(courseSelect, "No courses available", true);
       }
 
       if (years?.length) {
@@ -149,24 +154,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Load sections based on selected education level
   async function loadSections() {
+    const levelId = eduSelect.value;
     const courseId = courseSelect.value;
     const yearId = yearSelect.value;
     resetSelect(sectionSelect, "Select section");
 
-    if (!courseId || !yearId) return;
+    if (!yearId) return; // year is always required
+
+    let url = `/api/student-hierarchy?type=sections&education_level_id=${levelId}&year_id=${yearId}`;
+
+    // Only include course_id for levels that actually use it
+    if (courseId) {
+      url += `&course_id=${courseId}`;
+    }
 
     try {
-      const sections = await fetch(`/api/student-hierarchy?type=sections&course_id=${courseId}&year_id=${yearId}`).then(r => r.json());
+      const sections = await fetch(url).then(r => r.json());
       if (sections?.length) {
         sectionSelect.disabled = false;
         sections.forEach(s => {
           const label = s.academic_year ? `${s.name} (${s.academic_year})` : s.name;
           sectionSelect.innerHTML += `<option value="${s.id}">${label}</option>`;
         });
+      } else {
+        resetSelect(sectionSelect, "No sections found", true);
       }
     } catch (err) {
       console.error("Error loading sections:", err);
+      resetSelect(sectionSelect, "Error loading sections", true);
     }
   }
 
@@ -174,4 +191,5 @@ document.addEventListener("DOMContentLoaded", () => {
   yearSelect.addEventListener("change", loadSections);
 });
 </script>
+
 {% endblock %}

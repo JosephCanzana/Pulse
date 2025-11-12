@@ -102,7 +102,6 @@
     </div>
   </form>
 </section>
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const eduSelect = document.getElementById("education_lvl");
@@ -115,10 +114,10 @@ document.addEventListener("DOMContentLoaded", () => {
     select.disabled = disable;
   }
 
-  // Populate Course, Year, Section with existing student values
   const currentCourse = "{{ student.course_id or '' }}";
   const currentYear = "{{ student.year_id or '' }}";
   const currentSection = "{{ student.section_id or '' }}";
+  const currentLevel = "{{ student.education_level_id or '' }}";
 
   async function loadCoursesAndYears(levelId) {
     resetSelect(courseSelect, "Select course");
@@ -157,14 +156,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function loadSections() {
-    const courseId = courseSelect.value;
-    const yearId = yearSelect.value;
     resetSelect(sectionSelect, "Select section");
 
-    if (!courseId || !yearId) return;
+    const levelId = eduSelect.value;
+    const courseId = courseSelect.value;
+    const yearId = yearSelect.value;
+
+    if (!yearId || !levelId) return;
+
+    let url = "";
+
+    // Elementary / Junior High
+    if (!courseId) {
+      url = `/api/student-hierarchy?type=sections&education_level_id=${levelId}&year_id=${yearId}`;
+    } else {
+      // College / Senior High
+      url = `/api/student-hierarchy?type=sections&course_id=${courseId}&year_id=${yearId}`;
+    }
 
     try {
-      const sections = await fetch(`/api/student-hierarchy?type=sections&course_id=${courseId}&year_id=${yearId}`).then(r => r.json());
+      const sections = await fetch(url).then(r => r.json());
       if (sections?.length) {
         sectionSelect.disabled = false;
         sections.forEach(s => {
@@ -178,13 +189,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Initial load with existing student data
   if (eduSelect.value) loadCoursesAndYears(eduSelect.value);
 
-  // Event listeners
   eduSelect.addEventListener("change", () => loadCoursesAndYears(eduSelect.value));
   courseSelect.addEventListener("change", loadSections);
   yearSelect.addEventListener("change", loadSections);
 });
 </script>
+
 {% endblock %}
