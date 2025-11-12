@@ -283,12 +283,13 @@ def profile():
         new_password = request.form.get("new_password")
         confirm_password = request.form.get("confirm_password")
 
-        if not re.match(HARD_PASS_RE, new_password):
-            flash("Password must be at least 8 characters long and include an uppercase letter, number, and special character.", "error")
-            return redirect("/profile")
-        elif not re.match(MID_PASS_RE, new_password):
-            flash("Add atleast one character", "error")
-            return redirect("/profile")
+        if all([current_password, new_password, confirm_password]):
+            if not re.match(HARD_PASS_RE, new_password):
+                flash("Password must be at least 8 characters long and include an uppercase letter, number, and special character.", "error")
+                return redirect("/profile")
+            elif not re.match(MID_PASS_RE, new_password):
+                flash("Add atleast one character", "error")
+                return redirect("/profile")
         
         # Verify current password before updating
         if current_password or new_password or confirm_password:
