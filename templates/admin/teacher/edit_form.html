@@ -6,100 +6,104 @@
 {% endblock %}
 
 {% block main %}
-<section class="w-full h-full flex flex-col justify-center px-10">
-  <!-- Header -->
-  <header class="text-center mb-4">
-    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Edit Teacher Information</h1>
-    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">Update the details to modify this teacher’s record.</p>
-  </header>
-
-  <!-- Form -->
-  <form
-    id="editTeacherForm"
-    action="{{ url_for('admin.teacher_edit', school_id=teacher.school_id) }}"
-    method="POST"
-    onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this teacher?')"
-    class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full"
-  >
-    <!-- Left Column -->
-    <div class="flex flex-col gap-4">
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">School ID</label>
-        <input type="text" name="school_id" value="{{ teacher.school_id }}" readonly class="input-field" />
-      </div>
-
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">First Name</label>
-        <input type="text" name="first_name" value="{{ teacher.first_name }}" required class="input-field" />
-      </div>
-
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Middle Name</label>
-        <input type="text" name="second_name" value="{{ teacher.middle_name or '' }}" class="input-field" />
-      </div>
-
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Last Name</label>
-        <input type="text" name="last_name" value="{{ teacher.last_name }}" required class="input-field" />
-      </div>
-
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Sex</label>
-        <select name="gender" required class="input-field">
-          <option value="Male" {% if teacher.gender == 'Male' %}selected{% endif %}>Male</option>
-          <option value="Female" {% if teacher.gender == 'Female' %}selected{% endif %}>Female</option>
-        </select>
-      </div>
-    </div>
+<section class="h-full w-full flex flex-col items-center justify-start ">
+  
+  <!-- Container Card -->
+  <div class="w-full max-w-5xl bg-[var(--clr-surface)]/60 backdrop-blur-xl shadow-lg rounded-2xl p-8 sm:p-10 border border-[var(--clr-border)]/40">
     
-    <!-- Right Column -->
-    <div class="flex flex-col gap-4">
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Email</label>
-        <input type="email" value="{{ teacher.email }}" readonly class="input-field text-[var(--clr-txt-muted)] cursor-not-allowed" />
+    <!-- Header -->
+    <header class="text-center mb-8">
+      <h1 class="text-3xl md:text-4xl font-semibold text-[var(--clr-primary)]">Edit Teacher Information</h1>
+      <p class="text-[var(--clr-txt-muted)] mt-2 text-base">Update the details to modify this teacher’s record.</p>
+    </header>
+
+    <!-- Form -->
+    <form
+      id="editTeacherForm"
+      action="{{ url_for('admin.teacher_edit', school_id=teacher.school_id) }}"
+      method="POST"
+      onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this teacher?')"
+      class="grid grid-cols-1 md:grid-cols-2 gap-6"
+    >
+      <!-- Left Column -->
+      <div class="flex flex-col gap-5">
+        <div>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">School ID</label>
+          <input type="text" name="school_id" value="{{ teacher.school_id }}" readonly class="input-field bg-[var(--clr-surface)]/70 cursor-not-allowed text-[var(--clr-txt-muted)]" />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">First Name</label>
+          <input type="text" name="first_name" value="{{ teacher.first_name }}" required class="input-field" />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Middle Name</label>
+          <input type="text" name="second_name" value="{{ teacher.middle_name or '' }}" class="input-field" />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Last Name</label>
+          <input type="text" name="last_name" value="{{ teacher.last_name }}" required class="input-field" />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Sex</label>
+          <select name="gender" required class="input-field">
+            <option value="Male" {% if teacher.gender == 'Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if teacher.gender == 'Female' %}selected{% endif %}>Female</option>
+          </select>
+        </div>
       </div>
 
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
-        <select name="lvl_id" id="editEducationLevelSelect" required class="input-field">
-          {% for lvl in lvls %}
-            <option value="{{ lvl.id }}" {% if lvl.id == teacher.education_level_id %}selected{% endif %}>{{ lvl.name }}</option>
-          {% endfor %}
-        </select>
+      <!-- Right Column -->
+      <div class="flex flex-col gap-5">
+        <div>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Email</label>
+          <input type="email" value="{{ teacher.email }}" readonly class="input-field bg-[var(--clr-surface)]/70 cursor-not-allowed text-[var(--clr-txt-muted)]" />
+        </div>
+
+        <div>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
+          <select name="lvl_id" id="editEducationLevelSelect" required class="input-field">
+            {% for lvl in lvls %}
+              <option value="{{ lvl.id }}" {% if lvl.id == teacher.education_level_id %}selected{% endif %}>{{ lvl.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Department</label>
+          <select name="department_id" id="editDepartmentSelect" class="input-field">
+            {% for dept in departments %}
+              <option value="{{ dept.id }}" {% if dept.id == teacher.department_id %}selected{% endif %}>{{ dept.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
       </div>
 
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Department</label>
-        <select name="department_id" id="editDepartmentSelect"  class="input-field">
-          {% for dept in departments %}
-            <option value="{{ dept.id }}" {% if dept.id == teacher.department_id %}selected{% endif %}>{{ dept.name }}</option>
-          {% endfor %}
-        </select>
+      <!-- Buttons -->
+      <div class="md:col-span-2 flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
+        <a href="{{ url_for('admin.teacher') }}"
+          class="w-full sm:w-auto px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
+                 hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
+                 transition-all duration-200 text-center">
+          ← Go Back
+        </a>
+
+        <button type="submit"
+          class="w-full sm:w-auto px-8 py-2.5 rounded-lg font-semibold text-white text-sm
+                 bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                 shadow-sm hover:shadow-[0_0_15px_var(--clr-glow-primary)]
+                 transition-all duration-200">
+          Save Changes
+        </button>
       </div>
-
-    </div>
-
-    <!-- Buttons -->
-    <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
-      <a href="{{ url_for('admin.teacher') }}"
-         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
-                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
-                transition-all duration-200">
-        ← Go Back
-      </a>
-
-      <button type="submit"
-              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
-                     bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
-                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
-                     transition-all duration-200">
-        Save Changes
-      </button>
-    </div>
-
-  </form>
+    </form>
+  </div>
 </section>
 
+<!-- Script -->
 <script>
   const departmentSelect = document.getElementById('editDepartmentSelect');
   const educationSelect = document.getElementById('editEducationLevelSelect');
@@ -126,7 +130,7 @@
   }
 
   // Initial load with preselected department
-  if(educationSelect.value) {
+  if (educationSelect.value) {
     loadDepartments(educationSelect.value, previousDepartmentId);
   }
 

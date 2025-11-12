@@ -6,102 +6,140 @@
 {% endblock %}
 
 {% block main %}
-<section class="w-full h-full flex flex-col justify-center px-10">
-  <!-- Header -->
-  <header class="text-center mb-4">
-    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Edit Student Information</h1>
-    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">Update the details to modify this student’s record.</p>
-  </header>
+<section class="w-full h-full flex flex-col items-center justify-start">
+  <!-- Card Container -->
+  <div class="w-full max-w-5xl bg-[var(--clr-glass-light)] backdrop-[var(--blur-background)] border border-[var(--clr-glass-border)]
+              rounded-2xl shadow-lg p-8 sm:p-10 flex flex-col gap-8 transition-all duration-300 ">
+    
+    <!-- Header -->
+    <header class="text-center">
+      <h1 class="text-3xl font-extrabold text-[var(--clr-primary)] tracking-tight">Edit Student Information</h1>
+      <p class="text-[var(--clr-txt-muted)] mt-2 text-base sm:text-lg">Update the details to modify this student’s record.</p>
+    </header>
 
-  <!-- Form -->
-  <form
-    id="editStudentForm"
-    action="{{ url_for('admin.student_edit', school_id=student.school_id) }}"
-    method="post"
-    onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this student?')"
-    class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full"
-  >
-    <!-- Left Column: Personal Info -->
-    <div class="flex flex-col gap-4">
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">School ID</label>
-        <input type="text" name="school_id" value="{{ student.school_id }}" readonly class="input-field" />
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">First Name</label>
-        <input type="text" name="first_name" value="{{ student.first_name }}" required class="input-field" />
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Middle Name</label>
-        <input type="text" name="second_name" value="{{ student.middle_name or '' }}" class="input-field" />
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Last Name</label>
-        <input type="text" name="last_name" value="{{ student.last_name }}" required class="input-field" />
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Sex</label>
-        <select name="gender" required class="input-field">
-          <option value="Male" {% if student.gender == 'Male' %}selected{% endif %}>Male</option>
-          <option value="Female" {% if student.gender == 'Female' %}selected{% endif %}>Female</option>
-          <option value="Other" {% if student.gender == 'Other' %}selected{% endif %}>Other</option>
-        </select>
-      </div>
-    </div>
+    <!-- Form -->
+    <form
+      id="editStudentForm"
+      action="{{ url_for('admin.student_edit', school_id=student.school_id) }}"
+      method="post"
+      onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this student?')"
+      class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full"
+    >
+      <!-- Left Column -->
+      <div class="flex flex-col gap-5">
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">School ID</label>
+          <input type="text" name="school_id" value="{{ student.school_id }}" readonly
+                 class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                        px-4 py-2.5 focus:outline-none text-[var(--clr-txt-primary)] transition-all duration-200" />
+        </div>
 
-    <!-- Right Column: Education Info -->
-    <div class="flex flex-col gap-4">
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
-        <select id="education_lvl" name="education_lvl" required class="input-field">
-          <option value="" disabled selected>Select education level</option>
-          {% for lvl in education_lvls %}
-            <option value="{{ lvl.id }}" {% if lvl.id == student.education_level_id %}selected{% endif %}>{{ lvl.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Course</label>
-        <select id="course" name="course" class="input-field" disabled>
-          <option value="" disabled selected>Select course</option>
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Year Level</label>
-        <select id="year" name="year" class="input-field" disabled>
-          <option value="" disabled selected>Select year level</option>
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section</label>
-        <select id="section" name="section" class="input-field" disabled>
-          <option value="" disabled selected>Select section</option>
-        </select>
-      </div>
-    </div>
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">First Name</label>
+          <input type="text" name="first_name" value="{{ student.first_name }}" placeholder="Enter first name" required
+                 class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                        px-4 py-2.5 focus:ring-2 focus:ring-[var(--clr-primary)]
+                        text-[var(--clr-txt-primary)] transition-all duration-200" />
+        </div>
 
-    <!-- Hidden Field -->
-    <input type="hidden" id="reset_account_input" name="reset_account" value="0">
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Middle Name</label>
+          <input type="text" name="second_name" value="{{ student.middle_name or '' }}" placeholder="Enter middle name"
+                 class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                        px-4 py-2.5 focus:ring-2 focus:ring-[var(--clr-primary)]
+                        text-[var(--clr-txt-primary)] transition-all duration-200" />
+        </div>
 
-    <!-- Buttons -->
-    <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
-      <a href="{{ url_for('admin.student') }}"
-         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
-                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
-                transition-all duration-200">
-        ← Go Back
-      </a>
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Last Name</label>
+          <input type="text" name="last_name" value="{{ student.last_name }}" placeholder="Enter last name" required
+                 class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                        px-4 py-2.5 focus:ring-2 focus:ring-[var(--clr-primary)]
+                        text-[var(--clr-txt-primary)] transition-all duration-200" />
+        </div>
 
-      <button type="submit"
-              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
-                     bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
-                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
-                     transition-all duration-200">
-        Save Changes
-      </button>
-    </div>
-  </form>
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Sex</label>
+          <select name="gender" required
+                  class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                         px-4 py-2.5 focus:ring-2 focus:ring-[var(--clr-primary)]
+                         text-[var(--clr-txt-primary)] transition-all duration-200">
+            <option value="Male" {% if student.gender == 'Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if student.gender == 'Female' %}selected{% endif %}>Female</option>
+            <option value="Other" {% if student.gender == 'Other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="flex flex-col gap-5">
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Education Level</label>
+          <select id="education_lvl" name="education_lvl" required
+                  class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                         px-4 py-2.5 focus:ring-2 focus:ring-[var(--clr-primary)]
+                         text-[var(--clr-txt-primary)] transition-all duration-200">
+            <option value="" disabled selected>Select education level</option>
+            {% for lvl in education_lvls %}
+              <option value="{{ lvl.id }}" {% if lvl.id == student.education_level_id %}selected{% endif %}>{{ lvl.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Course</label>
+          <select id="course" name="course" disabled
+                  class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                         px-4 py-2.5 text-[var(--clr-txt-primary)]
+                         focus:ring-2 focus:ring-[var(--clr-primary)] transition-all duration-200">
+            <option value="" disabled selected>Select course</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Year Level</label>
+          <select id="year" name="year" disabled
+                  class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                         px-4 py-2.5 text-[var(--clr-txt-primary)]
+                         focus:ring-2 focus:ring-[var(--clr-primary)] transition-all duration-200">
+            <option value="" disabled selected>Select year level</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Section</label>
+          <select id="section" name="section" disabled
+                  class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                         px-4 py-2.5 text-[var(--clr-txt-primary)]
+                         focus:ring-2 focus:ring-[var(--clr-primary)] transition-all duration-200">
+            <option value="" disabled selected>Select section</option>
+          </select>
+        </div>
+      </div>
+
+      <input type="hidden" id="reset_account_input" name="reset_account" value="0">
+
+      <!-- Buttons -->
+      <div class="md:col-span-2 flex flex-wrap justify-center items-center gap-4 mt-8">
+        <a href="{{ url_for('admin.student') }}"
+           class="w-full sm:w-auto px-6 py-2.5 rounded-xl text-[var(--clr-txt-primary)] text-sm font-medium 
+                  border border-[var(--clr-border)] hover:bg-[var(--clr-surface-alt)] 
+                  hover:text-[var(--clr-txt-hover)] transition-all duration-200 text-center">
+          ← Go Back
+        </a>
+
+        <button type="submit"
+                class="w-full sm:w-auto px-8 py-2.5 rounded-xl font-semibold text-white text-sm
+                       bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                       shadow-sm hover:shadow-[0_0_16px_var(--clr-glow-primary)]
+                       transition-all duration-200">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
 </section>
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const eduSelect = document.getElementById("education_lvl");
@@ -148,7 +186,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
-      // Load sections after courses and years
       loadSections();
     } catch (err) {
       console.error("Error loading data:", err);
@@ -165,12 +202,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!yearId || !levelId) return;
 
     let url = "";
-
-    // Elementary / Junior High
     if (!courseId) {
       url = `/api/student-hierarchy?type=sections&education_level_id=${levelId}&year_id=${yearId}`;
     } else {
-      // College / Senior High
       url = `/api/student-hierarchy?type=sections&course_id=${courseId}&year_id=${yearId}`;
     }
 
@@ -196,5 +230,4 @@ document.addEventListener("DOMContentLoaded", () => {
   yearSelect.addEventListener("change", loadSections);
 });
 </script>
-
 {% endblock %}

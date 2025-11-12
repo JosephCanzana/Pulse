@@ -1,103 +1,118 @@
 {% set page_title = "Class" %}
 {% extends "layout.html" %}
 
-{% block title %}
-  Edit Class
-{% endblock %}
+{% block title %}Edit Class{% endblock %}
 
 {% block main %}
-<section class="w-full h-full flex flex-col justify-center px-10">
-  <!-- Header -->
-  <header class="text-center mb-4">
-    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Edit Class</h1>
-    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">
-      Update class details below.
-    </p>
-  </header>
+<section class="w-full h-full flex flex-col items-center justify-start">
+  <!-- Card Container -->
+  <div class="w-full max-w-5xl bg-[var(--clr-glass-light)] backdrop-[var(--blur-background)]
+              border border-[var(--clr-glass-border)] rounded-2xl shadow-lg p-8 sm:p-10
+              flex flex-col gap-8 transition-all duration-300">
 
-  <!-- Form -->
-  <form
-    id="classEditForm"
-    action="{{ url_for('admin.class_edit', id=cls.id) }}"
-    method="post"
-    onsubmit="return openConfirmFormModal(event, this, 'Edit Class', 'Are you sure you want to update this class?')"
-    class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full"
-  >
-    <!-- Teacher -->
-    <div>
-      <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Teacher</label>
-      <select id="teacherSelect" name="teacher_id" required class="input-field">
-        <option value="" disabled>Select teacher</option>
-        {% for t in teachers %}
-          <option value="{{ t.id }}" {% if cls.teacher_id == t.id %}selected{% endif %}>
-            {{ t.first_name }} {{ t.last_name }}
-          </option>
-        {% endfor %}
-      </select>
-    </div>
+    <!-- Header -->
+    <header class="text-center">
+      <h1 class="text-3xl font-extrabold text-[var(--clr-primary)] tracking-tight">Edit Class</h1>
+      <p class="text-[var(--clr-txt-muted)] mt-2 text-base sm:text-lg">
+        Update class details below.
+      </p>
+    </header>
 
-    <!-- Subject -->
-    <div>
-      <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Subject</label>
-      <select id="subjectSelect" name="subject_id" required class="input-field">
-        <option value="" disabled>Select subject</option>
-        {% for s in subjects %}
-          <option value="{{ s.id }}" {% if cls.subject_id == s.id %}selected{% endif %}>
-            {{ s.name }}
-          </option>
-        {% endfor %}
-      </select>
-    </div>
+    <!-- Form -->
+    <form
+      id="classEditForm"
+      action="{{ url_for('admin.class_edit', id=cls.id) }}"
+      method="post"
+      onsubmit="return openConfirmFormModal(event, this, 'Edit Class', 'Are you sure you want to update this class?')"
+      class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full"
+    >
+      <!-- Teacher -->
+      <div class="flex flex-col">
+        <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Teacher</label>
+        <select id="teacherSelect" name="teacher_id" required
+                class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                       px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                       text-[var(--clr-txt-primary)] transition-all duration-200">
+          <option value="" disabled>Select teacher</option>
+          {% for t in teachers %}
+            <option value="{{ t.id }}" {% if cls.teacher_id == t.id %}selected{% endif %}>
+              {{ t.first_name }} {{ t.last_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <!-- Section -->
-    <div>
-      <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section</label>
-      <select id="sectionSelect" name="section_id" required class="input-field">
-        <option value="" disabled>Select section</option>
-        {% for sec in sections %}
-          <option value="{{ sec.id }}" {% if cls.section_id == sec.id %}selected{% endif %}>
-            {{ sec.name }} - {{ sec.academic_year }}
-          </option>
-        {% endfor %}
-      </select>
-    </div>
+      <!-- Subject -->
+      <div class="flex flex-col">
+        <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Subject</label>
+        <select id="subjectSelect" name="subject_id" required
+                class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                       px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                       text-[var(--clr-txt-primary)] transition-all duration-200">
+          <option value="" disabled>Select subject</option>
+          {% for s in subjects %}
+            <option value="{{ s.id }}" {% if cls.subject_id == s.id %}selected{% endif %}>
+              {{ s.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <!-- Status -->
-    <div>
-      <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Status</label>
-      <select name="status" required class="input-field">
-        <option value="active" {% if cls.status == 'active' %}selected{% endif %}>Active</option>
-        <option value="cancelled" {% if cls.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
-        <option value="completed" {% if cls.status == 'completed' %}selected{% endif %}>Completed</option>
-      </select>
-    </div>
+      <!-- Section -->
+      <div class="flex flex-col">
+        <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Section</label>
+        <select id="sectionSelect" name="section_id" required
+                class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                       px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                       text-[var(--clr-txt-primary)] transition-all duration-200">
+          <option value="" disabled>Select section</option>
+          {% for sec in sections %}
+            <option value="{{ sec.id }}" {% if cls.section_id == sec.id %}selected{% endif %}>
+              {{ sec.name }} - {{ sec.academic_year }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <!-- Buttons -->
-    <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
-      <!-- Go Back -->
-      <a href="{{ url_for('admin.class_list') }}"
-         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
-                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)] transition-all duration-200">
-        ← Go Back
-      </a>
+      <!-- Status -->
+      <div class="flex flex-col">
+        <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Status</label>
+        <select name="status" required
+                class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                       px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                       text-[var(--clr-txt-primary)] transition-all duration-200">
+          <option value="active" {% if cls.status == 'active' %}selected{% endif %}>Active</option>
+          <option value="cancelled" {% if cls.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+          <option value="completed" {% if cls.status == 'completed' %}selected{% endif %}>Completed</option>
+        </select>
+      </div>
 
-      <!-- Restore -->
-      <button type="button" onclick="restoreLastEntry('#classEditForm', 'lastClassForm')"
-              class="px-6 py-2 rounded-lg text-[var(--clr-primary)] text-sm font-medium border border-[var(--clr-primary)]
-                     hover:bg-[var(--clr-primary)] hover:text-white transition-all duration-200">
-        Restore Last Entry
-      </button>
+      <!-- Buttons -->
+      <div class="md:col-span-2 flex flex-wrap justify-center items-center gap-4 mt-8">
+        <a href="{{ url_for('admin.class_list') }}"
+           class="w-full sm:w-auto px-6 py-2.5 rounded-xl text-[var(--clr-txt-primary)] text-sm font-medium
+                  border border-[var(--clr-border)] hover:bg-[var(--clr-surface-alt)]
+                  hover:text-[var(--clr-txt-hover)] transition-all duration-200 text-center">
+          ← Go Back
+        </a>
 
-      <!-- Submit -->
-      <button type="submit"
-              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
-                     bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
-                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
-                     transition-all duration-200">
-        Update Class
-      </button>
-    </div>
-  </form>
+        <button type="button" onclick="restoreLastEntry('#classEditForm', 'lastClassForm')"
+                class="w-full sm:w-auto px-6 py-2.5 rounded-xl text-[var(--clr-primary)] text-sm font-medium
+                       border border-[var(--clr-primary)] hover:bg-[var(--clr-primary)] hover:text-white
+                       transition-all duration-200">
+          Restore Last Entry
+        </button>
+
+        <button type="submit"
+                class="w-full sm:w-auto px-8 py-2.5 rounded-xl font-semibold text-white text-sm
+                       bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                       shadow-sm hover:shadow-[0_0_16px_var(--clr-glow-primary)]
+                       transition-all duration-200">
+          Update Class
+        </button>
+      </div>
+    </form>
+  </div>
 </section>
 
 <!-- AJAX Script -->
@@ -120,22 +135,16 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(res => res.json())
       .then(data => {
         sectionSelect.innerHTML = '<option value="" disabled selected>Select section</option>';
-        if (data.length === 0) {
-          sectionSelect.innerHTML = '<option value="" disabled>No sections available</option>';
-        } else {
-          data.forEach(sec => {
-            const option = document.createElement('option');
-            option.value = sec.id;
-            option.textContent = `${sec.name} (${sec.academic_year})`;
-            if (String(sec.id) === currentSectionId) option.selected = true;
-            sectionSelect.appendChild(option);
-          });
-        }
+        if (!data.length) sectionSelect.innerHTML = '<option value="" disabled>No sections available</option>';
+        data.forEach(sec => {
+          const option = document.createElement('option');
+          option.value = sec.id;
+          option.textContent = `${sec.name} (${sec.academic_year})`;
+          if (String(sec.id) === currentSectionId) option.selected = true;
+          sectionSelect.appendChild(option);
+        });
       })
-      .catch(err => {
-        console.error(err);
-        sectionSelect.innerHTML = '<option value="" disabled>Error loading sections</option>';
-      });
+      .catch(() => sectionSelect.innerHTML = '<option value="" disabled>Error loading sections</option>');
 
     // Load Subjects
     subjectSelect.innerHTML = '<option value="" disabled selected>Loading subjects...</option>';
@@ -143,22 +152,16 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(res => res.json())
       .then(data => {
         subjectSelect.innerHTML = '<option value="" disabled selected>Select subject</option>';
-        if (data.length === 0) {
-          subjectSelect.innerHTML = '<option value="" disabled>No subjects available</option>';
-        } else {
-          data.forEach(sub => {
-            const option = document.createElement('option');
-            option.value = sub.id;
-            option.textContent = sub.name;
-            if (String(sub.id) === currentSubjectId) option.selected = true;
-            subjectSelect.appendChild(option);
-          });
-        }
+        if (!data.length) subjectSelect.innerHTML = '<option value="" disabled>No subjects available</option>';
+        data.forEach(sub => {
+          const option = document.createElement('option');
+          option.value = sub.id;
+          option.textContent = sub.name;
+          if (String(sub.id) === currentSubjectId) option.selected = true;
+          subjectSelect.appendChild(option);
+        });
       })
-      .catch(err => {
-        console.error(err);
-        subjectSelect.innerHTML = '<option value="" disabled>Error loading subjects</option>';
-      });
+      .catch(() => subjectSelect.innerHTML = '<option value="" disabled>Error loading subjects</option>');
   });
 });
 </script>

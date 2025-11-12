@@ -52,12 +52,14 @@
     {% include 'components/sidebar.html' %}
     {% include 'components/bottom_nav.html' %}
     
-    <div class="flex-1 transition-all duration-450 md:ml-20 sm:ml-10" id="wrapper">    
-        <main class="w-full min-h-[calc(100vh-4.25rem)] text-[var(--clr-txt-primary)] pb-25 pt-12 px-12">
-            {% block main %}
-            {% endblock %}
-        </main>
-    </div>
+<div class="flex-1 transition-all duration-450 md:ml-20 sm:ml-10" id="wrapper">    
+    <main class="w-full min-h-[calc(100vh-4.25rem)] text-[var(--clr-txt-primary)] pb-24 pt-12 
+                 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+        {% block main %}
+        {% endblock %}
+    </main>
+</div>
+
     <footer class="fixed flex bottom-0 items-center text-[var(--clr-txt-muted)] justify-center h-10 w-full">
         {% include 'components/footer.html' %}
     </footer>
@@ -65,7 +67,6 @@
         
     {% include 'partials/confirm.html' %}
     {% include 'partials/_flash_modal.html' %}
-    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
     <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sorting.js') }}"></script>

@@ -1,29 +1,36 @@
 <!-- NAVBAR -->
-<nav class="sticky top-0 w-full h-15 z-50 flex items-center justify-between bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] sm:pl-4 sm:pr-4 pl-4 pr-9 drop-shadow-black shadow-2xs">
-    
-<!-- LEFT SIDE -->
-    <div class="flex items-center justify-center mp-0.5 ">
-        <button id="menu-btn" class="hidden sm:flex btn-side-bar w-12 h-12 flex items-center justify-center mt-2 mb-2 rounded-xl hover:bg-[var(--clr-primary)] hover:text-[var(--clr-bg)] transition">
+<nav class="sticky top-0 w-full h-15 z-50 flex items-center justify-between 
+            bg-[var(--clr-surface)] text-[var(--clr-txt-primary)]
+            px-0 sm:px-2 md:px-3 lg:px-4 drop-shadow-black shadow-2xs">
+
+    <!-- LEFT SIDE -->
+    <div class="flex items-center justify-center gap-2">
+        <!-- Hamburger -->
+        <button id="menu-btn" class="hidden sm:flex btn-side-bar w-12 h-12 flex items-center justify-center rounded-xl mt-2 mb-2 
+                                    hover:bg-[var(--clr-primary)] hover:text-[var(--clr-bg)] transition">
             <span class="material-symbols-outlined">menu</span>
         </button>
-        <!-- LOGO -->
-        <div class="flex items-center justify-center mr-5 ml-7">
-            <a href="#" class="flex items-center justify-center w-9 h-9 border border-[var(--clr-border)] rounded-full bg-[var(--clr-surface-alt)] hover:shadow-[0_0_10px_var(--clr-glow-primary)] transition-all duration-300">
-            <img src="{{ url_for('static', filename='images/pulse.png') }}" alt="Pulse" class="w-6 h-6">
+
+        <!-- LOGO + Page Title -->
+        <div class="flex items-center justify-center ml-4 sm:ml-2 md:ml-7 mr-5">
+            <a href="#" class="flex items-center justify-center w-9 h-9 border border-[var(--clr-border)] rounded-full 
+                                bg-[var(--clr-surface-alt)] hover:shadow-[0_0_10px_var(--clr-glow-primary)] transition-all duration-300">
+                <img src="{{ url_for('static', filename='images/pulse.png') }}" alt="Pulse" class="w-6 h-6">
             </a>
             <h1 class="font-normal ml-2 text-xl text-center text-[var(--clr-primary)] font-[LLPIXEL3] text-shadow-black/30">
                 {{ page_title or "Pulse" }}
             </h1>
         </div>
+
     </div>
 
-    <!-- This is for the right side of navbar -->
-        <!-- RIGHT SIDE (User Profile / Account Icon) -->
-    <div class="flex items-center">
+    <!-- RIGHT SIDE (User Profile / Account Icon) -->
+    <div class="flex items-center mr-4 sm:mr-2 md:mr-4 lg:mr-6">
         <a href="{{ url_for('profile') }}" class="flex items-center justify-center">
             {% if current_user.is_authenticated %}
                 <!-- User initials -->
-                <div class="w-9 h-9 flex items-center  justify-center rounded-full border-2 border-[var(--clr-border)] text-[var(--clr-primary)] font-bold text-base  hover:brightness-90 transition">
+                <div class="w-9 h-9 flex items-center justify-center text-center rounded-full border-2 border-[var(--clr-border)] 
+                            text-[var(--clr-primary)] font-bold text-base hover:brightness-90 transition">
                     {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
                 </div>
             {% else %}

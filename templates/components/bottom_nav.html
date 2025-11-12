@@ -1,53 +1,46 @@
 <!-- BOTTOM NAVIGATION BAR (Mobile Only) -->
-<div class="sm:hidden fixed bottom-0 left-0 w-full pl-8 pr-8 bg-[var(--clr-glass-light)] backdrop-blur-md border-t border-[var(--clr-glass-border)] shadow-inner z-50">
-  <div class="flex justify-between items-center px-4 py-2">
-    
-    <!-- Home / Dashboard -->
+<div class="sm:hidden fixed bottom-0 left-0 w-full bg-[var(--clr-glass-light)] backdrop-blur-md border-t border-[var(--clr-glass-border)] shadow-inner z-50">
+  <div class="flex justify-around items-center px-2 py-1">
+
+    {% set nav_items = [] %}
     {% if session.get('role') == 'admin' %}
-      <a href="{{ url_for('admin.dashboard') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin.dashboard') %}text-[var(--clr-primary)]{% endif %}">
-        <span class="material-symbols-outlined">home</span>
-        <span class="text-xs mt-1">Home</span>
-      </a>
-      <a href="{{ url_for('admin.teacher') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin.teacher') %}text-[var(--clr-primary)]{% endif %}">
-        <span class="material-symbols-outlined">school</span>
-        <span class="text-xs mt-1">Teachers</span>
-      </a>
-      <a href="{{ url_for('admin.student') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('admin.student') %}text-[var(--clr-primary)]{% endif %}">
-        <span class="material-symbols-outlined">group</span>
-        <span class="text-xs mt-1">Students</span>
-      </a>
+      {% set nav_items = [
+        {'url': url_for('admin.dashboard'), 'icon': 'home', 'label': 'Home'},
+        {'url': url_for('admin.teacher'), 'icon': 'school', 'label': 'Teachers'},
+        {'url': url_for('admin.student'), 'icon': 'people', 'label': 'Students'}
+      ] %}
     {% elif session.get('role') == 'teacher' %}
-      <a href="{{ url_for('teacher.dashboard') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('teacher.dashboard') %}text-[var(--clr-primary)]{% endif %}">
-        <span class="material-symbols-outlined">home</span>
-        <span class="text-xs mt-1">Home</span>
-      </a>
-      <a href="{{ url_for('teacher.classes') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
-        <span class="material-symbols-outlined">menu_book</span>
-        <span class="text-xs mt-1">Classes</span>
-      </a>
+      {% set nav_items = [
+        {'url': url_for('teacher.dashboard'), 'icon': 'group_work', 'label': 'Home'},
+        {'url': url_for('teacher.classes'), 'icon': 'class', 'label': 'Classes'},
+        {'url': url_for('teacher.manage_sections'), 'icon': 'nest_multi_room', 'label': 'Sections'},
+      ] %}
     {% else %}
-      <a href="{{ url_for('student.dashboard') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] {% if request.path == url_for('student.dashboard') %}text-[var(--clr-primary)]{% endif %}">
-        <span class="material-symbols-outlined">home</span>
-        <span class="text-xs mt-1">Home</span>
-      </a>
-      <a href="{{ url_for('student.view_classes') }}" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
-        <span class="material-symbols-outlined">book</span>
-        <span class="text-xs mt-1">Subjects</span>
-      </a>
+      {% set nav_items = [
+        {'url': url_for('student.dashboard'), 'icon': 'home', 'label': 'Home'},
+        {'url': url_for('student.view_classes'), 'icon': 'book', 'label': 'Subjects'}
+      ] %}
     {% endif %}
 
+    <!-- Navigation Links -->
+    {% for item in nav_items %}
+      <a href="{{ item.url }}" class="flex flex-col items-center justify-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] transition-colors duration-200 {{ 'text-[var(--clr-primary)]' if request.path == item.url }}">
+        <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
+        <span class="text-[0.65rem] mt-0.5 truncate">{{ item.label }}</span>
+      </a>
+    {% endfor %}
+
     <!-- Menu Button -->
-    <button id="mobile-menu-button" class="flex flex-col items-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] focus:outline-none">
-      <span class="material-symbols-outlined">menu</span>
-      <span class="text-xs mt-1">Menu</span>
+    <button id="mobile-menu-button" class="flex flex-col items-center justify-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] focus:outline-none transition-colors duration-200">
+      <span class="material-symbols-outlined text-xl">menu</span>
+      <span class="text-[0.65rem] mt-0.5">Menu</span>
     </button>
   </div>
 </div>
 
 <!-- FULL SCREEN MOBILE MENU -->
-<div id="mobile-menu" class="fixed inset-0 bg-[var(--clr-surface)] z-50 transform translate-y-full transition-transform duration-500 ease-in-out overflow-y-auto">
+<div id="mobile-menu" class="fixed inset-0 bg-[var(--clr-surface)] z-50 transform translate-y-full transition-transform duration-300 ease-in-out overflow-y-auto">
   <div class="flex flex-col h-full">
-    
     <!-- Header -->
     <div class="flex justify-between items-center p-4 border-b border-[var(--clr-border)]">
       <h2 class="text-xl font-semibold text-[var(--clr-primary)]">Menu</h2>
@@ -57,66 +50,22 @@
     </div>
 
     <!-- Menu Links -->
-    <div class="flex-1 p-4 space-y-4">
-      {% if session.get('role') == 'admin' %}
-        <a href="{{ url_for('admin.dashboard') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">home</span> Dashboard
+    <div class="flex-1 p-4 space-y-3">
+      {% for item in nav_items %}
+        <a href="{{ item.url }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">{{ item.icon }}</span> {{ item.label }}
         </a>
-        <a href="{{ url_for('admin.teacher') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">school</span> Teachers
-        </a>
-        <a href="{{ url_for('admin.student') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">group</span> Students
-        </a>
-        <a href="{{ url_for('admin.section') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">diversity_3</span> Sections
-        </a>
-        <a href="{{ url_for('admin.class_list') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">roofing</span> Classes
-        </a>
-        <a href="{{ url_for('admin.department') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">hive</span> Department
-        </a>
-        <a href="{{ url_for('admin.course') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">menu_book</span> Courses
-        </a>
-        <a href="{{ url_for('admin.subject') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">category</span> Subjects
-        </a>
-      {% elif session.get('role') == 'teacher' %}
-        <a href="{{ url_for('teacher.dashboard') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">home</span> Dashboard
-        </a>
-        <a href="{{ url_for('teacher.classes') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">menu_book</span> Classes
-        </a>
-        <a href="{{ url_for('teacher.manage_sections') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">nest_multi_room</span>Sections
-        </a>
-      {% else %}
-        <a href="{{ url_for('student.dashboard') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">home</span> Dashboard
-        </a>
-        <a href="{{ url_for('student.view_classes') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
-          <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">book</span> Subjects
-        </a>
-      {% endif %}
+      {% endfor %}
 
       <!-- Utilities -->
       <div class="mt-6 border-t border-[var(--clr-border)] pt-4 space-y-2">
         <a href="{{ url_for('about') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">info</span> About
         </a>
-        <button class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm theme-toggle w-full text-left text-[var(--clr-txt-primary)]">
+        <button class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm w-full text-left text-[var(--clr-txt-primary)] theme-toggle">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">light_mode</span> Toggle Theme
         </button>
-        <button 
-          onclick="
-            document.getElementById('mobile-menu').classList.add('translate-y-full'); 
-            setTimeout(() => openConfirmModal('Confirm Logout', 'Are you sure you want to log out?', '{{ url_for('logout') }}'), 300);
-          " 
-          class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm w-full text-left text-[var(--clr-txt-primary)]"
-        >
+        <button onclick="document.getElementById('mobile-menu').classList.add('translate-y-full'); setTimeout(() => openConfirmModal('Confirm Logout', 'Are you sure you want to log out?', '{{ url_for('logout') }}'), 300);" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm w-full text-left text-[var(--clr-txt-primary)]">
           <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">logout</span> Logout
         </button>
       </div>

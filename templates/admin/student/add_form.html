@@ -1,3 +1,4 @@
+{% set page_title = "Student" %}
 {% extends "layout.html" %}
 
 {% block title %}
@@ -5,108 +6,145 @@
 {% endblock %}
 
 {% block main %}
-<section class="w-full h-full flex flex-col justify-center px-10">
-  <!-- Header -->
-  <header class="text-center mb-4">
-    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Add Student</h1>
-    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">Fill out the details to register a new student.</p>
-  </header>
+<section class="w-full h-full flex flex-col items-center justify-start">
+  <!-- Card Container -->
+  <div class="w-full max-w-5xl bg-[var(--clr-glass-light)] backdrop-[var(--blur-background)] border border-[var(--clr-glass-border)]
+              rounded-2xl shadow-lg p-8 sm:p-10 flex flex-col gap-8 transition-all duration-300 
+              ">
+    
+    <!-- Header -->
+    <header class="text-center">
+      <h1 class="text-3xl font-extrabold text-[var(--clr-primary)] tracking-tight">Add Student</h1>
+      <p class="text-[var(--clr-txt-muted)] mt-2 text-base sm:text-lg">Fill out the details to register a new student.</p>
+    </header>
 
-  <!-- Form -->
-  <form
-    id="studentForm"
-    method="POST"
-    action="{{ url_for('admin.student_add') }}"
-    onsubmit="return openConfirmFormModal(event, this, 'Add Student', 'Are you sure you want to add this student?')"
-    class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto w-full"
-  >
-    <!-- Left Column: Personal Info -->
-    <div class="flex flex-col gap-4">
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">School ID</label>
-        <input type="text" name="school_id" maxlength="8" placeholder="Enter school ID" value="{{ prev_school_id }}" class="input-field" readonly />
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">First Name</label>
-        <input type="text" name="first_name" placeholder="Enter first name" class="input-field" required />
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Middle Name</label>
-        <input type="text" name="second_name" placeholder="Enter middle name" class="input-field" />
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Last Name</label>
-        <input type="text" name="last_name" placeholder="Enter last name" class="input-field" required />
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Sex</label>
-        <select name="gender" required class="input-field">
-          <option value="" disabled selected>Select sex</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-      </div>
-    </div>
+    <!-- Form -->
+    <form
+      id="studentForm"
+      method="POST"
+      action="{{ url_for('admin.student_add') }}"
+      onsubmit="return openConfirmFormModal(event, this, 'Add Student', 'Are you sure you want to add this student?')"
+      class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full"
+    >
+      <!-- Left Column -->
+      <div class="flex flex-col gap-5">
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">School ID</label>
+          <input type="text" name="school_id" maxlength="8" value="{{ prev_school_id }}" readonly
+                 class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                        px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                        text-[var(--clr-txt-primary)] transition-all duration-200" />
+        </div>
 
-    <!-- Right Column: Education Info -->
-    <div class="flex flex-col gap-4">
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
-        <select id="education_lvl" name="education_lvl" required class="input-field">
-          <option value="" disabled selected>Select education level</option>
-          {% for lvl in education_lvls %}
-            <option value="{{ lvl.id }}">{{ lvl.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Course</label>
-        <select id="course" name="course" class="input-field" disabled>
-          <option value="" disabled selected>Select course</option>
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Year Level</label>
-        <select id="year" name="year" class="input-field" disabled>
-          <option value="" disabled selected>Select year level</option>
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section</label>
-        <select id="section" name="section" class="input-field" disabled>
-          <option value="" disabled selected>Select section</option>
-        </select>
-      </div>
-    </div>
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">First Name</label>
+          <input type="text" name="first_name" placeholder="Enter first name" required
+                 class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                        px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                        text-[var(--clr-txt-primary)] transition-all duration-200" />
+        </div>
 
-    <!-- Buttons -->
-    <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
-      <!-- Go Back -->
-      <a type="button" href="{{ url_for('admin.student') }}"
-         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
-                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
-                transition-all duration-200">
-        ← Go Back
-      </a>
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Middle Name</label>
+          <input type="text" name="second_name" placeholder="Enter middle name"
+                 class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                        px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                        text-[var(--clr-txt-primary)] transition-all duration-200" />
+        </div>
 
-      <!-- Restore -->
-      <button type="button" onclick="restoreLastEntry('#studentForm', 'lastStudentForm')"
-              class="px-6 py-2 rounded-lg text-[var(--clr-primary)] text-sm font-medium border border-[var(--clr-primary)]
-                     hover:bg-[var(--clr-primary)] hover:text-white
-                     transition-all duration-200">
-        Restore Last Entry
-      </button>
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Last Name</label>
+          <input type="text" name="last_name" placeholder="Enter last name" required
+                 class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                        px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                        text-[var(--clr-txt-primary)] transition-all duration-200" />
+        </div>
 
-      <!-- Submit -->
-      <button type="submit"
-              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
-                     bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
-                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
-                     transition-all duration-200">
-        Add Student
-      </button>
-    </div>
-  </form>
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Sex</label>
+          <select name="gender" required
+                  class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                         px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                         text-[var(--clr-txt-primary)] transition-all duration-200">
+            <option value="" disabled selected>Select sex</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="flex flex-col gap-5">
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Education Level</label>
+          <select id="education_lvl" name="education_lvl" required
+                  class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                         px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                         text-[var(--clr-txt-primary)] transition-all duration-200">
+            <option value="" disabled selected>Select education level</option>
+            {% for lvl in education_lvls %}
+              <option value="{{ lvl.id }}">{{ lvl.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Course</label>
+          <select id="course" name="course" disabled
+                  class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                         px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                         text-[var(--clr-txt-primary)] transition-all duration-200">
+            <option value="" disabled selected>Select course</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Year Level</label>
+          <select id="year" name="year" disabled
+                  class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                         px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                         text-[var(--clr-txt-primary)] transition-all duration-200">
+            <option value="" disabled selected>Select year level</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Section</label>
+          <select id="section" name="section" disabled
+                  class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                         px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                         text-[var(--clr-txt-primary)] transition-all duration-200">
+            <option value="" disabled selected>Select section</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="md:col-span-2 flex flex-wrap justify-center items-center gap-4 mt-8">
+        <a href="{{ url_for('admin.student') }}"
+           class="w-full sm:w-auto px-6 py-2.5 rounded-xl text-[var(--clr-txt-primary)] text-sm font-medium 
+                  border border-[var(--clr-border)] hover:bg-[var(--clr-surface-alt)] 
+                  hover:text-[var(--clr-txt-hover)] transition-all duration-200 text-center">
+          ← Go Back
+        </a>
+
+        <button type="button" onclick="restoreLastEntry('#studentForm', 'lastStudentForm')"
+                class="w-full sm:w-auto px-6 py-2.5 rounded-xl text-[var(--clr-primary)] text-sm font-medium 
+                       border border-[var(--clr-primary)] hover:bg-[var(--clr-primary)] hover:text-white
+                       transition-all duration-200">
+          Restore Last Entry
+        </button>
+
+        <button type="submit"
+                class="w-full sm:w-auto px-8 py-2.5 rounded-xl font-semibold text-white text-sm
+                       bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                       shadow-sm hover:shadow-[0_0_16px_var(--clr-glow-primary)]
+                       transition-all duration-200">
+          Add Student
+        </button>
+      </div>
+    </form>
+  </div>
 </section>
 
 <script>
@@ -121,13 +159,11 @@ document.addEventListener("DOMContentLoaded", () => {
     select.disabled = disable;
   }
 
-  // Load courses and year levels when education level changes
   eduSelect.addEventListener("change", async () => {
     const levelId = eduSelect.value;
     resetSelect(courseSelect, "Select course");
     resetSelect(yearSelect, "Select year level");
     resetSelect(sectionSelect, "Select section");
-
     if (!levelId) return;
 
     try {
@@ -136,12 +172,10 @@ document.addEventListener("DOMContentLoaded", () => {
         fetch(`/api/student-hierarchy?type=year_levels&education_level_id=${levelId}`).then(r => r.json())
       ]);
 
-      // Show courses only if available (for SHS / College)
       if (courses?.length) {
         courseSelect.disabled = false;
         courses.forEach(c => courseSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`);
       } else {
-        // Hide/disable course select if level has no courses
         resetSelect(courseSelect, "No courses available", true);
       }
 
@@ -154,21 +188,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Load sections based on selected education level
   async function loadSections() {
     const levelId = eduSelect.value;
     const courseId = courseSelect.value;
     const yearId = yearSelect.value;
     resetSelect(sectionSelect, "Select section");
 
-    if (!yearId) return; // year is always required
-
+    if (!yearId) return;
     let url = `/api/student-hierarchy?type=sections&education_level_id=${levelId}&year_id=${yearId}`;
-
-    // Only include course_id for levels that actually use it
-    if (courseId) {
-      url += `&course_id=${courseId}`;
-    }
+    if (courseId) url += `&course_id=${courseId}`;
 
     try {
       const sections = await fetch(url).then(r => r.json());
@@ -191,5 +219,4 @@ document.addEventListener("DOMContentLoaded", () => {
   yearSelect.addEventListener("change", loadSections);
 });
 </script>
-
 {% endblock %}

@@ -6,74 +6,90 @@
 {% endblock %}
 
 {% block main %}
-<section class="w-full h-full flex flex-col justify-center px-10">
-  <!-- Header -->
-  <header class="text-center mb-4">
-    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Edit Course Information</h1>
-    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">Update the course name or education level below.</p>
-  </header>
+<section class="w-full h-full flex flex-col items-center justify-start">
+  <!-- Card Container -->
+  <div class="w-full max-w-5xl bg-[var(--clr-glass-light)] backdrop-[var(--blur-background)]
+              border border-[var(--clr-glass-border)] rounded-2xl shadow-lg p-8 sm:p-10 
+              flex flex-col gap-8 transition-all duration-300">
 
-  <!-- Form -->
-  <form
-    id="editCourseForm"
-    action="{{ url_for('admin.course_edit', id=course.course_id) }}"
-    method="post"
-    onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this course?')"
-    class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full"
-  >
-    <!-- Hidden Course ID -->
-    <input type="hidden" name="course_id" value="{{ course.course_id }}">
+    <!-- Header -->
+    <header class="text-center">
+      <h1 class="text-3xl font-extrabold text-[var(--clr-primary)] tracking-tight">Edit Course Information</h1>
+      <p class="text-[var(--clr-txt-muted)] mt-2 text-base sm:text-lg">
+        Update the course name or education level below.
+      </p>
+    </header>
 
-    <!-- Course Name -->
-    <div class="flex flex-col gap-2">
-      <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Course Name</label>
-      <input 
-        type="text"
-        name="name"
-        value="{{ course.course_name }}"
-        placeholder="Enter course name"
-        class="input-field"
-        required
-      />
-    </div>
+    <!-- Form -->
+    <form
+      id="editCourseForm"
+      action="{{ url_for('admin.course_edit', id=course.course_id) }}"
+      method="post"
+      onsubmit="return openConfirmFormModal(event, this, 'Save Changes', 'Are you sure you want to update this course?')"
+      class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full"
+    >
+      <!-- Hidden Course ID -->
+      <input type="hidden" name="course_id" value="{{ course.course_id }}">
 
-    <!-- Education Level -->
-    <div class="flex flex-col gap-2">
-      <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
-      <select 
-        name="lvl_id"
-        required
-        class="input-field"
-      >
-        {% for lvl in lvls %}
-          {% if lvl.id in valid_course %}
-          <option value="{{ lvl.id }}" {% if lvl.id == course.education_level_id %}selected{% endif %}>
-            {{ lvl.name }}
-          </option>
-          {% endif %}
-        {% endfor %}
-      </select>
-    </div>
+      <!-- Left Column: Course Name -->
+      <div class="flex flex-col gap-5">
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Course Name</label>
+          <input 
+            type="text"
+            name="name"
+            value="{{ course.course_name }}"
+            placeholder="Enter course name"
+            required
+            class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                   px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                   text-[var(--clr-txt-primary)] transition-all duration-200"
+          />
+        </div>
+      </div>
 
-    <!-- Buttons -->
-    <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
-      <!-- Go Back -->
-      <a href="{{ url_for('admin.course') }}"
-         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
-                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
-                transition-all duration-200">
-        ← Go Back
-      </a>
+      <!-- Right Column: Education Level -->
+      <div class="flex flex-col gap-5">
+        <div class="flex flex-col">
+          <label class="mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm sm:text-base">Education Level</label>
+          <select 
+            name="lvl_id"
+            required
+            class="rounded-xl bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                   px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]
+                   text-[var(--clr-txt-primary)] transition-all duration-200"
+          >
+            {% for lvl in lvls %}
+              {% if lvl.id in valid_course %}
+              <option value="{{ lvl.id }}" {% if lvl.id == course.education_level_id %}selected{% endif %}>
+                {{ lvl.name }}
+              </option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+      </div>
 
-      <!-- Save Changes -->
-      <button type="submit"
-              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
-                     bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
-                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
-                     transition-all duration-200">
-        Save Changes
-      </button>
-    </div>
-  </form>
+      <!-- Buttons -->
+      <div class="md:col-span-2 flex flex-wrap justify-center items-center gap-4 mt-8">
+        <!-- Go Back -->
+        <a href="{{ url_for('admin.course') }}"
+           class="w-full sm:w-auto px-6 py-2.5 rounded-xl text-[var(--clr-txt-primary)] text-sm font-medium 
+                  border border-[var(--clr-border)] hover:bg-[var(--clr-surface-alt)] 
+                  hover:text-[var(--clr-txt-hover)] transition-all duration-200 text-center">
+          ← Go Back
+        </a>
+
+        <!-- Save Changes -->
+        <button type="submit"
+                class="w-full sm:w-auto px-8 py-2.5 rounded-xl font-semibold text-white text-sm
+                       bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                       shadow-sm hover:shadow-[0_0_16px_var(--clr-glow-primary)]
+                       transition-all duration-200">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
 </section>
 {% endblock %}
