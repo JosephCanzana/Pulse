@@ -56,14 +56,13 @@
 
           <div>
             <label class="block text-[var(--clr-txt-secondary)]" for="status">Status</label>
-            <input list="status-list" name="class_status" id="status" class="mt-1 w-full p-2 border rounded-lg"
-                  value="{{ class_info.class_status }}">
-            <datalist id="status-list">
-              <option value="active"></option>
-              <option value="cancelled"></option>
-              <option value="completed"></option>
-            </datalist>
+            <select name="class_status" id="status" class="mt-1 w-full p-2 border rounded-lg">
+              <option class="bg-[var(--clr-bg)]" value="active" {% if class_info.class_status == 'active' %}selected{% endif %}>Active</option>
+              <option class="bg-[var(--clr-bg)]" value="completed" {% if class_info.class_status == 'completed' %}selected{% endif %}>Completed</option>
+              <option class="bg-[var(--clr-bg)]" value="cancelled" {% if class_info.class_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
           </div>
+
           <div>
             <label class="block text-[var(--clr-txt-secondary)]" for="class_color">Class Color</label>
             <div class="flex items-center gap-3 mt-1">

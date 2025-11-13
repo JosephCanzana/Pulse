@@ -439,6 +439,9 @@
   .h-1\.5 {
     height: calc(var(--spacing) * 1.5);
   }
+  .h-2 {
+    height: calc(var(--spacing) * 2);
+  }
   .h-3 {
     height: calc(var(--spacing) * 3);
   }
@@ -556,9 +559,6 @@
   .w-28 {
     width: calc(var(--spacing) * 28);
   }
-  .w-48 {
-    width: calc(var(--spacing) * 48);
-  }
   .w-56 {
     width: calc(var(--spacing) * 56);
   }
@@ -662,6 +662,9 @@
   .translate-y-full {
     --tw-translate-y: 100%;
     translate: var(--tw-translate-x) var(--tw-translate-y);
+  }
+  .rotate-\[-90deg\] {
+    rotate: -90deg;
   }
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
@@ -1005,6 +1008,9 @@
   .bg-\[var\(--clr-bg\)\] {
     background-color: var(--clr-bg);
   }
+  .bg-\[var\(--clr-border\)\] {
+    background-color: var(--clr-border);
+  }
   .bg-\[var\(--clr-border-strong\)\] {
     background-color: var(--clr-border-strong);
   }
@@ -1012,12 +1018,6 @@
     background-color: var(--clr-border-strong);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--clr-border-strong) 20%, transparent);
-    }
-  }
-  .bg-\[var\(--clr-danger\)\]\/20 {
-    background-color: var(--clr-danger);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--clr-danger) 20%, transparent);
     }
   }
   .bg-\[var\(--clr-error\)\] {
@@ -1038,9 +1038,6 @@
   .bg-\[var\(--clr-glass-dark\)\] {
     background-color: var(--clr-glass-dark);
   }
-  .bg-\[var\(--clr-glass-darker\)\] {
-    background-color: var(--clr-glass-darker);
-  }
   .bg-\[var\(--clr-glass-light\)\] {
     background-color: var(--clr-glass-light);
   }
@@ -1055,6 +1052,9 @@
   }
   .bg-\[var\(--clr-secondary\)\] {
     background-color: var(--clr-secondary);
+  }
+  .bg-\[var\(--clr-success\)\] {
+    background-color: var(--clr-success);
   }
   .bg-\[var\(--clr-success\)\]\/20 {
     background-color: var(--clr-success);
@@ -1125,22 +1125,10 @@
       background-color: color-mix(in oklab, var(--color-gray-500) 15%, transparent);
     }
   }
-  .bg-gray-500\/20 {
-    background-color: color-mix(in srgb, oklch(55.1% 0.027 264.364) 20%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-gray-500) 20%, transparent);
-    }
-  }
   .bg-green-500\/15 {
     background-color: color-mix(in srgb, oklch(72.3% 0.219 149.579) 15%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-green-500) 15%, transparent);
-    }
-  }
-  .bg-green-500\/20 {
-    background-color: color-mix(in srgb, oklch(72.3% 0.219 149.579) 20%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-green-500) 20%, transparent);
     }
   }
   .bg-transparent {
@@ -1165,12 +1153,6 @@
     background-color: color-mix(in srgb, oklch(79.5% 0.184 86.047) 15%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-yellow-500) 15%, transparent);
-    }
-  }
-  .bg-yellow-500\/20 {
-    background-color: color-mix(in srgb, oklch(79.5% 0.184 86.047) 20%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-yellow-500) 20%, transparent);
     }
   }
   .bg-gradient-to-b {
@@ -1634,9 +1616,6 @@
   .text-gray-700 {
     color: var(--color-gray-700);
   }
-  .text-green-400 {
-    color: var(--color-green-400);
-  }
   .text-green-500 {
     color: var(--color-green-500);
   }
@@ -1654,9 +1633,6 @@
   }
   .text-white {
     color: var(--color-white);
-  }
-  .text-yellow-400 {
-    color: var(--color-yellow-400);
   }
   .text-yellow-500 {
     color: var(--color-yellow-500);
@@ -2146,13 +2122,6 @@
       }
     }
   }
-  .hover\:bg-\[var\(--clr-glass-hover\)\] {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--clr-glass-hover);
-      }
-    }
-  }
   .hover\:bg-\[var\(--clr-glass-light\)\] {
     &:hover {
       @media (hover: hover) {
@@ -2610,11 +2579,6 @@
   .sm\:w-72 {
     @media (width >= 40rem) {
       width: calc(var(--spacing) * 72);
-    }
-  }
-  .sm\:w-96 {
-    @media (width >= 40rem) {
-      width: calc(var(--spacing) * 96);
     }
   }
   .sm\:w-auto {

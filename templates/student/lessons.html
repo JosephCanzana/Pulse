@@ -11,51 +11,96 @@
     <div>
       <aside class="bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-lg flex-1 sticky top-6 p-6">
 
-        <!-- Header with back button -->
-        <div class="flex items-center mb-6">
-          <a href="{{ url_for('student.view_classes') }}"
-             class="mr-4 flex items-center justify-center w-10 h-10 rounded-full 
-                    bg-[var(--clr-surface)] border border-[var(--clr-border)] 
-                    text-[var(--clr-primary)] 
-                    hover:bg-[var(--clr-primary)] hover:text-[var(--clr-surface)] 
-                    shadow-md hover:shadow-[0_0_15px_var(--clr-glow-primary)] 
-                    transition-all duration-200">
-            <span class="material-symbols-rounded text-2xl">arrow_back</span>
-          </a>
-          <h2 class="text-2xl font-bold text-[var(--clr-primary)]">Class Info</h2>
-        </div>
+  {% set class_color = class_info.color if class_info.color else 'var(--clr-primary)' %}
 
-        {% if lessons %}
-        <div class="space-y-4">
-          <!-- Class -->
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[1.2rem] text-[var(--clr-primary)]">class</span>
-            <p class="text-[var(--clr-txt-primary)] font-semibold">
-              <strong>Class:</strong> {{ class_info.subject_name or "N/A" }}
-            </p>
-          </div>
+  <!-- Header with back button -->
+  <div class="flex items-center mb-6">
+    <a href="{{ url_for('student.view_classes') }}"
+       class="mr-4 flex items-center justify-center w-10 h-10 rounded-full 
+              bg-[var(--clr-surface)] border border-[var(--clr-border)] 
+              text-[var(--clr-primary)] 
+              hover:bg-[var(--clr-primary)] hover:text-[var(--clr-surface)] 
+              shadow-md hover:shadow-[0_0_15px_{{ class_color }}] 
+              transition-all duration-200">
+      <span class="material-symbols-rounded text-2xl">arrow_back</span>
+    </a>
+    <h2 class="text-2xl font-bold" style="color: {{ class_color }};">Class Info</h2>
+  </div>
 
-          <!-- Section -->
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[1.2rem] text-[var(--clr-secondary)]">groups</span>
-            <p class="text-[var(--clr-txt-primary)] font-semibold">
-              <strong>Section:</strong> {{ class_info.section_name or "N/A" }}
-            </p>
-          </div>
+  {% if lessons %}
+  <div class="space-y-4">
+    <!-- Class -->
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-[1.2rem]" style="color: {{ class_color }};">class</span>
+      <p class="text-[var(--clr-txt-primary)] font-semibold">
+        <strong>Class:</strong> {{ class_info.subject_name or "N/A" }}
+      </p>
+    </div>
 
-          <!-- Status -->
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[1.2rem] text-[var(--clr-tertiary)]">info</span>
-            <p class="text-[var(--clr-txt-primary)] font-semibold">
-              <strong>Status:</strong> {{ class_info.status or "N/A" }}
-            </p>
-          </div>
-        </div>
-        {% else %}
-        <p class="text-[var(--clr-txt-secondary)] mt-2">No class info available.</p>
-        {% endif %}
+    <!-- Section -->
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-[1.2rem]" style="color: {{ class_color }};">groups</span>
+      <p class="text-[var(--clr-txt-primary)] font-semibold">
+        <strong>Section:</strong> {{ class_info.section_name or "N/A" }}
+      </p>
+    </div>
 
-      </aside>
+    <!-- Status -->
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-[1.2rem]" style="color: {{ class_color }};">info</span>
+      <p class="text-[var(--clr-txt-primary)] font-semibold">
+        <strong>Status:</strong> {{ class_info.status or "N/A" }}
+      </p>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-[var(--clr-txt-secondary)] mt-2">No class info available.</p>
+  {% endif %}
+
+  <!-- Progress Summary Card -->
+  {% if progress_summary %}
+  <div class="mt-6 bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-lg p-4 flex flex-col items-center">
+    
+    <p class="text-[var(--clr-txt-secondary)] font-semibold mb-2">Lesson Progress</p>
+
+    <div class="relative w-24 h-24">
+      {% set completed_pct = (progress_summary.completed / progress_summary.total * 100) if progress_summary.total > 0 else 0 %}
+      {% set progress_color = class_info.color if class_info.color else 'var(--clr-primary)' %}
+      
+      <!-- Background Circle -->
+      <svg class="w-24 h-24 rotate-[-90deg]" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="16" stroke="#E2E8F0" stroke-width="4" fill="none"></circle>
+        <circle
+          cx="18" cy="18" r="16"
+          stroke="{{ progress_color }}"
+          stroke-width="4"
+          fill="none"
+          stroke-dasharray="100"
+          stroke-dashoffset="{{ 100 - completed_pct }}"
+          stroke-linecap="round"
+          style="transition: stroke-dashoffset 0.5s ease;">
+        </circle>
+      </svg>
+
+      <!-- Percentage Text -->
+      <div class="absolute inset-0 flex flex-col items-center justify-center text-[var(--clr-txt-primary)] font-semibold">
+        <span>{{ completed_pct|round(0) }}%</span>
+        <span class="text-xs text-[var(--clr-txt-secondary)]">completed</span>
+      </div>
+    </div>
+
+    <!-- Detailed Counts -->
+    <div class="mt-3 text-sm text-[var(--clr-txt-muted)] space-y-1 text-center">
+      <p>Completed: <strong>{{ progress_summary.completed }}</strong></p>
+      <p>In Progress: <strong>{{ progress_summary.in_progress }}</strong></p>
+      <p>Not Started: <strong>{{ progress_summary.not_started }}</strong></p>
+    </div>
+
+  </div>
+  {% endif %}
+
+</aside>
+
     </div>
 
     <!-- Right Column: Lessons -->

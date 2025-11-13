@@ -125,7 +125,9 @@ def view_classes():
             c.status,
             c.color,
             t.user_id AS teacher_user_id,
-            CONCAT(u.first_name, ' ', u.last_name) AS teacher_name
+            CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
+            COUNT(l.id) AS total_lessons,
+            SUM(CASE WHEN slp.status = 'completed' THEN 1 ELSE 0 END) AS completed_lessons
         FROM ClassStudent cs
         JOIN Class c ON cs.class_id = c.id
         JOIN Subject s ON c.subject_id = s.id
@@ -133,19 +135,37 @@ def view_classes():
         JOIN TeacherProfile t ON c.teacher_id = t.id
         JOIN Users u ON t.user_id = u.id
         JOIN StudentProfile sp ON cs.student_id = sp.id
+        LEFT JOIN Lesson l ON l.class_id = c.id
+        LEFT JOIN StudentLessonProgress slp 
+            ON slp.lesson_id = l.id AND slp.student_id = sp.id
         WHERE sp.user_id = :user_id
+        GROUP BY c.id, s.name, sec.name, c.status, c.color, t.user_id, u.first_name, u.last_name
     """)
+    
     all_classes = db.session.execute(query, {'user_id': current_user.id}).fetchall()
 
+    # Add progress percentage
+    classes_with_progress = []
+    for c in all_classes:
+        total = c.total_lessons or 0
+        completed = c.completed_lessons or 0
+        progress = (completed / total * 100) if total > 0 else 0
+        # Use c._mapping to convert Row to dict
+        classes_with_progress.append({
+            **c._mapping,
+            'progress_percentage': round(progress)
+        })
+
     # Separate active vs history
-    active_classes = [c for c in all_classes if c.status == 'active']
-    history_classes = [c for c in all_classes if c.status in ('completed', 'cancelled')]
+    active_classes = [c for c in classes_with_progress if c['status'] == 'active']
+    history_classes = [c for c in classes_with_progress if c['status'] in ('completed', 'cancelled')]
 
     return render_template(
         "student/classes.html",
         active_classes=active_classes,
         history_classes=history_classes
     )
+
 
 # ==============================
 # View Lessons in a Class (with files)
@@ -252,6 +272,19 @@ def view_lessons(class_id):
         'class_id': class_id
     }).fetchall()
 
+    # 🔹 Calculate progress summary
+    total_lessons = len(lessons)
+    completed_count = sum(1 for l in lessons if l.status == 'completed')
+    in_progress_count = sum(1 for l in lessons if l.status == 'in_progress')
+    not_started_count = sum(1 for l in lessons if l.status == 'not_started')
+
+    progress_summary = {
+        'total': total_lessons,
+        'completed': completed_count,
+        'in_progress': in_progress_count,
+        'not_started': not_started_count
+    }
+
     # Flash info if class inactive
     if class_status in ('completed', 'cancelled'):
         flash("This class is no longer active. You can view it in your history, but cannot update progress.", "info")
@@ -261,7 +294,8 @@ def view_lessons(class_id):
         lessons=lessons,
         class_id=class_id,
         class_status=class_status,
-        class_info=class_info
+        class_info=class_info,
+        progress_summary=progress_summary
     )
 
 
@@ -353,7 +387,7 @@ def update_lesson_progress(lesson_id):
         })
 
     db.session.commit()
-    flash(f"Lesson progress updated to '{next_status}'!", "success")
+    flash(f"Lesson progress updated to {next_status.replace("_", " ")}!", "success")
     return redirect(request.referrer or url_for("student.dashboard"))
 
 
