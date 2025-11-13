@@ -11,7 +11,7 @@
       ] %}
     {% elif session.get('role') == 'teacher' %}
       {% set nav_items = [
-        {'url': url_for('teacher.dashboard'), 'icon': 'group_work', 'label': 'Home'},
+        {'url': url_for('teacher.dashboard'), 'icon': 'home', 'label': 'Home'},
         {'url': url_for('teacher.classes'), 'icon': 'class', 'label': 'Classes'},
         {'url': url_for('teacher.manage_sections'), 'icon': 'nest_multi_room', 'label': 'Sections'},
       ] %}

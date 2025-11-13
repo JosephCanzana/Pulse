@@ -1,3 +1,4 @@
+{% set page_title = "Manage Class" %}
 {% extends "layout.html" %}
 {% block title %}Class Details{% endblock %}
 
@@ -162,6 +163,7 @@
               <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Student Name</th>
               <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Year</th>
               <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Status</th>
+              <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Actions</th>
             </tr>
           </thead>
           <tbody class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] divide-y divide-[var(--clr-border)]">
@@ -170,6 +172,12 @@
               <td class="px-4 py-3 text-sm">{{ student.full_name }}</td>
               <td class="px-4 py-3 text-sm">{{ student.year }}</td>
               <td class="px-4 py-3 text-sm">{{ student.enrollment_status }}</td>
+              <td class="px-4 py-3 text-sm">
+                <a href="{{ url_for('teacher.student_progress', class_id=class_info.class_id, school_id=student.school_id) }}"
+                  class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] font-medium transition-all duration-200">
+                  Progress
+                </a>
+              </td>
             </tr>
             {% endfor %}
           </tbody>

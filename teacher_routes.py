@@ -202,6 +202,7 @@ def view_class(class_id):
         SELECT 
             CONCAT(u.first_name, ' ', COALESCE(u.middle_name, ''), ' ', u.last_name) AS full_name,
             sp.year_id,
+            u.school_id,
             yl.name AS year,
             cs.status AS enrollment_status
         FROM ClassStudent cs
@@ -614,7 +615,81 @@ def remove_student_from_class(class_id):
     flash("Student removed successfully.", "success")
     return redirect(url_for("teacher.manage_student", class_id=class_id))
 
+@teacher_bp.route("/lesson/progress/<int:class_id>/<string:school_id>")
+@login_required
+@role_required("teacher")
+def student_progress(class_id, school_id):
+    # 1) Resolve StudentProfile.id from Users.school_id
+    sp_query = text("""
+        SELECT sp.id AS student_profile_id, u.first_name, u.last_name, s.name AS section_name, sub.name AS subject_name
+        FROM StudentProfile sp
+        JOIN Users u ON u.id = sp.user_id
+        LEFT JOIN Class c ON c.id = :class_id
+        LEFT JOIN Section s ON c.section_id = s.id
+        LEFT JOIN Subject sub ON c.subject_id = sub.id
+        WHERE u.school_id = :school_id
+        LIMIT 1
+    """)
+    sp_row = db.session.execute(sp_query, {"school_id": school_id, "class_id": class_id}).mappings().first()
 
+    if not sp_row:
+        # Student not found — handle gracefully
+        flash("Student not found for the provided school ID.", "error")
+        return redirect(url_for("teacher.classes"))  # adjust redirect to your classes list
+
+    student_profile_id = sp_row["student_profile_id"]
+
+    # 2) Get lessons + the student's progress (use the resolved student_profile_id)
+    lessons_query = text("""
+        SELECT 
+            l.id AS lesson_id,
+            l.lesson_number,
+            l.title,
+            l.description,
+            IFNULL(slp.status, 'not_started') AS status,
+            slp.started_at,
+            slp.completed_at
+        FROM Lesson l
+        LEFT JOIN StudentLessonProgress slp 
+            ON slp.lesson_id = l.id 
+            AND slp.student_id = :student_profile_id
+            AND slp.class_id = :class_id
+        WHERE l.class_id = :class_id
+        ORDER BY l.lesson_number ASC
+    """)
+
+    lessons = db.session.execute(lessons_query, {
+        "class_id": class_id,
+        "student_profile_id": student_profile_id
+    }).mappings().all()
+
+    # 3) Build student_info from earlier resolved row (falls back if needed)
+    student_info = {
+        "first_name": sp_row.get("first_name"),
+        "last_name": sp_row.get("last_name"),
+        "section_name": sp_row.get("section_name"),
+        "subject_name": sp_row.get("subject_name")
+    }
+
+    # 4) Compute overall progress
+    total_lessons = len(lessons)
+    completed = sum(1 for l in lessons if l["status"] == "completed")
+    in_progress = sum(1 for l in lessons if l["status"] == "in_progress")
+    not_started = total_lessons - completed - in_progress
+    progress_percentage = (completed / total_lessons * 100) if total_lessons > 0 else 0
+
+    # 5) Render template (no class_id/student_id passed)
+    return render_template(
+        "teacher/classes/student_progress.html",
+        class_id=class_id,
+        lessons=lessons,
+        student_info=student_info,
+        total_lessons=total_lessons,
+        completed=completed,
+        in_progress=in_progress,
+        not_started=not_started,
+        progress_percentage=progress_percentage
+    )
 
 # ============================
 # Manage Sections (Teacher)
