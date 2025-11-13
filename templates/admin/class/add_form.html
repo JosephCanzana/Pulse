@@ -70,7 +70,7 @@
                  placeholder="Select section" autocomplete="off" required>
           <datalist id="sectionList">
             {% for sec in sections %}
-              <option data-id="{{ sec.id }}" value="{{ sec.name }}"></option>
+              <option data-id="{{ sec.id }}" value="{{ sec.name }} | {{ sec.year_name }}"></option>
             {% endfor %}
           </datalist>
           <input type="hidden" name="section_id" id="sectionIdHidden" value="">
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
           data.forEach(sec => {
             const opt = document.createElement('option');
             opt.setAttribute('data-id', sec.id);
-            opt.value = `${sec.name} (${sec.academic_year})`;
+            opt.value = `${sec.name} | ${sec.year_name} (${sec.academic_year})`;
             sectionList.appendChild(opt);
           });
           sectionInput.placeholder = 'Select section';

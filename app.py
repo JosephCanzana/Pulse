@@ -1,5 +1,5 @@
 # utilities
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory,current_app
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import text
 from datetime import date, datetime
@@ -41,6 +41,9 @@ DEFAULT_PASSWORD = generate_password_hash("mcmY_1946")
 # Password regex
 HARD_PASS_RE = "^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$"
 MID_PASS_RE = "^(?=.*[A-Z])(?=.*\d).{8,}$"
+UPLOAD_FOLDER = "uploads/lessons"
+# Daily Random Quotes
+last_checked_date = None
 
 
 @app.template_filter('datetimeformat')
@@ -178,7 +181,7 @@ def class_hierarchy():
         # Sections under the teacher's education level
         result = db.session.execute(
             text("""
-                SELECT sec.id, sec.name, sec.academic_year
+                SELECT sec.id, sec.name, sec.academic_year, yl.name AS year_name
                 FROM Section sec
                 LEFT JOIN Course co ON sec.course_id = co.id
                 LEFT JOIN YearLevel yl ON sec.year_id = yl.id
@@ -192,10 +195,6 @@ def class_hierarchy():
         return jsonify([dict(r) for r in result])
 
     return jsonify([])
-
-
-# Daily Random Quotes
-last_checked_date = None
 
 @app.before_request
 def ensure_daily_inspiration():
@@ -220,9 +219,6 @@ def ensure_daily_inspiration():
                 VALUES (:q, :v, :m, :d)
             """), {"q": quote_id, "v": verse_id, "m": message_id, "d": today})
             db.session.commit()
-
-
-UPLOAD_FOLDER = "uploads/lessons"
 
 @app.route('/uploads/<filename>')
 def download_file(filename):
@@ -339,7 +335,6 @@ def profile():
         return redirect(url_for("profile"))
 
     return render_template("profile.html", user=user, extra_profile=extra_profile, role=role)
-
 
 # LOGIN
 @app.route("/login", methods=["GET", "POST"])
@@ -498,6 +493,42 @@ def logout():
 @login_manager.unauthorized_handler
 def unauthorized():
     return redirect(url_for("login"))
+
+
+# Error handlerfrom flask import current_app, redirect, url_for, flash
+from flask_login import current_user
+
+@app.errorhandler(Exception)
+def handle_all_exceptions(e):
+    # Log the error
+    current_app.logger.error(f"Error: {e}")
+
+    # Flash a friendly message
+    flash("Oops! Something went wrong. Please try again.", "error")
+
+    # Redirect to the appropriate dashboard
+    if current_user.is_authenticated:
+        # Example: choose based on role
+        if current_user.role == "teacher":
+            return redirect(url_for("teacher.dashboard"))
+        elif current_user.role == "student":
+            return redirect(url_for("student.dashboard"))
+        else:
+            return redirect(url_for("admin.dashboard"))
+    else:
+        # Not logged in, send to home/login
+        return redirect(url_for("index"))
+    
+@app.errorhandler(404)
+def not_found(e):
+    flash("Page not found.", "error")
+    return redirect(url_for("index"))
+
+@app.errorhandler(500)
+def server_error(e):
+    flash("Internal server error occurred.", "error")
+    return redirect(url_for("index"))
+
 
 
 if __name__ == "__main__": 

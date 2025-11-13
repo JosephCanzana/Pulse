@@ -1297,7 +1297,7 @@ def course():
 
     params = {"status": 0 if show_archive else 1}
 
-    # 🔍 Optional search
+    # Optional search
     if search:
         base_query += """
             AND (
@@ -1761,10 +1761,10 @@ def class_list():
     params = {}
 
     # --- Status filter ---
-    if selected_status != "all":
-        status_value = 1 if selected_status == "active" else 0
-        query += " AND Class.status = :status"
-        params["status"] = status_value
+    valid_statuses = {"active", "cancelled", "completed", "all"}
+    if selected_status not in valid_statuses:
+        selected_status = "active"
+
 
     # --- Search filter ---
     if search:
@@ -1776,6 +1776,10 @@ def class_list():
             )
         """
         params["search"] = f"%{search}%"
+
+    if selected_status != "all":
+        query += " AND Class.status = :status"
+        params["status"] = selected_status 
 
     # --- Subject filter ---
     if subject_id:
@@ -1862,14 +1866,21 @@ def class_add():
         )
         db.session.commit()
         flash("Class added successfully!", "success")
-        return redirect(url_for("admin.class_list"))
+        return redirect(url_for("admin.class_add"))
 
     # GET request - fetch teachers, subjects, sections
     teachers = db.session.execute(text("SELECT TeacherProfile.id, Users.first_name, Users.last_name "   
                                        "FROM TeacherProfile "
                                        "LEFT JOIN Users ON TeacherProfile.user_id = Users.id")).mappings().all()
     subjects = db.session.execute(text("SELECT * FROM Subject WHERE status=1")).mappings().all()
-    sections = db.session.execute(text("SELECT * FROM Section WHERE status=1")).mappings().all()
+    sections = db.session.execute(
+        text("""
+            SELECT s.*, y.name AS year_name 
+            FROM Section s
+            JOIN YearLevel y ON s.year_id = y.id
+            WHERE s.status = 1
+        """)
+    ).mappings().all()
     return render_template("admin/class/add_form.html", teachers=teachers, subjects=subjects, sections=sections)
 
 # Edit Class

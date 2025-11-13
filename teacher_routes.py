@@ -119,10 +119,11 @@ def classes():
     FROM Class c
     JOIN Subject s ON c.subject_id = s.id
     JOIN Section sec ON c.section_id = sec.id
-    JOIN Course co ON sec.course_id = co.id
-    JOIN EducationLevel el ON co.education_level_id = el.id
+    LEFT JOIN Course co ON sec.course_id = co.id
+    LEFT JOIN EducationLevel el ON co.education_level_id = el.id
     WHERE c.teacher_id = :teacher_id
     """
+
     params = {"teacher_id": teacher_id}
 
     # Filter by class status
@@ -520,55 +521,60 @@ def manage_student(class_id):
         flash("Student(s) added successfully.", "success")
         return redirect(url_for("teacher.manage_student", class_id=class_id))
 
-
     search_pattern = f"%{search_query}%"
+
+    # Fetch the education level of this class via its section
+    class_edu_level = db.session.execute(
+        text("""
+            SELECT sec.education_lvl_id
+            FROM Class c
+            JOIN Section sec ON c.section_id = sec.id
+            WHERE c.id = :class_id
+        """), {"class_id": class_id}
+    ).scalar()
 
     # Students NOT yet in the class with section and education level info
     students = db.session.execute(
-    text("""
-        SELECT 
-            sp.id AS student_id,
-            u.first_name,
-            u.last_name,
-            u.school_id,
-            sp.section_id,
-            sec.name AS section_name,
-            el.name AS education_level_name
-        FROM StudentProfile sp
-        JOIN Users u 
-            ON sp.user_id = u.id
-        LEFT JOIN ClassStudent cs 
-            ON cs.student_id = sp.id 
-            AND cs.class_id = :class_id
-        LEFT JOIN Section sec 
-            ON sp.section_id = sec.id
-        LEFT JOIN EducationLevel el
-            ON sp.education_level_id = el.id
-        WHERE cs.id IS NULL
-          AND sp.education_level_id = (
-              SELECT id FROM EducationLevel WHERE name = 'College'
-          )
-          AND (
-              u.first_name LIKE :search 
-              OR u.last_name LIKE :search 
-              OR u.school_id LIKE :search 
-              OR sec.name LIKE :search 
-              OR el.name LIKE :search
-          )
-        ORDER BY u.last_name, u.first_name
-    """),
-    {
-        "class_id": class_id,
-        "search": search_pattern
-    }
-).fetchall()
-
-
+        text("""
+            SELECT 
+                sp.id AS student_id,
+                u.first_name,
+                u.last_name,
+                u.school_id,
+                sp.section_id,
+                sec.name AS section_name,
+                el.name AS education_level_name
+            FROM StudentProfile sp
+            JOIN Users u 
+                ON sp.user_id = u.id
+            LEFT JOIN ClassStudent cs 
+                ON cs.student_id = sp.id 
+                AND cs.class_id = :class_id
+            LEFT JOIN Section sec 
+                ON sp.section_id = sec.id
+            LEFT JOIN EducationLevel el
+                ON sp.education_level_id = el.id
+            WHERE cs.id IS NULL
+              AND sp.education_level_id = :edu_level
+              AND (
+                  u.first_name LIKE :search 
+                  OR u.last_name LIKE :search 
+                  OR u.school_id LIKE :search 
+                  OR sec.name LIKE :search 
+                  OR el.name LIKE :search
+              )
+            ORDER BY u.last_name, u.first_name
+        """),
+        {
+            "class_id": class_id,
+            "search": search_pattern,
+            "edu_level": class_edu_level
+        }
+    ).fetchall()
 
     # Students ALREADY in the class with section info
     existing_students = db.session.execute(
-        text(
-            """
+        text("""
             SELECT sp.id AS student_id, u.first_name, u.last_name, u.school_id,
                    sp.section_id, sec.name AS section_name
             FROM ClassStudent cs
@@ -577,8 +583,7 @@ def manage_student(class_id):
             LEFT JOIN Section sec ON sp.section_id = sec.id
             WHERE cs.class_id = :class_id
             ORDER BY sec.name, u.last_name, u.first_name
-            """
-        ),
+        """),
         {"class_id": class_id}
     ).fetchall()
 

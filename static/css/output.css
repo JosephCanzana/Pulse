@@ -15,7 +15,6 @@
     --color-yellow-500: oklch(79.5% 0.184 86.047);
     --color-yellow-600: oklch(68.1% 0.162 75.834);
     --color-green-100: oklch(96.2% 0.044 156.743);
-    --color-green-400: oklch(79.2% 0.209 151.711);
     --color-green-500: oklch(72.3% 0.219 149.579);
     --color-green-600: oklch(62.7% 0.194 149.214);
     --color-gray-200: oklch(92.8% 0.006 264.531);
@@ -1052,9 +1051,6 @@
   }
   .bg-\[var\(--clr-secondary\)\] {
     background-color: var(--clr-secondary);
-  }
-  .bg-\[var\(--clr-success\)\] {
-    background-color: var(--clr-success);
   }
   .bg-\[var\(--clr-success\)\]\/20 {
     background-color: var(--clr-success);
