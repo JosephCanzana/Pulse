@@ -6,14 +6,33 @@
 {% endblock %}
 
 {% block main %}
-
+<!-- PAGE HEADER -->
 <div class="flex flex-wrap items-center justify-between mb-8 gap-3">
+    <div class="flex items-center">
+    <!-- Archive Toggle -->
+    <a href="{{ url_for('admin.subject_archive_switch') }}"
+      title="{{ 'Show Active Subjects' if show_archive else 'Show Archived Subjects' }}"
+      class="mr-2 flex items-center justify-center rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md p-2.5 font-medium shadow-md hover:shadow-lg transition-all duration-300
+        {{ 'text-yellow-500 border-yellow-400 bg-yellow-100/70 hover:bg-yellow-200/80' if show_archive else 'text-[var(--clr-txt-primary)] hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)]' }}">
+        <span class="material-symbols-rounded transition-colors duration-300">
+          {{ 'unarchive' if show_archive else 'archive' }}
+        </span>
+    </a>
+
+    <!-- Add Subject -->
+    <a href="{{ url_for('admin.subject_add') }}" 
+      class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
+      <span class="material-symbols-rounded text-[var(--clr-primary)]">add_circle</span>
+      Add Subject
+    </a>
+  </div>
 
   <!-- Search + Filters Form -->
-  <form method="get" action="{{ url_for('admin.subject') }}" class="w-full flex flex-wrap items-center gap-3 bg-[var(--clr-glass-light)] backdrop-blur-md border border-[var(--clr-border)] rounded-3xl px-4 py-3 shadow-sm hover:shadow-md transition-all duration-300">
-    
-    <!-- Search Bar -->
-    <div class="flex items-center flex-grow max-w-lg bg-[var(--clr-glass-light)] rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--clr-primary)]">
+  <form method="get" action="{{ url_for('admin.subject') }}" 
+        class="w-full flex flex-col sm:flex-row sm:items-center gap-3 bg-[var(--clr-glass-light)] backdrop-blur-md border border-[var(--clr-border)] rounded-3xl px-4 py-4 shadow-sm hover:shadow-md transition-all duration-300">
+
+    <!-- Top Row: Search -->
+    <div class="flex items-center flex-grow bg-[var(--clr-glass-light)] rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--clr-primary)]">
       <span class="material-symbols-rounded text-[var(--clr-txt-secondary)] mr-2">search</span>
       <input 
         type="text" 
@@ -30,38 +49,24 @@
       {% endif %}
     </div>
 
-    <!-- Education Level Filter -->
-    <select name="education_level" class="px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] focus:outline-none">
-      <option value="">All Levels</option>
-      {% for lvl in education_levels %}
-        <option value="{{ lvl.id }}" {% if lvl.id|string == education_level_id|string %}selected{% endif %}>{{ lvl.name }}</option>
-      {% endfor %}
-    </select>
+    <!-- Bottom Row: Filters + Button -->
+    <div class="flex flex-wrap items-center gap-3">
+      <select name="education_level" 
+              class="px-4 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] focus:outline-none hover:border-[var(--clr-glow-primary)] transition">
+        <option class="bg-[var(--clr-bg)]" value="">All Levels</option>
+        {% for lvl in education_levels %}
+          <option class="bg-[var(--clr-bg)]" value="{{ lvl.id }}" {% if lvl.id|string == education_level_id|string %}selected{% endif %}>
+            {{ lvl.name }}
+          </option>
+        {% endfor %}
+      </select>
 
-    <!-- Submit Button -->
-    <button type="submit" class="ml-2 px-5 py-2.5 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-md hover:bg-[var(--clr-glow-primary)] transition-all">
-      Filter
-    </button>
+      <button type="submit" 
+              class="px-5 py-2.5 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-md hover:bg-[var(--clr-glow-primary)] transition-all">
+        Filter
+      </button>
+    </div>
   </form>
-
-  <div class="flex">
-    <!-- Archive Toggle -->
-    <a href="{{ url_for('admin.subject_archive_switch') }}"
-      title="{{ 'Show Active Subjects' if show_archive else 'Show Archived Subjects' }}"
-      class="mr-2 ml-2 flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 font-medium shadow-md hover:shadow-lg transition-all duration-300
-        {{ 'text-yellow-600 border-yellow-500 bg-yellow-100/80 hover:bg-yellow-200/80' if show_archive else 'text-[var(--clr-txt-primary)] hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)]' }}">
-        <span class="material-symbols-rounded transition-colors duration-300">
-          {{ 'unarchive' if show_archive else 'archive' }}
-        </span> 
-    </a>
-
-    <!-- Add Subject -->
-    <a href="{{ url_for('admin.subject_add') }}" 
-      class="mr-2 ml-2 flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
-      <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">add_circle</span>
-      Add Subject
-    </a>
-  </div>
 
 </div>
 

@@ -8,13 +8,49 @@
 {% block main %}
 
 <!-- Page Header -->
-<div class="flex flex-wrap items-center justify-between mb-8 gap-3">
+<!-- Page Header -->
+<div class="flex flex-col gap-4 mb-8">
 
-  <!-- Search + Filters Form -->
-  <form method="get" action="{{ url_for('admin.department') }}" class="w-full flex flex-wrap items-center gap-3 bg-[var(--clr-glass-light)] backdrop-blur-md border border-[var(--clr-border)] rounded-3xl px-4 py-3 shadow-sm hover:shadow-md transition-all duration-300">
-    
+  <!-- Top Buttons -->
+  <div class="flex justify-between items-center">
+    <div class="flex items-center gap-3">
+
+      <!-- Archive Toggle -->
+      <a href="{{ url_for('admin.department_archive_switch') }}"
+        title="{{ 'Show Active Departments' if show_archive else 'Show Archived Departments' }}"
+        class="flex items-center justify-center w-11 h-11 rounded-full border border-[var(--clr-border)] 
+               bg-[var(--clr-glass-light)] backdrop-blur-md shadow-sm hover:shadow-md 
+               transition-all duration-300
+               {{ 'text-yellow-500 border-yellow-400 bg-yellow-100/80 hover:bg-yellow-200/80' 
+                  if show_archive 
+                  else 'text-[var(--clr-txt-primary)] hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)]' }}">
+        <span class="material-symbols-rounded text-xl transition-colors duration-300">
+          {{ 'unarchive' if show_archive else 'archive' }}
+        </span>
+      </a>
+
+      <!-- Add Department -->
+      <a href="{{ url_for('admin.department_add') }}" 
+        class="flex items-center gap-2 rounded-full border border-[var(--clr-border)] 
+               bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2 
+               text-[var(--clr-txt-primary)] font-medium shadow-sm hover:shadow-md 
+               hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] 
+               transition-all">
+        <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">add_circle</span>
+        Add Department
+      </a>
+    </div>
+  </div>
+
+  <!-- Search + Filter Form -->
+  <form method="get" action="{{ url_for('admin.department') }}" 
+        class="w-full flex flex-col gap-3 bg-[var(--clr-glass-light)] backdrop-blur-md 
+               border border-[var(--clr-border)] rounded-3xl px-5 py-4 shadow-sm 
+               hover:shadow-md transition-all duration-300">
+
     <!-- Search Bar -->
-    <div class="flex items-center flex-grow max-w-lg bg-[var(--clr-glass-light)] rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--clr-primary)]">
+    <div class="flex items-center w-full bg-[var(--clr-glass-light)] rounded-full px-4 py-2 shadow-sm 
+                hover:shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-[var(--clr-primary)]">
       <span class="material-symbols-rounded text-[var(--clr-txt-secondary)] mr-2">search</span>
       <input 
         type="text" 
@@ -24,47 +60,35 @@
         class="bg-transparent w-full focus:outline-none text-[var(--clr-txt-primary)] placeholder-[var(--clr-txt-secondary)]"
       >
       {% if search %}
-        <a href="{{ url_for('admin.department') }}" 
-           class="material-symbols-rounded text-[var(--clr-txt-secondary)] ml-2 hover:text-[var(--clr-error)] transition-colors duration-200">
-          close
-        </a>
+      <a href="{{ url_for('admin.department') }}" 
+         class="material-symbols-rounded text-[var(--clr-txt-secondary)] ml-2 hover:text-[var(--clr-error)] transition-colors duration-200">
+        close
+      </a>
       {% endif %}
     </div>
 
-    <!-- Education Level Filter -->
-    <select name="education_level" class="px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] focus:outline-none">
-      <option value="">All Levels</option>
-      {% for lvl in education_levels %}
-        <option value="{{ lvl.id }}" {% if lvl.id|string == education_level_id %}selected{% endif %}>{{ lvl.name }}</option>
-      {% endfor %}
-    </select>
+    <!-- Filters -->
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Education Level Filter -->
+      <select name="education_level" 
+        class="px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] 
+               text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+        <option class="bg-[var(--clr-bg)]" value="">All Levels</option>
+        {% for lvl in education_levels %}
+          <option class="bg-[var(--clr-bg)]" value="{{ lvl.id }}" {% if lvl.id|string == education_level_id %}selected{% endif %}>{{ lvl.name }}</option>
+        {% endfor %}
+      </select>
 
-    <!-- Submit Button -->
-    <button type="submit" class="ml-2 px-5 py-2.5 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-md hover:bg-[var(--clr-glow-primary)] transition-all">
-      Filter
-    </button>
+      <!-- Submit -->
+      <button type="submit" 
+        class="px-5 py-2.5 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-md 
+               hover:bg-[var(--clr-glow-primary)] transition-all">
+        Filter
+      </button>
+    </div>
   </form>
-
-  <div class="flex">
-    <!-- Archive Toggle -->
-    <a href="{{ url_for('admin.department_archive_switch') }}"
-      title="{{ 'Show Active Departments' if show_archive else 'Show Archived Departments' }}"
-      class="mr-2 ml-2 flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 font-medium shadow-md hover:shadow-lg transition-all duration-300
-        {{ 'text-yellow-600 border-yellow-500 bg-yellow-100/80 hover:bg-yellow-200/80' if show_archive else 'text-[var(--clr-txt-primary)] hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)]' }}">
-        <span class="material-symbols-rounded transition-colors duration-300">
-          {{ 'unarchive' if show_archive else 'archive' }}
-        </span> 
-    </a>
-
-    <!-- Add Department -->
-    <a href="{{ url_for('admin.department_add') }}" 
-      class="mr-2 ml-2 flex items-center gap-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] backdrop-blur-md px-5 py-2.5 text-[var(--clr-txt-primary)] font-medium shadow-md hover:shadow-lg hover:border-[var(--clr-glow-primary)] hover:bg-[var(--clr-glass-border)] transition-all">
-      <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">add_circle</span>
-      Add Department
-    </a>
-  </div>
-
 </div>
+
 
 
 <!-- Title -->
