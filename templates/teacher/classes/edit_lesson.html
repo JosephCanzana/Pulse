@@ -60,10 +60,9 @@
           {% set file = lesson_files[0] %}
           <div class="flex items-center justify-between bg-[var(--clr-surface)] border border-gray-200 rounded-lg px-4 py-3">
             <span class="text-sm text-[var(-clr-txt-primary)] truncate">{{ file.file_name }}</span>
-            <a href="{{ url_for('static', filename=file.file_path.replace('static/', '')) }}"
-              target="_blank"
+            <a href="/uploads/{{ file.file_name }}" download
               class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] text-sm font-medium transition">
-              View
+              Download
             </a>
           </div>
         {% else %}

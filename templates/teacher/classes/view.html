@@ -9,7 +9,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
     <!-- Class Info Card -->
-    <div id="class-info-card" class="lg:col-span-1 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 border border-[var(--clr-border-strong)] max-h-[320px] transition-all duration-300 flex flex-col justify-between">
+    <div id="class-info-card" class="lg:col-span-1 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 border border-[var(--clr-border-strong)] max-h-[250px] transition-all duration-300 flex flex-col justify-between">
       
       <!-- Static View -->
       <div id="view-mode">
@@ -98,7 +98,7 @@
     </div>
 
     <!-- Lessons Card -->
-    <div class="lg:col-span-2 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl max-h-[320px] shadow-lg p-6 border border-[var(--clr-border)] flex flex-col transition-all duration-300" id="lessons-card">
+    <div class="lg:col-span-2 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl max-h-[250px] shadow-lg p-6 border border-[var(--clr-border)] flex flex-col transition-all duration-300" id="lessons-card">
       
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">Lessons</h2>
@@ -127,10 +127,9 @@
                 <td class="px-4 py-3 text-sm">{{ lesson.title }}</td>
                 <td class="px-4 py-3 text-sm">
                   <a href="{{ url_for('teacher.edit_lesson', class_id=class_info.class_id, lesson_id=lesson.id) }}"
-   class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] font-medium transition-all duration-200">
-  Edit
-</a>
-
+                    class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] font-medium transition-all duration-200">
+                    Edit
+                  </a>
                 </td>
               </tr>
               {% endfor %}
@@ -143,48 +142,116 @@
   </div>
 
   <!-- Bottom Row: Students -->
-  <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 border border-[var(--clr-border)] overflow-x-auto">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">Enrolled Students</h2>
-      <a href="{{ url_for('teacher.manage_student', class_id=class_info.class_id ) }}" 
-         class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] text-4xl flex items-center justify-center rounded-full w-10 h-10">
-        <span class="material-symbols-outlined">tune</span>
-      </a>
-    </div>
+<div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] 
+            rounded-2xl shadow-lg p-6 border border-[var(--clr-border)]">
 
-    {% if no_students %}
-      <p class="text-[var(--clr-txt-muted)] dark:text-[var(--clr-txt-secondary)]">No students enrolled yet.</p>
-    {% else %}
-      <div class="overflow-y-auto max-h-[300px] rounded-lg border border-[var(--clr-border)]">
-        <table class="min-w-full divide-y divide-[var(--clr-border)]">
-          <thead class="bg-[var(--clr-surface-alt)] dark:bg-[var(--clr-surface)] sticky top-0 z-10">
-            <tr>
-              <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Student Name</th>
-              <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Year</th>
-              <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Status</th>
-              <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] divide-y divide-[var(--clr-border)]">
-            {% for student in students %}
-            <tr class="hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-colors">
-              <td class="px-4 py-3 text-sm">{{ student.full_name }}</td>
-              <td class="px-4 py-3 text-sm">{{ student.year }}</td>
-              <td class="px-4 py-3 text-sm">{{ student.enrollment_status }}</td>
-              <td class="px-4 py-3 text-sm">
-                <a href="{{ url_for('teacher.student_progress', class_id=class_info.class_id, school_id=student.school_id) }}"
-                  class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] font-medium transition-all duration-200">
-                  Progress
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% endif %}
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">
+      Enrolled Students
+    </h2>
+    <a href="{{ url_for('teacher.manage_student', class_id=class_info.class_id ) }}" 
+       class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] text-4xl flex items-center justify-center rounded-full w-10 h-10">
+      <span class="material-symbols-outlined">tune</span>
+    </a>
   </div>
 
+  {% if no_students %}
+    <p class="text-[var(--clr-txt-muted)] dark:text-[var(--clr-txt-secondary)]">
+      No students enrolled yet.
+    </p>
+
+  {% else %}
+
+    <!-- DESKTOP TABLE -->
+    <div class="hidden md:block overflow-y-auto max-h-[300px] rounded-lg border border-[var(--clr-border)]">
+      <table class="min-w-full divide-y divide-[var(--clr-border)]">
+        <thead class="bg-[var(--clr-surface-alt)] dark:bg-[var(--clr-surface)] sticky top-0 z-10">
+          <tr>
+            <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Student Name</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Year</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Status</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] divide-y divide-[var(--clr-border)]">
+          {% for student in students %}
+          <tr class="hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-colors">
+            <td class="px-4 py-3 text-sm">{{ student.full_name }}</td>
+            <td class="px-4 py-3 text-sm">{{ student.year }}</td>
+
+            <!-- Status -->
+            <td class="px-4 py-3 text-sm">
+              <form method="POST" action="{{ url_for('teacher.update_student_status', class_id=class_info.class_id, cs_id=student.class_student_id) }}">
+                <select name="status" onchange="this.form.submit()"
+                        class="px-2 py-1 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] 
+                               text-[var(--clr-txt-primary)] focus:ring-2 focus:ring-[var(--clr-primary)]">
+                  <option value="active" {% if student.enrollment_status == 'active' %}selected{% endif %}>Active</option>
+                  <option value="dropped" {% if student.enrollment_status == 'dropped' %}selected{% endif %}>Dropped</option>
+                  <option value="completed" {% if student.enrollment_status == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+              </form>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-4 py-3 text-sm">
+              <a href="{{ url_for('teacher.student_progress', class_id=class_info.class_id, school_id=student.school_id) }}"
+                class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] font-medium transition-all duration-200">
+                Progress
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- MOBILE CARDS -->
+    <div class="md:hidden space-y-3">
+      {% for student in students %}
+      <div class="p-4 rounded-xl border border-[var(--clr-border)] bg-[var(--clr-surface)]
+                  dark:bg-[var(--clr-surface-alt)] shadow-sm">
+
+        <!-- Name -->
+        <p class="font-semibold text-[var(--clr-txt-primary)]">
+          {{ student.full_name }}
+        </p>
+
+        <!-- Year -->
+        <p class="text-xs text-[var(--clr-txt-muted)] mb-3">
+          Year: {{ student.year }}
+        </p>
+
+        <!-- STATUS + ACTION ROW -->
+        <div class="flex items-center gap-3">
+
+          <!-- Status -->
+          <form method="POST"
+                action="{{ url_for('teacher.update_student_status', class_id=class_info.class_id, cs_id=student.class_student_id) }}"
+                class="flex-1">
+            <select name="status"
+                    onchange="this.form.submit()"
+                    class="w-full px-3 py-2 rounded-lg border border-[var(--clr-border)] bg-[var(--clr-bg)]
+                          text-[var(--clr-txt-primary)] focus:ring-2 focus:ring-[var(--clr-primary)] text-sm">
+              <option value="active" {% if student.enrollment_status == 'active' %}selected{% endif %}>Active</option>
+              <option value="dropped" {% if student.enrollment_status == 'dropped' %}selected{% endif %}>Dropped</option>
+              <option value="completed" {% if student.enrollment_status == 'completed' %}selected{% endif %}>Completed</option>
+            </select>
+          </form>
+
+          <!-- Progress Button -->
+          <a href="{{ url_for('teacher.student_progress', class_id=class_info.class_id, school_id=student.school_id) }}"
+            class="px-4 py-2 text-sm rounded-lg bg-[var(--clr-primary)] text-white whitespace-nowrap hover:opacity-90 transition">
+            Progress
+          </a>
+
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+      {% endif %}
+    </div>
 </section>
 
 <script>
@@ -208,16 +275,16 @@
     viewMode.classList.add('hidden');
     editMode.classList.remove('hidden');
     // Expand card height when editing
-    classCard.classList.add('max-h-[600px]');
-    lessonsCard.classList.add('max-h-[600px]');
+    classCard.classList.add('max-h-[520px]');
+    lessonsCard.classList.add('max-h-[520px]');
   });
 
   cancelBtn.addEventListener('click', () => {
     editMode.classList.add('hidden');
     viewMode.classList.remove('hidden');
     // Collapse card height when done editing
-    classCard.classList.remove('max-h-[600px]');
-    lessonsCard.classList.remove('max-h-[600px]');
+    classCard.classList.remove('max-h-[520px]');
+    lessonsCard.classList.remove('max-h-[520px]');
   });
   
 </script>

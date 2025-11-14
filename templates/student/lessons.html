@@ -9,7 +9,7 @@
 
     <!-- Left Column Wrapper -->
     <div>
-      <aside class="bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-lg flex-1 sticky top-6 p-6">
+      <aside class="bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-lg flex-1 sticky top-17 p-6">
 
   {% set class_color = class_info.color if class_info.color else 'var(--clr-primary)' %}
 
@@ -105,7 +105,7 @@
 
     <!-- Right Column: Lessons -->
     <div class="lg:col-span-2 space-y-4">
-      {% if lessons %}
+      {% if lessons  and not class_info.enrollment_status == 'dropped'%}
       <ul class="space-y-4">
         {% for l in lessons %}
         <li class="group bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden min-w-0">
@@ -188,7 +188,13 @@
         {% endfor %}
       </ul>
       {% else %}
-      <p class="text-center text-[var(--clr-txt-secondary)] mt-10">No lessons found for this class.</p>
+      <p class="text-center text-[var(--clr-txt-secondary)] mt-10">
+        {%  if not class_info.enrollment_status == 'dropped' %}
+        No lessons found for this class.
+        {% else %}
+        Your lessons are hidden.
+        {% endif %}
+      </p>
       {% endif %}
     </div>
   </div>

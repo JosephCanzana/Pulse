@@ -154,7 +154,7 @@ def classes():
     )
 
 # =============
-# VIEW classes
+# VIEW class
 # =============
 @teacher_bp.route("/classes/view/<int:class_id>", methods=["GET", "POST"])
 @login_required
@@ -200,19 +200,21 @@ def view_class(class_id):
 
     # Fetch students
     students_query = text("""
-        SELECT 
-            CONCAT(u.first_name, ' ', COALESCE(u.middle_name, ''), ' ', u.last_name) AS full_name,
-            sp.year_id,
-            u.school_id,
-            yl.name AS year,
-            cs.status AS enrollment_status
-        FROM ClassStudent cs
-        JOIN StudentProfile sp ON cs.student_id = sp.id
-        JOIN Users u ON sp.user_id = u.id
-        JOIN YearLevel yl ON sp.year_id = yl.id
-        WHERE cs.class_id = :class_id
-        ORDER BY u.last_name
-    """)
+    SELECT 
+        cs.id AS class_student_id,
+        CONCAT(u.first_name, ' ', ' ', u.last_name) AS full_name,
+        sp.year_id,
+        u.school_id,
+        yl.name AS year,
+        cs.status AS enrollment_status
+    FROM ClassStudent cs
+    JOIN StudentProfile sp ON cs.student_id = sp.id
+    JOIN Users u ON sp.user_id = u.id
+    JOIN YearLevel yl ON sp.year_id = yl.id
+    WHERE cs.class_id = :class_id
+    ORDER BY u.last_name
+""")
+
     students = db.session.execute(students_query, {"class_id": class_id}).mappings().all()
     no_students = len(students) == 0
 
@@ -242,24 +244,28 @@ def view_class(class_id):
         subject_id = subject_row.id
         section_id = section_row.id
 
-        # Proceed with updating using IDs (and color)
-        update_query = text("""
-            UPDATE Class
-            SET subject_id = :subject_id,
-                section_id = :section_id,
-                status = :status,
-                color = :color
-            WHERE id = :class_id
-        """)
-        db.session.execute(update_query, {
-            "subject_id": subject_id,
-            "section_id": section_id,
-            "status": class_status,
-            "color": class_color,
-            "class_id": class_id
-        })
-        db.session.commit()
-        flash("Class updated successfully!", "success")
+        try:
+            # Proceed with updating using IDs (and color)
+            update_query = text("""
+                UPDATE Class
+                SET subject_id = :subject_id,
+                    section_id = :section_id,
+                    status = :status,
+                    color = :color
+                WHERE id = :class_id
+            """)
+            db.session.execute(update_query, {
+                "subject_id": subject_id,
+                "section_id": section_id,
+                "status": class_status,
+                "color": class_color,
+                "class_id": class_id
+            })
+            db.session.commit()
+            flash("Class updated successfully!", "success")
+        except Exception as e:
+            flash("Somewthing went wrong updating the class details!", "Error")
+
         return redirect(url_for("teacher.view_class", class_id=class_id))
 
     return render_template(
@@ -272,6 +278,25 @@ def view_class(class_id):
         subjects=subjects,
         sections=sections
     )
+
+@teacher_bp.route("/classes/<int:class_id>/student_status/<int:cs_id>", methods=["POST"])
+@login_required
+@role_required("teacher")
+def update_student_status(class_id, cs_id):
+    """Update enrollment status for a single student in a class."""
+    new_status = request.form.get("status")
+    if new_status not in ["active", "dropped", "completed"]:
+        flash("Invalid status.", "error")
+        return redirect(url_for("teacher.view_class", class_id=class_id))
+
+    db.session.execute(
+        text("UPDATE ClassStudent SET status = :status WHERE id = :cs_id AND class_id = :class_id"),
+        {"status": new_status, "cs_id": cs_id, "class_id": class_id}
+    )
+    db.session.commit()
+    flash("Student status updated successfully.", "success")
+    return redirect(url_for("teacher.view_class", class_id=class_id))
+
 
 # ============================
 # Manage Lesson (View / Add)
@@ -344,7 +369,6 @@ def manage_lesson(class_id):
 
         flash("Lesson added successfully!", "success")
         return redirect(url_for("teacher.manage_lesson", class_id=class_id))
-
 
     # Fetch lessons
     lessons = db.session.execute(text("""

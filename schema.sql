@@ -79,7 +79,6 @@ CREATE TABLE IF NOT EXISTS Section (
     academic_year VARCHAR(20),
     teacher_id INT NULL,
     status BOOLEAN NOT NULL DEFAULT TRUE,
-    
     FOREIGN KEY (education_lvl_id) REFERENCES EducationLevel(id)
         ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (year_id) REFERENCES YearLevel(id)
@@ -208,6 +207,46 @@ CREATE TABLE IF NOT EXISTS TrophyLevel (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     required_points INT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Activity (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    class_id INT NOT NULL,
+    lesson_id INT NULL,
+    title VARCHAR(255) NOT NULL,
+    instructions TEXT,
+    type ENUM('assignment','quiz','task') DEFAULT 'assignment',
+    due_date DATETIME NULL,
+    max_score INT DEFAULT 100,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (class_id) REFERENCES Class(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (lesson_id) REFERENCES Lesson(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS ActivityFile (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    activity_id INT NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (activity_id) REFERENCES Activity(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ActivitySubmission (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    activity_id INT NOT NULL,
+    student_id INT NOT NULL,
+    file_path VARCHAR(255) NULL,
+    file_name VARCHAR(255) NULL,
+    text_answer TEXT NULL,
+    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    score INT NULL,
+    feedback TEXT NULL,
+    graded_at DATETIME NULL,
+    FOREIGN KEY (activity_id) REFERENCES Activity(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES StudentProfile(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    UNIQUE KEY unique_submission(activity_id, student_id)
 );
 
 INSERT INTO TrophyLevel (name, required_points) VALUES

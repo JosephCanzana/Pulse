@@ -8,6 +8,7 @@ from decorators import role_required
 student_bp = Blueprint('student', __name__, url_prefix='/student')
 
 
+
 # ==============================
 # Dashboard
 # ==============================
@@ -122,7 +123,8 @@ def view_classes():
             c.id,
             s.name AS subject_name,
             sec.name AS section_name,
-            c.status,
+            cs.status AS enrollment_status,
+            c.status AS class_status,
             c.color,
             t.user_id AS teacher_user_id,
             CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
@@ -139,7 +141,7 @@ def view_classes():
         LEFT JOIN StudentLessonProgress slp 
             ON slp.lesson_id = l.id AND slp.student_id = sp.id
         WHERE sp.user_id = :user_id
-        GROUP BY c.id, s.name, sec.name, c.status, c.color, t.user_id, u.first_name, u.last_name
+        GROUP BY c.id, s.name, sec.name, cs.status, c.status, c.color, t.user_id, u.first_name, u.last_name
     """)
     
     all_classes = db.session.execute(query, {'user_id': current_user.id}).fetchall()
@@ -157,8 +159,8 @@ def view_classes():
         })
 
     # Separate active vs history
-    active_classes = [c for c in classes_with_progress if c['status'] == 'active']
-    history_classes = [c for c in classes_with_progress if c['status'] in ('completed', 'cancelled')]
+    active_classes = [c for c in classes_with_progress if c['class_status'] == 'active']
+    history_classes = [c for c in classes_with_progress if c['class_status'] in ('completed', 'cancelled')]
 
     return render_template(
         "student/classes.html",
@@ -178,29 +180,37 @@ def view_lessons(class_id):
     class_status_query = text("SELECT status FROM Class WHERE id = :class_id")
     class_status = db.session.execute(class_status_query, {'class_id': class_id}).scalar()
 
-    # Get class info
+    # Get class info including current student's enrollment status
     class_info_query = text("""
         SELECT 
             c.id,
             c.teacher_id,
             c.subject_id,
             c.section_id,
-            c.status,
+            c.status AS class_status,
             c.color,
             c.created_at,
             c.updated_at,
             t.user_id AS teacher_user_id,
             s.name AS subject_name,
-            sec.name AS section_name
+            sec.name AS section_name,
+            cs.status AS enrollment_status 
         FROM Class c
         LEFT JOIN TeacherProfile t ON c.teacher_id = t.id
         LEFT JOIN Subject s ON c.subject_id = s.id
         LEFT JOIN Section sec ON c.section_id = sec.id
+        LEFT JOIN ClassStudent cs 
+            ON cs.class_id = c.id 
+            AND cs.student_id = (SELECT id FROM StudentProfile WHERE user_id = :user_id)  -- filter for current student
         WHERE c.id = :class_id
     """)
-    class_info = db.session.execute(class_info_query, {'class_id': class_id}).mappings().first()
 
-    # 🔹 Get current student's profile ID
+    # Use .first() instead of .all() to get a single dict-like row
+    class_info = db.session.execute(class_info_query, {'class_id': class_id, 'user_id': current_user.id}).mappings().first()
+
+
+
+    # Get current student's profile ID
     student_profile_query = text("SELECT id FROM StudentProfile WHERE user_id = :user_id")
     student_profile_id = db.session.execute(student_profile_query, {'user_id': current_user.id}).scalar()
 
@@ -208,12 +218,12 @@ def view_lessons(class_id):
         flash("Student profile not found.", "danger")
         return redirect(url_for("student_bp.dashboard"))
 
-    # 🔹 Fetch all lesson IDs for this class
+    # Fetch all lesson IDs for this class
     lesson_ids_query = text("SELECT id FROM Lesson WHERE class_id = :class_id")
     lesson_ids = [row.id for row in db.session.execute(lesson_ids_query, {'class_id': class_id}).mappings()]
 
     if lesson_ids:
-        # 🔹 Fetch existing progress entries for this student and class
+        # Fetch existing progress entries for this student and class
         existing_progress_query = text("""
             SELECT lesson_id FROM StudentLessonProgress
             WHERE class_id = :class_id AND student_id = :student_id
@@ -223,7 +233,7 @@ def view_lessons(class_id):
             'student_id': student_profile_id
         })}
 
-        # 🔹 Insert missing progress entries
+        # Insert missing progress entries
         missing_lessons = [lid for lid in lesson_ids if lid not in existing_progress]
         if missing_lessons:
             insert_query = text("""
@@ -238,7 +248,7 @@ def view_lessons(class_id):
                 })
             db.session.commit()
 
-        # 🔹 Remove progress entries for deleted lessons (cleanup)
+        # Remove progress entries for deleted lessons (cleanup)
         deleted_lessons = [lid for lid in existing_progress if lid not in lesson_ids]
         if deleted_lessons:
             delete_query = text("""
@@ -253,7 +263,7 @@ def view_lessons(class_id):
                 })
             db.session.commit()
 
-    # 🔹 Fetch lessons with progress and files
+    # Fetch lessons with progress and files
     query = text("""
         SELECT l.id, l.lesson_number, l.title, l.description,
                slp.status, slp.completed_at, slp.started_at,
@@ -272,7 +282,7 @@ def view_lessons(class_id):
         'class_id': class_id
     }).fetchall()
 
-    # 🔹 Calculate progress summary
+    # Calculate progress summary
     total_lessons = len(lessons)
     completed_count = sum(1 for l in lessons if l.status == 'completed')
     in_progress_count = sum(1 for l in lessons if l.status == 'in_progress')
@@ -288,6 +298,9 @@ def view_lessons(class_id):
     # Flash info if class inactive
     if class_status in ('completed', 'cancelled'):
         flash("This class is no longer active. You can view it in your history, but cannot update progress.", "info")
+    elif class_info.enrollment_status == 'dropped':
+        flash("You have dropped this class. As a result, your lessons are now hidden and cannot be accessed.", "info")
+
 
     return render_template(
         "student/lessons.html",
@@ -396,21 +409,54 @@ def update_lesson_progress(lesson_id):
 @role_required("student")
 def history():
     search = request.args.get("search", "").strip().lower()
-    query = """
-        SELECT c.id, s.name AS subject_name, sec.name AS section_name, 
-               CONCAT(u.first_name, ' ', u.last_name) AS teacher_name, 
-               c.status, c.color
-        FROM Class c
+    
+    # Base query
+    query = text("""
+        SELECT 
+            c.id,
+            s.name AS subject_name,
+            sec.name AS section_name,
+            CONCAT(u.first_name, ' ', u.last_name) AS teacher_name,
+            c.status AS class_status,
+            cs.status AS enrollment_status,
+            c.color,
+            COUNT(l.id) AS total_lessons,
+            SUM(CASE WHEN slp.status = 'completed' THEN 1 ELSE 0 END) AS completed_lessons
+        FROM ClassStudent cs
+        JOIN Class c ON cs.class_id = c.id
         JOIN Subject s ON c.subject_id = s.id
         JOIN Section sec ON c.section_id = sec.id
         JOIN TeacherProfile tp ON c.teacher_id = tp.id
         JOIN Users u ON tp.user_id = u.id
-        WHERE c.status IN ('completed', 'cancelled')
-    """
-    if search:
-        query += " AND (LOWER(s.name) LIKE :s OR LOWER(sec.name) LIKE :s OR LOWER(u.first_name) LIKE :s OR LOWER(u.last_name) LIKE :s)"
-        classes = db.session.execute(text(query), {"s": f"%{search}%"}).fetchall()
-    else:
-        classes = db.session.execute(text(query)).fetchall()
+        JOIN StudentProfile sp ON cs.student_id = sp.id
+        LEFT JOIN Lesson l ON l.class_id = c.id
+        LEFT JOIN StudentLessonProgress slp 
+            ON slp.lesson_id = l.id AND slp.student_id = sp.id
+        WHERE sp.user_id = :user_id
+          AND c.status IN ('completed', 'cancelled')
+        GROUP BY c.id, s.name, sec.name, u.first_name, u.last_name, c.status, cs.status, c.color
+    """)
 
-    return render_template("student/history.html", history_classes=classes)
+    classes = db.session.execute(query, {"user_id": current_user.id}).mappings().all()
+
+    # Filter search after fetching
+    if search:
+        classes = [
+            c for c in classes 
+            if search in c['subject_name'].lower() 
+               or search in c['section_name'].lower()
+               or search in c['teacher_name'].lower()
+        ]
+
+    # Add progress percentage
+    classes_with_progress = []
+    for c in classes:
+        total = c['total_lessons'] or 0
+        completed = c['completed_lessons'] or 0
+        progress = (completed / total * 100) if total > 0 else 0
+        classes_with_progress.append({
+            **c,
+            "progress_percentage": round(progress)
+        })
+
+    return render_template("student/history.html", history_classes=classes_with_progress)

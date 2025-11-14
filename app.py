@@ -498,36 +498,36 @@ def unauthorized():
 # Error handlerfrom flask import current_app, redirect, url_for, flash
 from flask_login import current_user
 
-@app.errorhandler(Exception)
-def handle_all_exceptions(e):
-    # Log the error
-    current_app.logger.error(f"Error: {e}")
+# @app.errorhandler(Exception)
+# def handle_all_exceptions(e):
+#     # Log the error
+#     current_app.logger.error(f"Error: {e}")
 
-    # Flash a friendly message
-    flash("Oops! Something went wrong. Please try again.", "error")
+#     # Flash a friendly message
+#     flash("Oops! Something went wrong. Please try again.", "error")
 
-    # Redirect to the appropriate dashboard
-    if current_user.is_authenticated:
-        # Example: choose based on role
-        if current_user.role == "teacher":
-            return redirect(url_for("teacher.dashboard"))
-        elif current_user.role == "student":
-            return redirect(url_for("student.dashboard"))
-        else:
-            return redirect(url_for("admin.dashboard"))
-    else:
-        # Not logged in, send to home/login
-        return redirect(url_for("index"))
+#     # Redirect to the appropriate dashboard
+#     if current_user.is_authenticated:
+#         # Example: choose based on role
+#         if current_user.role == "teacher":
+#             return redirect(url_for("teacher.dashboard"))
+#         elif current_user.role == "student":
+#             return redirect(url_for("student.dashboard"))
+#         else:
+#             return redirect(url_for("admin.dashboard"))
+#     else:
+#         # Not logged in, send to home/login
+#         return redirect(url_for("index"))
     
-@app.errorhandler(404)
-def not_found(e):
-    flash("Page not found.", "error")
-    return redirect(url_for("index"))
+# @app.errorhandler(404)
+# def not_found(e):
+#     flash("Page not found.", "error")
+#     return redirect(url_for("index"))
 
-@app.errorhandler(500)
-def server_error(e):
-    flash("Internal server error occurred.", "error")
-    return redirect(url_for("index"))
+# @app.errorhandler(500)
+# def server_error(e):
+#     flash("Internal server error occurred.", "error")
+#     return redirect(url_for("index"))
 
 
 
