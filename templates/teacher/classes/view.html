@@ -9,12 +9,12 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
     <!-- Class Info Card -->
-    <div id="class-info-card" class="lg:col-span-1 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 border border-[var(--clr-border-strong)] max-h-[250px] transition-all duration-300 flex flex-col justify-between">
+    <div id="class-info-card" class="lg:col-span-1 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 border border-[var(--clr-border-strong)] max-h-[290px] transition-all duration-300 flex flex-col justify-between">
       
       <!-- Static View -->
       <div id="view-mode">
-        <h1 class="text-3xl font-bold text-[var(--clr-primary)]">{{ class_info.subject_name }}</h1>
-        <div class="text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)] mt-2 space-y-1 text-sm">
+        <h1 class="text-4xl pb-2 font-bold text-[var(--clr-primary)]">{{ class_info.subject_name }}</h1>
+        <div class="text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)] mt-2 space-y-1 text-base">
           <p>Section: {{ class_info.section_name }}</p>
           <p>Course: {{ class_info.course_name or 'N/A' }}</p>
           <p>Level: {{ class_info.education_level or 'N/A' }}</p>
@@ -98,7 +98,7 @@
     </div>
 
     <!-- Lessons Card -->
-    <div class="lg:col-span-2 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl max-h-[250px] shadow-lg p-6 border border-[var(--clr-border)] flex flex-col transition-all duration-300" id="lessons-card">
+    <div class="lg:col-span-2 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl max-h-[290px] shadow-lg p-6 border border-[var(--clr-border)] flex flex-col transition-all duration-300" id="lessons-card">
       
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">Lessons</h2>

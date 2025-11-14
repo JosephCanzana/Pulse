@@ -1096,3 +1096,7 @@ def remove_student_from_section(section_id, student_id):
     db.session.commit()
     flash("Student successfully unassigned from section.", "success")
     return redirect(url_for("teacher.section_manage_students", section_id=section_id))
+
+# ============================
+# Manage student per section
+# ============================

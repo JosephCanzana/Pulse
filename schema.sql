@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS Section (
     academic_year VARCHAR(20),
     teacher_id INT NULL,
     status BOOLEAN NOT NULL DEFAULT TRUE,
+    
     FOREIGN KEY (education_lvl_id) REFERENCES EducationLevel(id)
         ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (year_id) REFERENCES YearLevel(id)
@@ -260,8 +261,6 @@ INSERT INTO TrophyLevel (name, required_points) VALUES
 ('Ace Learner', 34),
 ('Mastermind', 55),
 ('Legendary Scholar', 89);
-
-
 
 INSERT INTO Users (first_name, middle_name, last_name, email, school_id, gender, password, role, is_verified, status) VALUES
 ('Admin', 'A', 'User', 'administrator@holycross.edu.ph', 'LMS001', 'Other', 'scrypt:32768:8:1$QwMDSjGCa4LlIVnC$7bc8add45125f055440e7ae652b28304382837f083e9a455f0ed29d32e3503b638702e7d0d6f8a8d91a7ac030d6ff5c913e61129515d277f8980a34adfde551e',
