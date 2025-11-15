@@ -1276,7 +1276,8 @@ def activity_list(class_id):
     return render_template(
         "teacher/classes/activity_list.html",
         class_info=class_check,
-        activities=activities
+        activities=activities,
+        class_id=class_id
     )
 
 @teacher_bp.route("/activity/<int:activity_id>/submissions")

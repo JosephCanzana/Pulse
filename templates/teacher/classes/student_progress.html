@@ -71,6 +71,34 @@
     </div>
   </div>
 
+    <!-- Activities Table -->
+  <div class="bg-[var(--clr-glass-light)] border border-[var(--clr-border)] rounded-3xl shadow-sm backdrop-blur-md overflow-hidden">
+    <table class="w-full text-sm text-left border-collapse">
+      <thead class="bg-[var(--clr-surface-alt)] text-[var(--clr-txt-secondary)] uppercase text-xs tracking-wider">
+        <tr>
+          <th class="px-5 py-3 font-semibold">Activity</th>
+          <th class="px-5 py-3 text-center font-semibold">Type</th>
+          <th class="px-5 py-3 text-center font-semibold">Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for activity in activities %}
+          <tr class="hover:bg-[var(--clr-surface-alt)]/60 transition duration-200">
+            <td class="px-5 py-3">{{ activity.activity_title }}</td>
+            <td class="px-5 py-3 text-center capitalize">{{ activity.activity_type }}</td>
+            <td class="px-5 py-3 text-center">{{ activity.student_score }}/{{ activity.max_score }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="3" class="text-center py-8 text-[var(--clr-txt-secondary)] italic">
+              No activities found for this student.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
   <!-- Lessons Table -->
   <div class="bg-[var(--clr-glass-light)] border border-[var(--clr-border)] rounded-3xl shadow-sm backdrop-blur-md overflow-hidden">
     <table class="w-full text-sm text-left border-collapse">
@@ -129,32 +157,5 @@
     </table>
   </div>
 
-  <!-- Activities Table -->
-  <div class="bg-[var(--clr-glass-light)] border border-[var(--clr-border)] rounded-3xl shadow-sm backdrop-blur-md overflow-hidden">
-    <table class="w-full text-sm text-left border-collapse">
-      <thead class="bg-[var(--clr-surface-alt)] text-[var(--clr-txt-secondary)] uppercase text-xs tracking-wider">
-        <tr>
-          <th class="px-5 py-3 font-semibold">Activity</th>
-          <th class="px-5 py-3 text-center font-semibold">Type</th>
-          <th class="px-5 py-3 text-center font-semibold">Score</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for activity in activities %}
-          <tr class="hover:bg-[var(--clr-surface-alt)]/60 transition duration-200">
-            <td class="px-5 py-3">{{ activity.activity_title }}</td>
-            <td class="px-5 py-3 text-center capitalize">{{ activity.activity_type }}</td>
-            <td class="px-5 py-3 text-center">{{ activity.student_score }}/{{ activity.max_score }}</td>
-          </tr>
-        {% else %}
-          <tr>
-            <td colspan="3" class="text-center py-8 text-[var(--clr-txt-secondary)] italic">
-              No activities found for this student.
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
 </section>
 {% endblock %}

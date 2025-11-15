@@ -121,7 +121,7 @@
             </div>
 
             <div class="mt-2 text-sm text-[var(--clr-txt-muted)] space-y-1 text-center">
-              <p>Passed: <strong>{{ activities_summary.passed }}</strong></p>
+              <p>Submitted: <strong>{{ activities_summary.passed }}</strong></p>
               <p>Total: <strong>{{ activities_summary.total }}</strong></p>
               <p>Overall: <strong>{{ overall_score }}/{{ total_possible }}</strong></p>
             </div>
@@ -143,12 +143,17 @@
           <!-- Lesson header -->
           <div class="flex justify-between items-center cursor-pointer" onclick="toggleDetail({{ l.lesson_id }})">
             <div class="flex items-center gap-2 flex-1 min-w-0">
+              {% if l.activity_id %}
+              <!-- Activity Indicator Dot -->
+              <span class="w-3 h-3 rounded-full bg-[var(--clr-success)] flex-shrink-0" title="This lesson has an activity"></span>
+              {% endif %}
               <h3 class="font-semibold text-lg sm:text-xl text-[var(--clr-txt-primary)] truncate sm:truncate-none sm:hidden">
                 Lesson {{ l.lesson_number }}
               </h3>
               <h3 class="font-semibold text-lg sm:text-xl text-[var(--clr-txt-primary)] hidden sm:block">
                 Lesson {{ l.lesson_number }}: {{ l.title }}
               </h3>
+              
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
@@ -200,38 +205,49 @@
                 </a>
               </div>
               {% endif %}
-<!-- Activity / Assignment Button -->
-{% if l.activity_id %}
-<div class="mt-2 space-y-1">
-    <a href="{{ url_for('student.view_activity', activity_id=l.activity_id) }}"
-       class="flex items-center justify-between px-4 py-2 rounded-lg 
-              {% if (l.activity_score is not none and l.activity_score > 0) 
-                    or (l.activity_file_path or l.activity_text_answer) %}
-                  bg-green-600 hover:bg-green-700
-              {% else %}
-                  bg-gray-300 hover:bg-gray-400
-              {% endif %}
-              text-white transition text-sm sm:text-base w-full sm:w-auto">
-        <span class="flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm">assignment</span>
-            {{ l.activity_title or "View Assignment" }}
-        </span>
-        <span class="text-xs sm:text-sm text-gray-200">
-            {% if l.activity_score is not none %}
-                Submitted | Score: {{ l.activity_score }} pts
-            {% else %}
-                {% if l.activity_file_path or l.activity_text_answer %}
+              <!-- Activity / Assignment Button -->
+              {% if l.activity_id %}
+              <div class="mt-3">
+                <a href="{{ url_for('student.view_activity', activity_id=l.activity_id) }}"
+                  class="flex items-center gap-2 px-3 py-2 rounded-lg
+                          {% if (l.activity_score is not none and l.activity_score > 0) 
+                                or (l.activity_file_path or l.activity_text_answer) %}
+                              bg-[var(--clr-success)] hover:bg-[var(--clr-success)/90] text-[var(--clr-bg)]
+                          {% else %}
+                              bg-[var(--clr-border-strong)] hover:bg-[var(--clr-border-strong)/80] text-[var(--clr-txt-primary)]
+                          {% endif %}
+                          transition text-sm sm:text-base shadow-sm hover:shadow-md w-max">
+
+                  <!-- Icon -->
+                  <span class="material-symbols-outlined text-sm text-[var(--clr-bg)] sm:text-[var(--clr-bg)]">
+                    assignment
+                  </span>
+
+                  <!-- Activity Title -->
+                  <span class="truncate">{{ l.activity_title or "View Assignment" }}</span>
+
+                  <!-- Score / Status -->
+                  {% if l.activity_score is not none %}
+                  <span class="ml-2 text-xs sm:text-sm font-medium text-[var(--clr-txt-primary)]">
+                    Score: {{ l.activity_score }} pts
+                  </span>
+                  {% elif l.activity_file_path or l.activity_text_answer %}
+                  <span class="ml-2 text-xs sm:text-sm font-medium text-[var(--clr-txt-primary)]">
                     Submitted | Pending grading
-                {% elif l.activity_due %}
-                    Due: {{ l.activity_due.strftime('%Y-%m-%d %H:%M') }}
-                {% else %}
+                  </span>
+                  {% elif l.activity_due %}
+                  <span class="ml-2 text-xs sm:text-sm font-medium text-[var(--clr-txt-primary)]">
+                    Due: {{ l.activity_due.strftime('%b %d, %Y') }}
+                  </span>
+                  {% else %}
+                  <span class="ml-2 text-xs sm:text-sm font-medium text-[var(--clr-txt-primary)]">
                     Pending
-                {% endif %}
-            {% endif %}
-        </span>
-    </a>
-</div>
-{% endif %}
+                  </span>
+                  {% endif %}
+                </a>
+              </div>
+              {% endif %}
+
 
 
 
