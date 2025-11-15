@@ -298,15 +298,3 @@ INSERT INTO YearLevel (name, education_level_id) VALUES
 ('3rd Year', 4),
 ('4th Year', 4);
 
-INSERT INTO TrophyLevel (name, required_points) VALUES
-('Rising Star', 25),
-('Shining Scholar', 75),
-('Knowledge Seeker', 150),
-('Master Learner', 300),
-('Academic Achiever', 500),
-('Legendary Scholar', 800),
-('Elite Mind', 1200),
-('Champion of Knowledge', 1800),
-('Luminary', 2500),
-('Sage of Wisdom', 4000);
-

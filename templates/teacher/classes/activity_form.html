@@ -7,11 +7,13 @@
 
 {% block main %}
 <div class="w-full h-full">
+
   <!-- Header -->
   <div class="flex items-center justify-between mb-10">
     <div class="flex items-center gap-3">
+
       <!-- Back Button -->
-      <a href="{{ url_for('teacher.manage_lesson', class_id=class_info.class_id) }}"
+      <a href="{{ url_for('teacher.manage_lesson', class_id=lesson.class_id) }}"
          class="flex items-center justify-center w-9 h-9 rounded-full border border-[var(--clr-txt-secondary)] hover:border-[var(--clr-primary)] hover:text-[var(--clr-primary)] text-[var(--clr-txt-secondary)] transition">
         <span class="material-symbols-outlined text-xl">arrow_back</span>
       </a>
@@ -33,10 +35,12 @@
   <!-- Main Form -->
   <form id="activity-form"
         method="POST"
+        enctype="multipart/form-data"
         class="grid grid-cols-1 md:grid-cols-2 gap-12">
 
     <!-- LEFT: Assignment Details -->
     <div class="space-y-6">
+
       <!-- Assignment Title -->
       <div>
         <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">Assignment Title</label>
@@ -49,7 +53,7 @@
       <div>
         <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Instructions</label>
         <textarea name="instructions" rows="8"
-                  class="w-full bg-[var(--clr-glass-light)] border border-gray-200 rounded-lg text-[var(--clr-txt-primary)] text-base leading-relaxed focus:border-[var(--clr-primary)] focus:ring-1 focus:ring-[var(--clr-primary)] focus:outline-none transition p-3 resize-y min-h-[220px]">{{ activity.instructions if activity else '' }}</textarea>
+                  class="w-full bg-[var(--clr-glass-light)] border border-gray-200 rounded-lg text-[var(--clr-txt-primary)] text-base leading-relaxed focus:border-[var(--clr-primary)] focus:ring-1 focus:ring-[var(--clr-primary)] focus:outline-none transition p-3 min-h-[220px] resize-y">{{ activity.instructions if activity else '' }}</textarea>
       </div>
 
       <!-- Due Date -->
@@ -67,36 +71,49 @@
                value="{{ activity.max_score if activity else 100 }}"
                class="w-full bg-transparent border border-gray-300 rounded-lg text-[var(--clr-txt-primary)] px-4 py-2 focus:border-[var(--clr-primary)] focus:ring-1 focus:ring-[var(--clr-primary)] focus:outline-none transition">
       </div>
+
     </div>
 
-    <!-- RIGHT: Optional File -->
+    <!-- RIGHT: Files -->
     <div class="space-y-8">
-      <!-- Current File -->
+
+      <!-- Existing Files -->
       <div>
-        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Attached File</label>
-        {% if activity and activity.file_name %}
-          <div class="flex items-center justify-between bg-[var(--clr-surface)] border border-gray-200 rounded-lg px-4 py-3">
-            <span class="text-sm text-[var(--clr-txt-primary)] truncate">{{ activity.file_name }}</span>
-            <a href="/uploads/{{ activity.file_name }}" download
-               class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] text-sm font-medium transition">
-              Download
-            </a>
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Attached Files</label>
+
+        {% if files and files|length > 0 %}
+          <div class="space-y-3">
+            {% for f in files %}
+              <div class="flex items-center justify-between bg-[var(--clr-surface)] border border-gray-200 rounded-lg px-4 py-3">
+                <span class="text-sm text-[var(--clr-txt-primary)] truncate">{{ f.file_name }}</span>
+
+                <!-- UPDATED DOWNLOAD LINK -->
+                <a href="/uploads/activity/{{ activity.id }}/{{ f.file_name }}" download
+                  class="inline-flex items-center gap-1 px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg
+                          hover:bg-[var(--clr-secondary)] transition shadow-sm text-sm font-medium">
+                    <span class="material-symbols-outlined text-sm">download</span>
+                    <span>Download</span>
+                </a>
+              </div>
+            {% endfor %}
           </div>
         {% else %}
-          <p class="text-sm text-gray-500 italic">No file attached.</p>
+          <p class="text-sm text-gray-500 italic">No files attached.</p>
         {% endif %}
       </div>
 
-      <!-- Upload New File -->
+      <!-- Upload New Files -->
       <div>
-        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Upload File (optional)</label>
-        <input type="file" name="file"
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Upload New Files</label>
+        <input type="file" name="files" multiple
                class="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4
                       file:rounded-md file:border-0 file:text-sm file:font-semibold
                       file:bg-[var(--clr-primary)] file:text-white hover:file:bg-[var(--clr-secondary)]
                       transition cursor-pointer">
       </div>
+
     </div>
+
   </form>
 </div>
 {% endblock %}

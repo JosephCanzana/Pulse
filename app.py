@@ -236,6 +236,13 @@ def quick_preview_activity_file(activity_id, filename):
     folder = os.path.join("uploads", "activities", str(activity_id))
     return send_from_directory(folder, filename)
 
+@app.route('/uploads/activity/<int:activity_id>/<path:filename>')
+def download_activity_file_general(activity_id, filename):
+    folder = os.path.join("uploads", "activity", str(activity_id))
+    return send_from_directory(folder, filename, as_attachment=True)
+
+
+
 # ==== BLUEPRINT =====
 app.register_blueprint(admin_bp)
 app.register_blueprint(teacher_bp)

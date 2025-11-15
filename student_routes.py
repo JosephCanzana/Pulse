@@ -217,50 +217,113 @@ def view_lessons(class_id):
     if not student_profile_id:
         flash("Student profile not found.", "danger")
         return redirect(url_for("student_bp.dashboard"))
-
-    # Ensure StudentLessonProgress entries exist
-    lesson_ids = [row.id for row in db.session.execute(
+    # Ensure StudentLessonProgress entries exist for any new lessons
+    lesson_rows = db.session.execute(
         text("SELECT id FROM Lesson WHERE class_id = :class_id"),
         {'class_id': class_id}
-    ).mappings()]
-    
-    if lesson_ids:
-        existing_progress = {row.lesson_id for row in db.session.execute(
-            text("SELECT lesson_id FROM StudentLessonProgress WHERE class_id = :class_id AND student_id = :student_id"),
-            {'class_id': class_id, 'student_id': student_profile_id}
-        )}
-        # Insert missing
-        for lid in set(lesson_ids) - existing_progress:
-            db.session.execute(
-                text("INSERT INTO StudentLessonProgress (class_id, lesson_id, student_id, status) VALUES (:class_id, :lesson_id, :student_id, 'not_started')"),
-                {'class_id': class_id, 'lesson_id': lid, 'student_id': student_profile_id}
-            )
-        # Remove deleted
-        for lid in existing_progress - set(lesson_ids):
-            db.session.execute(
-                text("DELETE FROM StudentLessonProgress WHERE class_id = :class_id AND student_id = :student_id AND lesson_id = :lesson_id"),
-                {'class_id': class_id, 'student_id': student_profile_id, 'lesson_id': lid}
-            )
-        db.session.commit()
+    ).mappings().all()
 
-    # Fetch lessons with progress and activity info
-    lessons = db.session.execute(
+    lesson_ids = [row['id'] for row in lesson_rows]
+
+    if lesson_ids:
+        # Existing progress for this student
+        existing_progress_rows = db.session.execute(
+            text("""
+                SELECT lesson_id FROM StudentLessonProgress
+                WHERE class_id = :class_id AND student_id = :student_id
+            """),
+            {'class_id': class_id, 'student_id': student_profile_id}
+        ).mappings().all()
+
+        existing_progress = {row['lesson_id'] for row in existing_progress_rows}
+
+        # Only insert missing progress for new lessons
+        missing_lessons = set(lesson_ids) - existing_progress
+        if missing_lessons:
+            for lid in missing_lessons:
+                db.session.execute(
+                    text("""
+                        INSERT INTO StudentLessonProgress (class_id, lesson_id, student_id, status)
+                        VALUES (:class_id, :lesson_id, :student_id, 'not_started')
+                    """),
+                    {'class_id': class_id, 'lesson_id': lid, 'student_id': student_profile_id}
+                )
+            db.session.commit()
+
+        # Fetch lessons with progress and activity info (duplicate-free)
+        lessons = db.session.execute(
         text("""
-            SELECT l.id AS lesson_id, l.lesson_number, l.title, l.description,
-                slp.status AS progress_status, slp.completed_at, slp.started_at,
-                lf.id AS file_id, lf.file_name, lf.file_path, lf.file_type,
-                a.id AS activity_id, a.title AS activity_title, a.due_date AS activity_due,
-                s.score AS activity_score, s.submitted_at AS activity_submitted_at
+            SELECT 
+                l.id AS lesson_id, 
+                l.lesson_number, 
+                l.title, 
+                l.description,
+
+                slp.status AS progress_status, 
+                slp.completed_at, 
+                slp.started_at,
+
+                -- Single file per lesson
+                lf.file_id,
+                lf.file_name,
+                lf.file_path,
+                lf.file_type,
+
+                -- Single activity per lesson
+                a.activity_id,
+                a.activity_title,
+                a.activity_due,
+
+                -- Submission info
+                s.score AS activity_score,
+                s.submitted_at AS activity_submitted_at,
+
+                -- Final unified submission status
+                CASE 
+                    WHEN s.submitted_at IS NULL THEN 'not_submitted'
+                    WHEN s.score IS NULL THEN 'submitted_not_graded'
+                    WHEN s.score >= 1 THEN 'passed'
+                    ELSE 'failed'
+                END AS submission_status
+
             FROM Lesson l
+
             LEFT JOIN StudentLessonProgress slp 
-                ON l.id = slp.lesson_id AND slp.student_id = :student_id
-            LEFT JOIN LessonFile lf ON l.id = lf.lesson_id
-            LEFT JOIN Activity a ON l.id = a.lesson_id AND a.type = 'assignment'
-            LEFT JOIN ActivitySubmission s ON a.id = s.activity_id AND s.student_id = :student_id
+                ON l.id = slp.lesson_id 
+                AND slp.student_id = :student_id
+
+            -- Aggregate files to return only one per lesson
+            LEFT JOIN (
+                SELECT lesson_id, MAX(id) AS file_id, MAX(file_name) AS file_name,
+                    MAX(file_path) AS file_path, MAX(file_type) AS file_type
+                FROM LessonFile
+                GROUP BY lesson_id
+            ) lf ON l.id = lf.lesson_id
+
+            -- Aggregate assignments to return only one per lesson
+            LEFT JOIN (
+                SELECT lesson_id, MAX(id) AS activity_id, MAX(title) AS activity_title,
+                    MAX(due_date) AS activity_due
+                FROM Activity
+                WHERE type = 'assignment'
+                GROUP BY lesson_id
+            ) a ON l.id = a.lesson_id
+
+            -- Get submission info (only 1 row per activity/student)
+            LEFT JOIN (
+                SELECT activity_id, student_id, MAX(score) AS score, MAX(submitted_at) AS submitted_at
+                FROM ActivitySubmission
+                WHERE student_id = :student_id
+                GROUP BY activity_id, student_id
+            ) s ON a.activity_id = s.activity_id
+
             WHERE l.class_id = :class_id
             ORDER BY l.lesson_number ASC
-        """), {'student_id': student_profile_id, 'class_id': class_id}
+        """),
+        {'student_id': student_profile_id, 'class_id': class_id}
     ).mappings().all()
+
+
 
     # Lesson progress summary
     total_lessons = len(lessons)
@@ -479,11 +542,21 @@ def view_activity(activity_id):
 
     # Fetch activity
     activity_query = text("""
-        SELECT a.id, a.title, a.instructions, a.due_date, a.max_score, a.lesson_id, l.title AS lesson_title
+        SELECT 
+            a.id,
+            a.title,
+            a.instructions,
+            a.due_date,
+            a.max_score,
+            a.lesson_id,
+            l.title AS lesson_title,
+            c.id AS class_id
         FROM Activity a
         LEFT JOIN Lesson l ON a.lesson_id = l.id
+        LEFT JOIN Class c ON l.class_id = c.id
         WHERE a.id = :activity_id AND a.type = 'assignment'
     """)
+
     activity = db.session.execute(activity_query, {"activity_id": activity_id}).mappings().first()
     if not activity:
         flash("Assignment not found.", "error")
@@ -499,10 +572,19 @@ def view_activity(activity_id):
         "student_id": student_profile_id
     }).mappings().first()
 
+        # Fetch teacher-uploaded files for this activity
+    teacher_files_query = text("""
+        SELECT * FROM ActivityFile
+        WHERE activity_id = :activity_id
+    """)
+    teacher_files = db.session.execute(teacher_files_query, {"activity_id": activity_id}).mappings().all()
+
+
     return render_template(
         "student/activity.html",
         activity=activity,
-        submission=submission
+        submission=submission,
+        teacher_files=teacher_files
     )
 
 

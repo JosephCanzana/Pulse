@@ -100,19 +100,26 @@
     <!-- Lessons Card -->
     <div class="lg:col-span-2 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl max-h-[290px] shadow-lg p-6 border border-[var(--clr-border)] flex flex-col transition-all duration-300" id="lessons-card">
       
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">Lessons</h2>
-        <div>
-          <a href="{{ url_for('teacher.activity_list', class_id=class_info.class_id ) }}" 
-             class="mr-2 ml-2 px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg shadow-md hover:bg-[var(--clr-secondary)] transition-all duration-200 text-sm">
-            View Submissions
-          </a>
-          <a href="{{ url_for('teacher.manage_lesson', class_id=class_info.class_id ) }}" 
-             class="mr-2 ml-2 px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg shadow-md hover:bg-[var(--clr-secondary)] transition-all duration-200 text-sm">
-            Manage Lessons
-          </a>
-        </div>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+
+      <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">
+        Lessons
+      </h2>
+
+      <div class="flex flex-col sm:flex-row gap-2">
+        <a href="{{ url_for('teacher.activity_list', class_id=class_info.class_id ) }}"
+          class="px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg shadow-md hover:bg-[var(--clr-secondary)] transition-all duration-200 text-sm text-center">
+          View Submissions
+        </a>
+
+        <a href="{{ url_for('teacher.manage_lesson', class_id=class_info.class_id ) }}"
+          class="px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg shadow-md hover:bg-[var(--clr-secondary)] transition-all duration-200 text-sm text-center">
+          Manage Lessons
+        </a>
       </div>
+
+    </div>
+
 
       {% if no_lessons %}
         <p class="text-[var(--clr-txt-muted)] dark:text-[var(--clr-txt-secondary)]">No lessons created yet.</p>

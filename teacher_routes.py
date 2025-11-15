@@ -1,4 +1,4 @@
-from flask import render_template, session, Blueprint, flash, request,url_for, redirect
+from flask import render_template, session, Blueprint, flash, request,url_for, redirect, current_app
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import text
@@ -563,14 +563,7 @@ def manage_student(class_id):
                 {"class_id": class_id, "student_id": student_id}
             )
 
-            # create StudentLessonProgress for all existing lessons in this class 
-            create_progress = text("""
-                INSERT IGNORE INTO StudentLessonProgress (class_id, lesson_id, student_id, status, started_at, completed_at)
-                SELECT id AS class_id, l.id AS lesson_id, :student_id, 'not_started', NULL, NULL
-                FROM Lesson l
-                WHERE l.class_id = :class_id
-            """)
-            db.session.execute(create_progress, {"student_id": student_id, "class_id": class_id})
+            
         
         db.session.commit()
         flash("Student(s) added successfully.", "success")
@@ -671,8 +664,29 @@ def remove_student_from_class(class_id):
         ),
         {"class_id": class_id, "student_id": student_id}
     )
+
+    # Delete all StudentLessonProgress entries for this student in this class
+    db.session.execute(
+        text(
+            "DELETE FROM StudentLessonProgress WHERE class_id = :class_id AND student_id = :student_id"
+        ),
+        {"class_id": class_id, "student_id": student_id}
+    )
+
+    # Delete all ActivitySubmissions by this student for activities in this class
+    db.session.execute(
+        text("""
+            DELETE FROM ActivitySubmission
+            WHERE student_id = :student_id
+              AND activity_id IN (
+                  SELECT id FROM Activity WHERE class_id = :class_id
+              )
+        """),
+        {"class_id": class_id, "student_id": student_id}
+    )
+
     db.session.commit()
-    flash("Student removed successfully.", "success")
+    flash("Student removed successfully, including all progress and submissions.", "success")
     return redirect(url_for("teacher.manage_student", class_id=class_id))
 
 @teacher_bp.route("/lesson/progress/<int:class_id>/<string:school_id>")
@@ -1162,11 +1176,11 @@ def remove_student_from_section(section_id, student_id):
 # ============================
 # Lesson form
 # ============================
-
 @teacher_bp.route("/class/lesson/<int:lesson_id>/activity", methods=["GET", "POST"])
 @login_required
 @role_required("teacher")
 def activity_form(lesson_id):
+
     # Fetch the lesson
     lesson_query = text("SELECT * FROM Lesson WHERE id = :lesson_id")
     lesson = db.session.execute(lesson_query, {"lesson_id": lesson_id}).fetchone()
@@ -1174,22 +1188,32 @@ def activity_form(lesson_id):
         flash("Lesson not found.", "error")
         return redirect(url_for("teacher.dashboard"))
 
-    # Check if an assignment already exists for this lesson
-    activity_query = text("SELECT * FROM Activity WHERE lesson_id = :lesson_id AND type = 'assignment'")
+    # Check if an activity (assignment) already exists
+    activity_query = text("""
+        SELECT * FROM Activity WHERE lesson_id = :lesson_id AND type = 'assignment'
+    """)
     activity = db.session.execute(activity_query, {"lesson_id": lesson_id}).fetchone()
+
+    # Fetch existing uploaded files
+    files = []
+    if activity:
+        files_query = text("SELECT * FROM ActivityFile WHERE activity_id = :aid")
+        files = db.session.execute(files_query, {"aid": activity.id}).fetchall()
 
     if request.method == "POST":
         title = request.form.get("title")
         instructions = request.form.get("instructions")
-        due_date = request.form.get("due_date")  # e.g., 'YYYY-MM-DD HH:MM'
+        due_date = request.form.get("due_date")
         max_score = request.form.get("max_score", 100)
 
         if not title:
             flash("Title is required.", "error")
             return redirect(request.url)
 
+        # ---------------------------
+        # INSERT or UPDATE ACTIVITY
+        # ---------------------------
         if activity:
-            # Update existing assignment
             update_query = text("""
                 UPDATE Activity
                 SET title = :title,
@@ -1207,14 +1231,15 @@ def activity_form(lesson_id):
                 "updated_at": datetime.now(),
                 "activity_id": activity.id
             })
+            activity_id = activity.id
             flash("Assignment updated successfully.", "success")
+
         else:
-            # Create new assignment
             insert_query = text("""
                 INSERT INTO Activity (class_id, lesson_id, title, instructions, type, due_date, max_score)
                 VALUES (:class_id, :lesson_id, :title, :instructions, 'assignment', :due_date, :max_score)
             """)
-            db.session.execute(insert_query, {
+            result = db.session.execute(insert_query, {
                 "class_id": lesson.class_id,
                 "lesson_id": lesson_id,
                 "title": title,
@@ -1222,12 +1247,51 @@ def activity_form(lesson_id):
                 "due_date": due_date if due_date else None,
                 "max_score": max_score
             })
+            activity_id = result.lastrowid
             flash("Assignment created successfully.", "success")
 
         db.session.commit()
+
+        # ---------------------------
+        # HANDLE FILE UPLOAD
+        # ---------------------------
+        if "files" in request.files:
+            uploaded_files = request.files.getlist("files")
+
+            if uploaded_files:
+                # Create folder: /uploads/activity/<activity_id>
+                upload_dir = os.path.join(current_app.root_path, "uploads", "activity", str(activity_id))
+                os.makedirs(upload_dir, exist_ok=True)
+
+                for file in uploaded_files:
+                    if file and file.filename:
+                        filename = secure_filename(file.filename)
+                        file_path = os.path.join(upload_dir, filename)
+                        file.save(file_path)
+
+                        # Store URL path in DB for download
+                        db.session.execute(text("""
+                            INSERT INTO ActivityFile (activity_id, file_name, file_path)
+                            VALUES (:activity_id, :file_name, :file_path)
+                        """), {
+                            "activity_id": activity_id,
+                            "file_name": filename,
+                            "file_path": f"/uploads/activity/{activity_id}/{filename}"
+                        })
+
+                db.session.commit()
+                flash("Files uploaded successfully.", "success")
+
         return redirect(url_for("teacher.activity_form", lesson_id=lesson_id))
 
-    return render_template("teacher/classes/activity_form.html", activity=activity, lesson=lesson)
+
+    return render_template(
+        "teacher/classes/activity_form.html",
+        activity=activity,
+        lesson=lesson,
+        files=files
+    )
+
 
 # Submission of activity in that class
 @teacher_bp.route("/class/<int:class_id>/activity_list")

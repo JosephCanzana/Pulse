@@ -7,7 +7,7 @@
 
 <div class="h-full w-full">
     <div class="flex flex-row items-center text-center mb-5">
-        <a href="{{ url_for('student.view_lessons', class_id=activity.class_id) }}"
+        <a href="{{ url_for('teacher.activity_list', class_id=activity.class_id) }}"
                  class="mr-2 ml-2 flex items-center justify-center w-7 h-7 sm:w-12 sm:h-12 rounded-full border border-[var(--clr-txt-secondary)] hover:border-[var(--clr-primary)] hover:text-[var(--clr-primary)] text-[var(--clr-txt-secondary)] transition">
                   <span class="material-symbols-outlined text-xl sm:text-2xl">arrow_back</span>
         </a>
