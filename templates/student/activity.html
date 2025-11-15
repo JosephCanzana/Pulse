@@ -1,0 +1,64 @@
+{% set page_title = activity.title %}
+{% extends "layout.html" %}
+
+{% block title %}
+    {{ page_title }}
+{% endblock %}
+
+{% block main %}
+<div class="max-w-3xl mx-auto p-4 bg-white dark:bg-slate-800 rounded-lg shadow-md">
+    <h1 class="text-2xl font-semibold mb-4">{{ activity.title }}</h1>
+
+    <!-- Lesson Reference -->
+    {% if activity.lesson_title %}
+    <p class="mb-2 text-gray-600 dark:text-gray-300">
+        Lesson: <strong>{{ activity.lesson_title }}</strong>
+    </p>
+    {% endif %}
+
+    <!-- Instructions -->
+    <div class="mb-4">
+        <h2 class="font-medium text-gray-700 dark:text-gray-200 mb-1">Instructions:</h2>
+        <p class="text-gray-800 dark:text-gray-100">{{ activity.instructions or "No instructions provided." }}</p>
+    </div>
+
+    <!-- Due Date and Max Score -->
+    <div class="flex flex-col sm:flex-row gap-4 mb-4">
+        {% if activity.due_date %}
+        <p class="text-gray-600 dark:text-gray-300">Due: <strong>{{ activity.due_date.strftime('%Y-%m-%d %H:%M') }}</strong></p>
+        {% endif %}
+        <p class="text-gray-600 dark:text-gray-300">Max Score: <strong>{{ activity.max_score }}</strong></p>
+    </div>
+
+    <!-- Submission -->
+    <div class="mt-4">
+        {% if submission %}
+        <div class="mb-2 p-3 bg-green-50 dark:bg-green-900 rounded">
+            <p class="text-gray-800 dark:text-green-200">You have submitted this assignment.</p>
+            {% if submission.score is not none %}
+            <p class="text-gray-700 dark:text-gray-200">Score: <strong>{{ submission.score }}</strong></p>
+            {% endif %}
+            {% if submission.feedback %}
+            <p class="text-gray-700 dark:text-gray-200">Feedback: {{ submission.feedback }}</p>
+            {% endif %}
+            <p class="text-gray-600 dark:text-gray-300">Submitted at: {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') }}</p>
+        </div>
+        {% else %}
+        <form method="POST" action="{{ url_for('student.submit_activity', activity_id=activity.id) }}" enctype="multipart/form-data">
+            <label for="file" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Upload File (optional)</label>
+            <input type="file" name="file" id="file" 
+                   class="block w-full text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded p-1 mb-3">
+
+            <label for="text_answer" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Text Answer (optional)</label>
+            <textarea name="text_answer" id="text_answer" rows="5"
+                      class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-slate-700 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm mb-3"></textarea>
+
+            <button type="submit" 
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition w-full sm:w-auto">
+                Submit Assignment
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

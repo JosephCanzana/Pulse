@@ -1,0 +1,232 @@
+{% set page_title = "Activity Submissions" %}
+{% extends "layout.html" %}
+
+{% block title %}Activity Submissions{% endblock %}
+
+{% block main %}
+
+<div class="p-4">
+    <h1 class="text-2xl font-bold mb-4">{{ activity.title }}</h1>
+
+    <div class="bg-[var(--clr-glass-light)] p-4 rounded-xl shadow-sm border border-[var(--clr-border)]">
+        <h2 class="text-xl font-semibold">Submissions</h2>
+
+        <p class="text-sm text-gray-600 mt-2 mb-4">
+            Total Students: {{ submissions|length }} |
+            Submitted: {{ submissions|selectattr("submitted_at")|list|length }} |
+            Not Submitted: {{ submissions|rejectattr("submitted_at")|list|length }}
+        </p>
+
+        <!-- DESKTOP TABLE -->
+        <div class="hidden md:block overflow-x-auto">
+        <table class="w-full mt-2 text-sm">
+            <thead>
+                <tr class="text-left border-b border-gray-300">
+                    <th class="py-2">Student</th>
+                    <th class="py-2">Submitted At</th>
+                    <th class="py-2">Status</th>
+                    <th class="py-2">File</th>
+                    <th class="py-2">Text Answer</th>
+                    <th class="py-2">Grading</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for s in submissions %}
+                <tr class="border-b border-gray-200">
+                    <td class="py-3 font-medium">{{ s.first_name }} {{ s.last_name }}</td>
+
+                    <td class="py-3">
+                        {% if s.submitted_at %}
+                            {{ s.submitted_at }}
+                        {% else %}
+                            <span class="text-gray-400 italic">Not Submitted</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="py-3">
+                        {% if not s.submitted_at %}
+                            <span class="text-gray-400 font-semibold">Pending</span>
+                        {% elif s.is_late %}
+                            <span class="text-red-500 font-semibold">Late</span>
+                        {% else %}
+                            <span class="text-green-600 font-semibold">On Time</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- File Preview -->
+                    <td class="py-3">
+                        {% if s.file_name %}
+                            <button 
+                                onclick="openPreviewModal('{{ s.file_name }}', {{ activity.id }})"
+                                class="px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg hover:bg-[var(--clr-secondary)] transition text-xs">
+                                Quick View
+                            </button>
+                            <a href="/uploads/activities/{{ activity.id }}/{{ s.file_name }}" download
+                               class="ml-2 px-3 py-1 bg-gray-200 rounded-lg text-xs hover:bg-gray-300 transition">
+                                Download
+                            </a>
+                        {% else %}
+                            <span class="text-gray-400 text-sm">No File</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Text Answer -->
+                    <td class="py-3">
+                        {% if s.text_answer %}
+                            <div class="max-w-xs truncate" title="{{ s.text_answer }}">{{ s.text_answer }}</div>
+                        {% else %}
+                            <span class="text-gray-400 text-sm">No Answer</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Grading -->
+                    <td class="py-3">
+                        {% if s.submitted_at %}
+                        <form method="POST" action="{{ url_for('teacher.grade_submission', submission_id=s.id) }}"
+                              class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                            <input type="number" name="score" min="0" max="{{ activity.max_score }}"
+                                   value="{{ s.score or '' }}"
+                                   placeholder="Score"
+                                   class="px-2 py-1 border rounded-lg w-24">
+                            <input type="text" name="feedback" value="{{ s.feedback or '' }}"
+                                   placeholder="Feedback"
+                                   class="px-2 py-1 border rounded-lg w-40">
+                            <button type="submit"
+                                class="px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg hover:bg-[var(--clr-secondary)] transition text-xs">
+                                Save
+                            </button>
+                        </form>
+                        {% else %}
+                            <span class="text-gray-400 italic">No Submission</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+
+        <!-- MOBILE CARDS -->
+        <div class="md:hidden space-y-3">
+          {% for s in submissions %}
+          <div class="p-4 rounded-xl border border-[var(--clr-border)] bg-[var(--clr-surface)]
+                      dark:bg-[var(--clr-surface-alt)] shadow-sm">
+
+            <!-- Name -->
+            <p class="font-semibold text-[var(--clr-txt-primary)]">{{ s.first_name }} {{ s.last_name }}</p>
+
+            <!-- Submitted At & Status -->
+            <div class="flex justify-between items-center mb-2 text-xs text-[var(--clr-txt-muted)]">
+              <span>
+                {% if s.submitted_at %}Submitted: {{ s.submitted_at }}{% else %}Not Submitted{% endif %}
+              </span>
+              <span>
+                {% if not s.submitted_at %}Pending
+                {% elif s.is_late %}Late
+                {% else %}On Time{% endif %}
+              </span>
+            </div>
+
+            <!-- File -->
+            <div class="mb-2">
+              {% if s.file_name %}
+                <button 
+                    onclick="openPreviewModal('{{ s.file_name }}', {{ activity.id }})"
+                    class="px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg hover:bg-[var(--clr-secondary)] transition text-xs">
+                    Quick View
+                </button>
+                <a href="/uploads/activities/{{ activity.id }}/{{ s.file_name }}" download
+                   class="ml-2 px-3 py-1 bg-gray-200 rounded-lg text-xs hover:bg-gray-300 transition">
+                    Download
+                </a>
+              {% else %}
+                <span class="text-gray-400 text-sm">No File</span>
+              {% endif %}
+            </div>
+
+            <!-- Text Answer -->
+            <div class="mb-2">
+              {% if s.text_answer %}
+                <div class="truncate text-sm" title="{{ s.text_answer }}">{{ s.text_answer }}</div>
+              {% else %}
+                <span class="text-gray-400 text-sm">No Answer</span>
+              {% endif %}
+            </div>
+
+            <!-- Grading -->
+            {% if s.submitted_at %}
+            <form method="POST" action="{{ url_for('teacher.grade_submission', submission_id=s.id) }}"
+                  class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <input type="number" name="score" min="0" max="{{ activity.max_score }}"
+                       value="{{ s.score or '' }}"
+                       placeholder="Score"
+                       class="px-2 py-1 border rounded-lg w-full">
+                <input type="text" name="feedback" value="{{ s.feedback or '' }}"
+                       placeholder="Feedback"
+                       class="px-2 py-1 border rounded-lg w-full">
+                <button type="submit"
+                    class="px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg hover:bg-[var(--clr-secondary)] transition text-xs">
+                    Save
+                </button>
+            </form>
+            {% else %}
+                <span class="text-gray-400 italic">No Submission</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+    </div>
+</div>
+
+<!-- 🔍 Preview Modal -->
+<div id="previewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl max-w-3xl w-full p-4 relative">
+        <button onclick="closePreviewModal()" 
+                class="absolute top-2 right-2 text-gray-500 hover:text-black text-xl">&times;</button>
+        <div id="previewContent" class="mt-6">
+            <!-- Dynamic preview content -->
+        </div>
+    </div>
+</div>
+
+<script>
+function openPreviewModal(filename, activityId) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const src = `/uploads/activities/${activityId}/quick/${filename}`;
+
+    let content = "";
+
+    if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext)) {
+        content = `<img src="${src}" class="max-h-[70vh] mx-auto rounded-xl shadow" />`;
+    } else if (ext === "pdf") {
+        content = `<embed src="${src}" type="application/pdf" class="w-full h-[70vh] rounded-xl" />`;
+    } else if (["txt", "md"].includes(ext)) {
+        fetch(src)
+            .then(r => r.ok ? r.text() : Promise.reject())
+            .then(text => {
+                document.getElementById("previewContent").innerHTML =
+                    `<pre class="bg-gray-100 p-4 rounded-xl max-h-[70vh] overflow-y-auto whitespace-pre-wrap">${text}</pre>`;
+                document.getElementById("previewModal").classList.remove("hidden");
+            })
+            .catch(() => {
+                document.getElementById("previewContent").innerHTML =
+                    `<p class="text-center text-red-500">Unable to load preview.</p>`;
+                document.getElementById("previewModal").classList.remove("hidden");
+            });
+        return;
+    } else {
+        content = `<p class="text-center text-gray-600">Quick preview not available for this file type.</p>`;
+    }
+
+    document.getElementById("previewContent").innerHTML = content;
+    document.getElementById("previewModal").classList.remove("hidden");
+}
+
+function closePreviewModal() {
+    document.getElementById("previewModal").classList.add("hidden");
+}
+</script>
+
+{% endblock %}

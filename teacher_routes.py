@@ -160,7 +160,7 @@ def classes():
 @login_required
 @role_required("teacher")
 def view_class(class_id):
-    """Display class details and allow inline editing of class info, including class color."""
+    """Display class details and allow inline editing of class info, including class color and quick grade overview."""
 
     # Fetch class info with joined names (now includes color)
     class_query = text("""
@@ -202,7 +202,8 @@ def view_class(class_id):
     students_query = text("""
     SELECT 
         cs.id AS class_student_id,
-        CONCAT(u.first_name, ' ', ' ', u.last_name) AS full_name,
+        sp.id AS student_profile_id,
+        CONCAT(u.first_name, ' ', u.last_name) AS full_name,
         sp.year_id,
         u.school_id,
         yl.name AS year,
@@ -215,8 +216,38 @@ def view_class(class_id):
     ORDER BY u.last_name
 """)
 
-    students = db.session.execute(students_query, {"class_id": class_id}).mappings().all()
-    no_students = len(students) == 0
+    students_raw = db.session.execute(students_query, {"class_id": class_id}).mappings().all()
+    no_students = len(students_raw) == 0
+
+    # Convert to mutable dict and compute quick overall grade for each student
+    students = []
+    for student in students_raw:
+        student_dict = dict(student)  # make mutable
+
+        grade_query = text("""
+            SELECT 
+                COALESCE(SUM(asub.score), 0) AS total_score,
+                COALESCE(SUM(a.max_score), 0) AS max_score
+            FROM Activity a
+            LEFT JOIN ActivitySubmission asub
+                ON asub.activity_id = a.id
+                AND asub.student_id = :student_id
+            WHERE a.class_id = :class_id
+        """)
+        grade_result = db.session.execute(grade_query, {
+            "student_id": student_dict["student_profile_id"],
+            "class_id": class_id
+        }).mappings().first()
+
+        total_score = grade_result["total_score"]
+        max_score = grade_result["max_score"]
+        overall_percentage = (total_score / max_score * 100) if max_score > 0 else None
+
+        student_dict["total_score"] = total_score
+        student_dict["max_score"] = max_score
+        student_dict["overall_percentage"] = round(overall_percentage, 1) if overall_percentage is not None else None
+
+        students.append(student_dict)
 
     # Dropdown options
     subjects = db.session.execute(text("SELECT id, name FROM Subject WHERE status = 1")).mappings().all()
@@ -263,8 +294,8 @@ def view_class(class_id):
             })
             db.session.commit()
             flash("Class updated successfully!", "success")
-        except Exception as e:
-            flash("Somewthing went wrong updating the class details!", "Error")
+        except Exception:
+            flash("Something went wrong updating the class details!", "error")
 
         return redirect(url_for("teacher.view_class", class_id=class_id))
 
@@ -662,13 +693,12 @@ def student_progress(class_id, school_id):
     sp_row = db.session.execute(sp_query, {"school_id": school_id, "class_id": class_id}).mappings().first()
 
     if not sp_row:
-        # Student not found — handle gracefully
         flash("Student not found for the provided school ID.", "error")
-        return redirect(url_for("teacher.classes"))  # adjust redirect to your classes list
+        return redirect(url_for("teacher.classes"))
 
     student_profile_id = sp_row["student_profile_id"]
 
-    # 2) Get lessons + the student's progress (use the resolved student_profile_id)
+    # 2) Get lessons + student's lesson progress
     lessons_query = text("""
         SELECT 
             l.id AS lesson_id,
@@ -692,7 +722,35 @@ def student_progress(class_id, school_id):
         "student_profile_id": student_profile_id
     }).mappings().all()
 
-    # 3) Build student_info from earlier resolved row (falls back if needed)
+    # 3) Get all activities for this class + student's submissions
+    activities_query = text("""
+        SELECT 
+            a.id AS activity_id,
+            a.title AS activity_title,
+            a.type AS activity_type,
+            a.max_score,
+            IFNULL(asub.score, 0) AS student_score
+        FROM Activity a
+        LEFT JOIN ActivitySubmission asub 
+            ON asub.activity_id = a.id 
+            AND asub.student_id = :student_profile_id
+        WHERE a.class_id = :class_id
+        ORDER BY a.created_at ASC
+    """)
+
+    activities = db.session.execute(activities_query, {
+        "class_id": class_id,
+        "student_profile_id": student_profile_id
+    }).mappings().all()
+
+    # Compute overall activity score percentage
+    total_max_score = sum(a["max_score"] for a in activities)
+    total_obtained_score = sum(a["student_score"] for a in activities)
+    overall_activity_percentage = (
+        (total_obtained_score / total_max_score * 100) if total_max_score > 0 else 0
+    )
+
+    # 4) Build student_info
     student_info = {
         "first_name": sp_row.get("first_name"),
         "last_name": sp_row.get("last_name"),
@@ -700,24 +758,28 @@ def student_progress(class_id, school_id):
         "subject_name": sp_row.get("subject_name")
     }
 
-    # 4) Compute overall progress
+    # 5) Compute lesson progress
     total_lessons = len(lessons)
     completed = sum(1 for l in lessons if l["status"] == "completed")
     in_progress = sum(1 for l in lessons if l["status"] == "in_progress")
     not_started = total_lessons - completed - in_progress
     progress_percentage = (completed / total_lessons * 100) if total_lessons > 0 else 0
 
-    # 5) Render template (no class_id/student_id passed)
+    # 6) Render template
     return render_template(
         "teacher/classes/student_progress.html",
         class_id=class_id,
         lessons=lessons,
+        activities=activities,
         student_info=student_info,
         total_lessons=total_lessons,
         completed=completed,
         in_progress=in_progress,
         not_started=not_started,
-        progress_percentage=progress_percentage
+        progress_percentage=progress_percentage,
+        total_activity_score=total_obtained_score,
+        total_max_score=total_max_score,
+        overall_activity_percentage=overall_activity_percentage
     )
 
 # ============================
@@ -1098,5 +1160,253 @@ def remove_student_from_section(section_id, student_id):
     return redirect(url_for("teacher.section_manage_students", section_id=section_id))
 
 # ============================
-# Manage student per section
+# Lesson form
 # ============================
+
+@teacher_bp.route("/class/lesson/<int:lesson_id>/activity", methods=["GET", "POST"])
+@login_required
+@role_required("teacher")
+def activity_form(lesson_id):
+    # Fetch the lesson
+    lesson_query = text("SELECT * FROM Lesson WHERE id = :lesson_id")
+    lesson = db.session.execute(lesson_query, {"lesson_id": lesson_id}).fetchone()
+    if not lesson:
+        flash("Lesson not found.", "error")
+        return redirect(url_for("teacher.dashboard"))
+
+    # Check if an assignment already exists for this lesson
+    activity_query = text("SELECT * FROM Activity WHERE lesson_id = :lesson_id AND type = 'assignment'")
+    activity = db.session.execute(activity_query, {"lesson_id": lesson_id}).fetchone()
+
+    if request.method == "POST":
+        title = request.form.get("title")
+        instructions = request.form.get("instructions")
+        due_date = request.form.get("due_date")  # e.g., 'YYYY-MM-DD HH:MM'
+        max_score = request.form.get("max_score", 100)
+
+        if not title:
+            flash("Title is required.", "error")
+            return redirect(request.url)
+
+        if activity:
+            # Update existing assignment
+            update_query = text("""
+                UPDATE Activity
+                SET title = :title,
+                    instructions = :instructions,
+                    due_date = :due_date,
+                    max_score = :max_score,
+                    updated_at = :updated_at
+                WHERE id = :activity_id
+            """)
+            db.session.execute(update_query, {
+                "title": title,
+                "instructions": instructions,
+                "due_date": due_date if due_date else None,
+                "max_score": max_score,
+                "updated_at": datetime.now(),
+                "activity_id": activity.id
+            })
+            flash("Assignment updated successfully.", "success")
+        else:
+            # Create new assignment
+            insert_query = text("""
+                INSERT INTO Activity (class_id, lesson_id, title, instructions, type, due_date, max_score)
+                VALUES (:class_id, :lesson_id, :title, :instructions, 'assignment', :due_date, :max_score)
+            """)
+            db.session.execute(insert_query, {
+                "class_id": lesson.class_id,
+                "lesson_id": lesson_id,
+                "title": title,
+                "instructions": instructions,
+                "due_date": due_date if due_date else None,
+                "max_score": max_score
+            })
+            flash("Assignment created successfully.", "success")
+
+        db.session.commit()
+        return redirect(url_for("teacher.activity_form", lesson_id=lesson_id))
+
+    return render_template("teacher/classes/activity_form.html", activity=activity, lesson=lesson)
+
+# Submission of activity in that class
+@teacher_bp.route("/class/<int:class_id>/activity_list")
+@login_required
+@role_required("teacher")
+def activity_list(class_id):
+    teacher_id = current_user.id
+
+    # Make sure this teacher owns the class
+    class_check = db.session.execute(text("""
+        SELECT id, subject_id, section_id
+        FROM Class
+        WHERE id = :class_id AND teacher_id = :teacher_id
+    """), {"class_id": class_id, "teacher_id": teacher_id}).fetchone()
+
+    # Fetch activities under this class with submission stats
+    activities = db.session.execute(text("""
+        SELECT 
+            a.id,
+            a.title,
+            a.lesson_id,
+            a.type,
+            a.due_date,
+            a.max_score,
+            a.created_at,
+            COALESCE(sub_count.submitted, 0) AS submitted_count,
+            total_students.total AS student_count,
+            COALESCE(total_students.total, 0) - COALESCE(sub_count.submitted, 0) AS not_submitted_count
+        FROM Activity a
+        -- Count submissions per activity
+        LEFT JOIN (
+            SELECT activity_id, COUNT(*) AS submitted
+            FROM ActivitySubmission
+            GROUP BY activity_id
+        ) sub_count ON sub_count.activity_id = a.id
+        -- Count total students in class
+        LEFT JOIN (
+            SELECT COUNT(*) AS total
+            FROM ClassStudent
+            WHERE class_id = :class_id
+        ) total_students ON 1=1
+        WHERE a.class_id = :class_id
+        ORDER BY a.created_at DESC
+    """), {"class_id": class_id}).fetchall()
+
+    return render_template(
+        "teacher/classes/activity_list.html",
+        class_info=class_check,
+        activities=activities
+    )
+
+@teacher_bp.route("/activity/<int:activity_id>/submissions")
+@login_required
+@role_required("teacher")
+def view_activity_submissions(activity_id):
+    teacher_id = current_user.id
+
+    # Validate activity + class ownership
+    activity = db.session.execute(text("""
+        SELECT 
+            a.id, a.title, a.class_id, a.due_date, a.max_score,
+            c.teacher_id
+        FROM Activity a
+        JOIN Class c ON c.id = a.class_id
+        WHERE a.id = :activity_id
+    """), {"activity_id": activity_id}).fetchone()
+
+    if not activity:
+        flash("Activity not found.", "danger")
+        return redirect(url_for("teacher.dashboard"))
+
+    # Fetch all students in the class
+    students = db.session.execute(text("""
+        SELECT sp.id AS student_id, u.first_name, u.last_name
+        FROM ClassStudent cs
+        JOIN StudentProfile sp ON sp.id = cs.student_id
+        JOIN Users u ON u.id = sp.user_id
+        WHERE cs.class_id = :class_id
+    """), {"class_id": activity.class_id}).mappings().all()
+
+    # Fetch existing submissions including text_answer
+    submissions = db.session.execute(text("""
+        SELECT 
+            s.id,
+            s.student_id,
+            s.file_name,
+            s.text_answer,
+            s.submitted_at,
+            s.score,
+            s.feedback,
+            CASE
+                WHEN a.due_date IS NOT NULL AND s.submitted_at > a.due_date
+                    THEN 1 ELSE 0 
+            END AS is_late
+        FROM ActivitySubmission s
+        JOIN Activity a ON a.id = s.activity_id
+        WHERE s.activity_id = :activity_id
+    """), {"activity_id": activity_id}).mappings().all()
+
+    # Map submissions by student_id for easy lookup
+    submissions_dict = {s['student_id']: s for s in submissions}
+
+    # Combine: include students without submission
+    all_submissions = []
+    for student in students:
+        sub = submissions_dict.get(student['student_id'])
+        if sub:
+            all_submissions.append({
+                **sub,
+                "first_name": student['first_name'],
+                "last_name": student['last_name']
+            })
+        else:
+            # Placeholder for not submitted
+            all_submissions.append({
+                "id": None,
+                "student_id": student['student_id'],
+                "first_name": student['first_name'],
+                "last_name": student['last_name'],
+                "file_name": None,
+                "text_answer": None,
+                "submitted_at": None,
+                "score": None,
+                "feedback": None,
+                "is_late": 0
+            })
+
+    return render_template(
+        "teacher/classes/submission_list.html",
+        activity=activity,
+        submissions=all_submissions
+    )
+
+@teacher_bp.route("/submission/<int:submission_id>/grade", methods=["POST"])
+@login_required
+@role_required("teacher")
+def grade_submission(submission_id):
+    teacher_id = current_user.id
+
+    # Fetch submission + activity + class
+    sub = db.session.execute(text("""
+        SELECT 
+            s.id,
+            s.activity_id,
+            s.student_id,
+            a.max_score,
+            a.class_id,
+            c.teacher_id
+        FROM ActivitySubmission s
+        JOIN Activity a ON a.id = s.activity_id
+        JOIN Class c ON c.id = a.class_id
+        WHERE s.id = :sid
+    """), {"sid": submission_id}).fetchone()
+
+    if not sub:
+        flash("Submission not found.", "danger")
+        return redirect(url_for("teacher.dashboard"))
+
+    # Get score + feedback
+    score = request.form.get("score", type=int)
+    feedback = request.form.get("feedback", "")
+
+    # Validate score
+    if score is None or score < 0:
+        flash("Invalid score value.", "danger")
+        return redirect(url_for("teacher.view_activity_submissions", activity_id=sub.activity_id))
+
+    if score > sub.max_score:
+        flash(f"Score cannot exceed {sub.max_score}.", "danger")
+        return redirect(url_for("teacher.view_activity_submissions", activity_id=sub.activity_id))
+
+    # Update submission
+    db.session.execute(text("""
+        UPDATE ActivitySubmission
+        SET score = :score, feedback = :feedback
+        WHERE id = :sid
+    """), {"score": score, "feedback": feedback, "sid": submission_id})
+
+    db.session.commit()
+
+    flash("Grade saved successfully!", "success")
+    return redirect(url_for("teacher.view_activity_submissions", activity_id=sub.activity_id))

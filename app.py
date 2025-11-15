@@ -4,6 +4,8 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from sqlalchemy import text
 from datetime import date, datetime
 import re
+import os
+
 
 # Own created helpers/mini-framework
 from helpers import *
@@ -223,6 +225,16 @@ def ensure_daily_inspiration():
 @app.route('/uploads/<filename>')
 def download_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
+
+@app.route('/uploads/activities/<int:activity_id>/<path:filename>')
+def download_activity_file(activity_id, filename):
+    folder = os.path.join("uploads", "activities", str(activity_id))
+    return send_from_directory(folder, filename, as_attachment=True)
+
+@app.route('/uploads/activities/<int:activity_id>/quick/<path:filename>')
+def quick_preview_activity_file(activity_id, filename):
+    folder = os.path.join("uploads", "activities", str(activity_id))
+    return send_from_directory(folder, filename)
 
 # ==== BLUEPRINT =====
 app.register_blueprint(admin_bp)

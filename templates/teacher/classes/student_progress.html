@@ -26,12 +26,27 @@
     </div>
 
     <!-- Progress Summary -->
-    <div class="text-right">
-      <p class="text-sm text-[var(--clr-txt-secondary)] font-medium mb-1">Overall Progress</p>
-      <div class="relative w-56 h-3 bg-[var(--clr-surface-alt)] rounded-full overflow-hidden">
-        <div class="absolute left-0 top-0 h-3 bg-[var(--clr-primary)] transition-all duration-500" style="width: {{ progress_percentage }}%;"></div>
+    <div class="flex flex-col sm:flex-row gap-4">
+      <!-- Lesson Progress -->
+      <div class="text-center">
+        <p class="text-sm text-[var(--clr-txt-secondary)] font-medium mb-1">Lesson Progress</p>
+        <div class="relative w-36 h-3 bg-[var(--clr-surface-alt)] rounded-full overflow-hidden mx-auto">
+          <div class="absolute left-0 top-0 h-3 bg-[var(--clr-primary)] transition-all duration-500" style="width: {{ progress_percentage }}%;"></div>
+        </div>
+        <p class="text-xs mt-1 text-[var(--clr-txt-muted)]">{{ progress_percentage|round(1) }}% completed</p>
       </div>
-      <p class="text-xs mt-1 text-[var(--clr-txt-muted)]">{{ progress_percentage|round(1) }}% completed</p>
+
+      <!-- Activity Progress -->
+      <div class="text-center">
+        <p class="text-sm text-[var(--clr-txt-secondary)] font-medium mb-1">Activity Score</p>
+        <div class="relative w-36 h-3 bg-[var(--clr-surface-alt)] rounded-full overflow-hidden mx-auto">
+          <div class="absolute left-0 top-0 h-3 bg-green-500 transition-all duration-500" style="width: {{ overall_activity_percentage }}%;"></div>
+        </div>
+        <p class="text-xs mt-1 text-[var(--clr-txt-muted)]">
+          {{ total_activity_score }}/{{ total_max_score }} points
+          ({{ overall_activity_percentage|round(1) }}%)
+        </p>
+      </div>
     </div>
   </header>
 
@@ -107,6 +122,34 @@
           <tr>
             <td colspan="5" class="text-center py-8 text-[var(--clr-txt-secondary)] italic">
               No lessons found for this student.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Activities Table -->
+  <div class="bg-[var(--clr-glass-light)] border border-[var(--clr-border)] rounded-3xl shadow-sm backdrop-blur-md overflow-hidden">
+    <table class="w-full text-sm text-left border-collapse">
+      <thead class="bg-[var(--clr-surface-alt)] text-[var(--clr-txt-secondary)] uppercase text-xs tracking-wider">
+        <tr>
+          <th class="px-5 py-3 font-semibold">Activity</th>
+          <th class="px-5 py-3 text-center font-semibold">Type</th>
+          <th class="px-5 py-3 text-center font-semibold">Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for activity in activities %}
+          <tr class="hover:bg-[var(--clr-surface-alt)]/60 transition duration-200">
+            <td class="px-5 py-3">{{ activity.activity_title }}</td>
+            <td class="px-5 py-3 text-center capitalize">{{ activity.activity_type }}</td>
+            <td class="px-5 py-3 text-center">{{ activity.student_score }}/{{ activity.max_score }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="3" class="text-center py-8 text-[var(--clr-txt-secondary)] italic">
+              No activities found for this student.
             </td>
           </tr>
         {% endfor %}

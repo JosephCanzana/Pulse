@@ -5,9 +5,9 @@ from helpers import *
 from database import db
 from datetime import datetime
 from decorators import role_required
+from werkzeug.utils import secure_filename
+import os
 student_bp = Blueprint('student', __name__, url_prefix='/student')
-
-
 
 # ==============================
 # Dashboard
@@ -170,124 +170,104 @@ def view_classes():
 
 
 # ==============================
-# View Lessons in a Class (with files)
+# View Lessons in a Class 
 # ==============================
 @student_bp.route("/classes/<int:class_id>/lessons")
 @login_required
 @role_required("student")
 def view_lessons(class_id):
     # Get class status
-    class_status_query = text("SELECT status FROM Class WHERE id = :class_id")
-    class_status = db.session.execute(class_status_query, {'class_id': class_id}).scalar()
+    class_status = db.session.execute(
+        text("SELECT status FROM Class WHERE id = :class_id"),
+        {'class_id': class_id}
+    ).scalar()
 
     # Get class info including current student's enrollment status
-    class_info_query = text("""
-        SELECT 
-            c.id,
-            c.teacher_id,
-            c.subject_id,
-            c.section_id,
-            c.status AS class_status,
-            c.color,
-            c.created_at,
-            c.updated_at,
-            t.user_id AS teacher_user_id,
-            s.name AS subject_name,
-            sec.name AS section_name,
-            cs.status AS enrollment_status 
-        FROM Class c
-        LEFT JOIN TeacherProfile t ON c.teacher_id = t.id
-        LEFT JOIN Subject s ON c.subject_id = s.id
-        LEFT JOIN Section sec ON c.section_id = sec.id
-        LEFT JOIN ClassStudent cs 
-            ON cs.class_id = c.id 
-            AND cs.student_id = (SELECT id FROM StudentProfile WHERE user_id = :user_id)  -- filter for current student
-        WHERE c.id = :class_id
-    """)
+    class_info = db.session.execute(
+        text("""
+            SELECT 
+                c.id,
+                c.teacher_id,
+                c.subject_id,
+                c.section_id,
+                c.status AS class_status,
+                c.color,
+                c.created_at,
+                c.updated_at,
+                t.user_id AS teacher_user_id,
+                s.name AS subject_name,
+                sec.name AS section_name,
+                cs.status AS enrollment_status 
+            FROM Class c
+            LEFT JOIN TeacherProfile t ON c.teacher_id = t.id
+            LEFT JOIN Subject s ON c.subject_id = s.id
+            LEFT JOIN Section sec ON c.section_id = sec.id
+            LEFT JOIN ClassStudent cs 
+                ON cs.class_id = c.id 
+                AND cs.student_id = (SELECT id FROM StudentProfile WHERE user_id = :user_id)
+            WHERE c.id = :class_id
+        """), {'class_id': class_id, 'user_id': current_user.id}
+    ).mappings().first()
 
-    # Use .first() instead of .all() to get a single dict-like row
-    class_info = db.session.execute(class_info_query, {'class_id': class_id, 'user_id': current_user.id}).mappings().first()
-
-
-
-    # Get current student's profile ID
-    student_profile_query = text("SELECT id FROM StudentProfile WHERE user_id = :user_id")
-    student_profile_id = db.session.execute(student_profile_query, {'user_id': current_user.id}).scalar()
-
+    # Get student profile ID
+    student_profile_id = db.session.execute(
+        text("SELECT id FROM StudentProfile WHERE user_id = :user_id"),
+        {'user_id': current_user.id}
+    ).scalar()
     if not student_profile_id:
         flash("Student profile not found.", "danger")
         return redirect(url_for("student_bp.dashboard"))
 
-    # Fetch all lesson IDs for this class
-    lesson_ids_query = text("SELECT id FROM Lesson WHERE class_id = :class_id")
-    lesson_ids = [row.id for row in db.session.execute(lesson_ids_query, {'class_id': class_id}).mappings()]
-
+    # Ensure StudentLessonProgress entries exist
+    lesson_ids = [row.id for row in db.session.execute(
+        text("SELECT id FROM Lesson WHERE class_id = :class_id"),
+        {'class_id': class_id}
+    ).mappings()]
+    
     if lesson_ids:
-        # Fetch existing progress entries for this student and class
-        existing_progress_query = text("""
-            SELECT lesson_id FROM StudentLessonProgress
-            WHERE class_id = :class_id AND student_id = :student_id
-        """)
-        existing_progress = {row.lesson_id for row in db.session.execute(existing_progress_query, {
-            'class_id': class_id,
-            'student_id': student_profile_id
-        })}
+        existing_progress = {row.lesson_id for row in db.session.execute(
+            text("SELECT lesson_id FROM StudentLessonProgress WHERE class_id = :class_id AND student_id = :student_id"),
+            {'class_id': class_id, 'student_id': student_profile_id}
+        )}
+        # Insert missing
+        for lid in set(lesson_ids) - existing_progress:
+            db.session.execute(
+                text("INSERT INTO StudentLessonProgress (class_id, lesson_id, student_id, status) VALUES (:class_id, :lesson_id, :student_id, 'not_started')"),
+                {'class_id': class_id, 'lesson_id': lid, 'student_id': student_profile_id}
+            )
+        # Remove deleted
+        for lid in existing_progress - set(lesson_ids):
+            db.session.execute(
+                text("DELETE FROM StudentLessonProgress WHERE class_id = :class_id AND student_id = :student_id AND lesson_id = :lesson_id"),
+                {'class_id': class_id, 'student_id': student_profile_id, 'lesson_id': lid}
+            )
+        db.session.commit()
 
-        # Insert missing progress entries
-        missing_lessons = [lid for lid in lesson_ids if lid not in existing_progress]
-        if missing_lessons:
-            insert_query = text("""
-                INSERT INTO StudentLessonProgress (class_id, lesson_id, student_id, status)
-                VALUES (:class_id, :lesson_id, :student_id, 'not_started')
-            """)
-            for lesson_id in missing_lessons:
-                db.session.execute(insert_query, {
-                    'class_id': class_id,
-                    'lesson_id': lesson_id,
-                    'student_id': student_profile_id
-                })
-            db.session.commit()
+    # Fetch lessons with progress and activity info
+    lessons = db.session.execute(
+        text("""
+            SELECT l.id AS lesson_id, l.lesson_number, l.title, l.description,
+                slp.status AS progress_status, slp.completed_at, slp.started_at,
+                lf.id AS file_id, lf.file_name, lf.file_path, lf.file_type,
+                a.id AS activity_id, a.title AS activity_title, a.due_date AS activity_due,
+                s.score AS activity_score, s.submitted_at AS activity_submitted_at
+            FROM Lesson l
+            LEFT JOIN StudentLessonProgress slp 
+                ON l.id = slp.lesson_id AND slp.student_id = :student_id
+            LEFT JOIN LessonFile lf ON l.id = lf.lesson_id
+            LEFT JOIN Activity a ON l.id = a.lesson_id AND a.type = 'assignment'
+            LEFT JOIN ActivitySubmission s ON a.id = s.activity_id AND s.student_id = :student_id
+            WHERE l.class_id = :class_id
+            ORDER BY l.lesson_number ASC
+        """), {'student_id': student_profile_id, 'class_id': class_id}
+    ).mappings().all()
 
-        # Remove progress entries for deleted lessons (cleanup)
-        deleted_lessons = [lid for lid in existing_progress if lid not in lesson_ids]
-        if deleted_lessons:
-            delete_query = text("""
-                DELETE FROM StudentLessonProgress
-                WHERE class_id = :class_id AND student_id = :student_id AND lesson_id = :lesson_id
-            """)
-            for lesson_id in deleted_lessons:
-                db.session.execute(delete_query, {
-                    'class_id': class_id,
-                    'student_id': student_profile_id,
-                    'lesson_id': lesson_id
-                })
-            db.session.commit()
-
-    # Fetch lessons with progress and files
-    query = text("""
-        SELECT l.id, l.lesson_number, l.title, l.description,
-               slp.status, slp.completed_at, slp.started_at,
-               lf.id AS file_id, lf.file_name, lf.file_path, lf.file_type
-        FROM Lesson l
-        LEFT JOIN StudentLessonProgress slp 
-            ON l.id = slp.lesson_id 
-            AND slp.student_id = :student_id
-        LEFT JOIN LessonFile lf
-            ON l.id = lf.lesson_id
-        WHERE l.class_id = :class_id
-        ORDER BY l.lesson_number ASC
-    """)
-    lessons = db.session.execute(query, {
-        'student_id': student_profile_id,
-        'class_id': class_id
-    }).fetchall()
-
-    # Calculate progress summary
+    # Lesson progress summary
     total_lessons = len(lessons)
-    completed_count = sum(1 for l in lessons if l.status == 'completed')
-    in_progress_count = sum(1 for l in lessons if l.status == 'in_progress')
-    not_started_count = sum(1 for l in lessons if l.status == 'not_started')
-
+    completed_count = sum(1 for l in lessons if l['progress_status'] == 'completed')
+    in_progress_count = sum(1 for l in lessons if l['progress_status'] == 'in_progress')
+    not_started_count = sum(1 for l in lessons if l['progress_status'] == 'not_started')
+    
     progress_summary = {
         'total': total_lessons,
         'completed': completed_count,
@@ -295,12 +275,31 @@ def view_lessons(class_id):
         'not_started': not_started_count
     }
 
-    # Flash info if class inactive
+    # Activity summary
+    submissions = [l['activity_score'] for l in lessons if l['activity_id']]
+    activities_summary = {
+        'total': len(submissions),
+        'passed': sum(1 for s in submissions if s is not None and s > 0),
+        'not_passed': sum(1 for s in submissions if s is None or s == 0)
+    }
+
+    # Overall score
+    overall = db.session.execute(
+        text("""
+            SELECT SUM(s.score) AS total_score, SUM(a.max_score) AS total_possible
+            FROM Activity a
+            LEFT JOIN ActivitySubmission s ON a.id = s.activity_id AND s.student_id = :student_id
+            WHERE a.class_id = :class_id
+        """), {'student_id': student_profile_id, 'class_id': class_id}
+    ).mappings().first()
+    overall_score = overall['total_score'] or 0
+    total_possible = overall['total_possible'] or 0
+
+    # Flash info
     if class_status in ('completed', 'cancelled'):
         flash("This class is no longer active. You can view it in your history, but cannot update progress.", "info")
     elif class_info.enrollment_status == 'dropped':
-        flash("You have dropped this class. As a result, your lessons are now hidden and cannot be accessed.", "info")
-
+        flash("You have dropped this class. Lessons are hidden and cannot be accessed.", "info")
 
     return render_template(
         "student/lessons.html",
@@ -308,9 +307,11 @@ def view_lessons(class_id):
         class_id=class_id,
         class_status=class_status,
         class_info=class_info,
-        progress_summary=progress_summary
+        progress_summary=progress_summary,
+        activities_summary=activities_summary,
+        overall_score=overall_score,
+        total_possible=total_possible
     )
-
 
 # ==============================
 # Update Lesson Progress (Incremental)
@@ -460,3 +461,203 @@ def history():
         })
 
     return render_template("student/history.html", history_classes=classes_with_progress)
+
+
+# ==============================
+# View activity
+# ==============================
+@student_bp.route("/activity/<int:activity_id>")
+@login_required
+@role_required("student")
+def view_activity(activity_id):
+    # Get student profile ID
+    student_profile_query = text("SELECT id FROM StudentProfile WHERE user_id = :user_id")
+    student_profile_id = db.session.execute(student_profile_query, {"user_id": current_user.id}).scalar()
+    if not student_profile_id:
+        flash("Student profile not found.", "danger")
+        return redirect(url_for("student_bp.dashboard"))
+
+    # Fetch activity
+    activity_query = text("""
+        SELECT a.id, a.title, a.instructions, a.due_date, a.max_score, a.lesson_id, l.title AS lesson_title
+        FROM Activity a
+        LEFT JOIN Lesson l ON a.lesson_id = l.id
+        WHERE a.id = :activity_id AND a.type = 'assignment'
+    """)
+    activity = db.session.execute(activity_query, {"activity_id": activity_id}).mappings().first()
+    if not activity:
+        flash("Assignment not found.", "error")
+        return redirect(url_for("student_bp.dashboard"))
+
+    # Fetch existing submission if any
+    submission_query = text("""
+        SELECT * FROM ActivitySubmission
+        WHERE activity_id = :activity_id AND student_id = :student_id
+    """)
+    submission = db.session.execute(submission_query, {
+        "activity_id": activity_id,
+        "student_id": student_profile_id
+    }).mappings().first()
+
+    return render_template(
+        "student/activity.html",
+        activity=activity,
+        submission=submission
+    )
+
+
+@student_bp.route("/activity/<int:activity_id>/submit", methods=["POST"])
+@login_required
+@role_required("student")
+def submit_activity(activity_id):
+    # Get student profile ID
+    student_profile_query = text("SELECT id FROM StudentProfile WHERE user_id = :user_id")
+    student_profile_id = db.session.execute(student_profile_query, {"user_id": current_user.id}).scalar()
+    if not student_profile_id:
+        flash("Student profile not found.", "danger")
+        return redirect(url_for("student_bp.dashboard"))
+
+    # Fetch activity to verify it exists
+    activity_query = text("SELECT * FROM Activity WHERE id = :activity_id AND type = 'assignment'")
+    activity = db.session.execute(activity_query, {"activity_id": activity_id}).mappings().first()
+    if not activity:
+        flash("Assignment not found.", "error")
+        return redirect(url_for("student_bp.dashboard"))
+
+    # Get form data
+    text_answer = request.form.get("text_answer", None)
+    file = request.files.get("file", None)
+    file_path = None
+    file_name = None
+
+    # Handle file upload with renaming
+    if file and file.filename:
+        original_filename = secure_filename(file.filename)
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")  # e.g., 20251115_071230
+        new_filename = f"{student_profile_id}_{activity_id}_{timestamp}_{original_filename}"
+        upload_folder = os.path.join("uploads", "activities", str(activity_id))
+        os.makedirs(upload_folder, exist_ok=True)
+        file_path = os.path.join(upload_folder, new_filename)
+        file.save(file_path)
+        file_name = new_filename
+
+    # Check if submission already exists
+    submission_query = text("""
+        SELECT * FROM ActivitySubmission
+        WHERE activity_id = :activity_id AND student_id = :student_id
+    """)
+    submission = db.session.execute(submission_query, {
+        "activity_id": activity_id,
+        "student_id": student_profile_id
+    }).mappings().first()
+
+    now = datetime.now()
+
+    if submission:
+        # Update existing submission
+        update_query = text("""
+            UPDATE ActivitySubmission
+            SET text_answer = :text_answer,
+                file_path = :file_path,
+                file_name = :file_name,
+                submitted_at = :submitted_at
+            WHERE id = :submission_id
+        """)
+        db.session.execute(update_query, {
+            "text_answer": text_answer,
+            "file_path": file_path if file_path else submission.file_path,
+            "file_name": file_name if file_name else submission.file_name,
+            "submitted_at": now,
+            "submission_id": submission.id
+        })
+        flash("Assignment submission updated successfully.", "success")
+    else:
+        # Insert new submission
+        insert_query = text("""
+            INSERT INTO ActivitySubmission
+            (activity_id, student_id, text_answer, file_path, file_name, submitted_at)
+            VALUES (:activity_id, :student_id, :text_answer, :file_path, :file_name, :submitted_at)
+        """)
+        db.session.execute(insert_query, {
+            "activity_id": activity_id,
+            "student_id": student_profile_id,
+            "text_answer": text_answer,
+            "file_path": file_path,
+            "file_name": file_name,
+            "submitted_at": now
+        })
+        flash("Assignment submitted successfully.", "success")
+
+    db.session.commit()
+    return redirect(url_for("student.view_activity", activity_id=activity_id))
+
+@student_bp.route("/grades")
+@login_required
+@role_required("student")
+def grade_overview():
+    """Show all classes with total grades for the logged-in student."""
+
+    # Get the student profile ID from the logged-in user
+    student_profile = db.session.execute(
+        text("SELECT id FROM StudentProfile WHERE user_id = :user_id"),
+        {"user_id": current_user.id}
+    ).mappings().first()
+
+    if not student_profile:
+        flash("Student profile not found.", "error")
+        return redirect(url_for("student.dashboard"))
+
+    student_profile_id = student_profile["id"]
+
+    # Fetch all classes the student is enrolled in
+    classes_query = text("""
+        SELECT 
+            c.id AS class_id,
+            s.name AS subject_name,
+            sec.name AS section_name,
+            co.name AS course_name,
+            COALESCE(el_from_course.name, el_from_year.name) AS education_level
+        FROM ClassStudent cs
+        JOIN Class c ON cs.class_id = c.id
+        JOIN Subject s ON c.subject_id = s.id
+        JOIN Section sec ON c.section_id = sec.id
+        LEFT JOIN Course co ON sec.course_id = co.id
+        LEFT JOIN EducationLevel el_from_course ON co.education_level_id = el_from_course.id
+        LEFT JOIN YearLevel yl ON sec.year_id = yl.id
+        LEFT JOIN EducationLevel el_from_year ON yl.education_level_id = el_from_year.id
+        WHERE cs.student_id = :student_profile_id
+        ORDER BY s.name
+    """)
+    enrolled_classes = db.session.execute(classes_query, {"student_profile_id": student_profile_id}).mappings().all()
+
+    # Compute total grades for each class
+    classes_with_grades = []
+    for cls in enrolled_classes:
+        grade_query = text("""
+            SELECT
+                COALESCE(SUM(asub.score), 0) AS total_score,
+                COALESCE(SUM(a.max_score), 0) AS max_score
+            FROM Activity a
+            LEFT JOIN ActivitySubmission asub
+                ON asub.activity_id = a.id
+                AND asub.student_id = :student_profile_id
+            WHERE a.class_id = :class_id
+        """)
+        grade_result = db.session.execute(grade_query, {
+            "student_profile_id": student_profile_id,
+            "class_id": cls["class_id"]
+        }).mappings().first()
+
+        total_score = grade_result["total_score"]
+        max_score = grade_result["max_score"]
+        overall_percentage = (total_score / max_score * 100) if max_score > 0 else None
+
+        cls_dict = dict(cls)
+        cls_dict["total_score"] = total_score
+        cls_dict["max_score"] = max_score
+        cls_dict["overall_percentage"] = round(overall_percentage, 1) if overall_percentage is not None else None
+
+        classes_with_grades.append(cls_dict)
+
+    return render_template("student/grade_overview.html", classes=classes_with_grades)
+

@@ -102,10 +102,16 @@
       
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">Lessons</h2>
-        <a href="{{ url_for('teacher.manage_lesson', class_id=class_info.class_id ) }}" 
-           class="px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg shadow-md hover:bg-[var(--clr-secondary)] transition-all duration-200 text-sm">
-          Manage Lessons
-        </a>
+        <div>
+          <a href="{{ url_for('teacher.activity_list', class_id=class_info.class_id ) }}" 
+             class="mr-2 ml-2 px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg shadow-md hover:bg-[var(--clr-secondary)] transition-all duration-200 text-sm">
+            View Submissions
+          </a>
+          <a href="{{ url_for('teacher.manage_lesson', class_id=class_info.class_id ) }}" 
+             class="mr-2 ml-2 px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg shadow-md hover:bg-[var(--clr-secondary)] transition-all duration-200 text-sm">
+            Manage Lessons
+          </a>
+        </div>
       </div>
 
       {% if no_lessons %}
@@ -162,94 +168,115 @@
 
   {% else %}
 
-    <!-- DESKTOP TABLE -->
-    <div class="hidden md:block overflow-y-auto max-h-[300px] rounded-lg border border-[var(--clr-border)]">
-      <table class="min-w-full divide-y divide-[var(--clr-border)]">
-        <thead class="bg-[var(--clr-surface-alt)] dark:bg-[var(--clr-surface)] sticky top-0 z-10">
-          <tr>
-            <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Student Name</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Year</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Status</th>
-            <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Actions</th>
-          </tr>
-        </thead>
+   <!-- DESKTOP TABLE -->
+<!-- DESKTOP TABLE -->
+<div class="hidden md:block overflow-y-auto max-h-[300px] rounded-lg border border-[var(--clr-border)]">
+  <table class="min-w-full divide-y divide-[var(--clr-border)]">
+    <thead class="bg-[var(--clr-surface-alt)] dark:bg-[var(--clr-surface)] sticky top-0 z-10">
+      <tr>
+        <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Student Name</th>
+        <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Year</th>
+        <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Overall Grade</th>
+        <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Status</th>
+        <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Actions</th>
+      </tr>
+    </thead>
 
-        <tbody class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] divide-y divide-[var(--clr-border)]">
-          {% for student in students %}
-          <tr class="hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-colors">
-            <td class="px-4 py-3 text-sm">{{ student.full_name }}</td>
-            <td class="px-4 py-3 text-sm">{{ student.year }}</td>
-
-            <!-- Status -->
-            <td class="px-4 py-3 text-sm">
-              <form method="POST" action="{{ url_for('teacher.update_student_status', class_id=class_info.class_id, cs_id=student.class_student_id) }}">
-                <select name="status" onchange="this.form.submit()"
-                        class="px-2 py-1 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] 
-                               text-[var(--clr-txt-primary)] focus:ring-2 focus:ring-[var(--clr-primary)]">
-                  <option value="active" {% if student.enrollment_status == 'active' %}selected{% endif %}>Active</option>
-                  <option value="dropped" {% if student.enrollment_status == 'dropped' %}selected{% endif %}>Dropped</option>
-                  <option value="completed" {% if student.enrollment_status == 'completed' %}selected{% endif %}>Completed</option>
-                </select>
-              </form>
-            </td>
-
-            <!-- Actions -->
-            <td class="px-4 py-3 text-sm">
-              <a href="{{ url_for('teacher.student_progress', class_id=class_info.class_id, school_id=student.school_id) }}"
-                class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] font-medium transition-all duration-200">
-                Progress
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- MOBILE CARDS -->
-    <div class="md:hidden space-y-3">
+    <tbody class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] divide-y divide-[var(--clr-border)]">
       {% for student in students %}
-      <div class="p-4 rounded-xl border border-[var(--clr-border)] bg-[var(--clr-surface)]
-                  dark:bg-[var(--clr-surface-alt)] shadow-sm">
+      <tr class="hover:bg-[var(--clr-glass-light)] dark:hover:bg-[var(--clr-glass-dark)] transition-colors">
+        <td class="px-4 py-3 text-sm">{{ student.full_name }}</td>
+        <td class="px-4 py-3 text-sm">{{ student.year }}</td>
 
-        <!-- Name -->
-        <p class="font-semibold text-[var(--clr-txt-primary)]">
-          {{ student.full_name }}
-        </p>
+        <!-- Overall Grade -->
+        <td class="px-4 py-3 text-sm">
+          {% if student.overall_percentage is not none %}
+            {{ student.overall_percentage }}%
+          {% else %}
+            —
+          {% endif %}
+        </td>
 
-        <!-- Year -->
-        <p class="text-xs text-[var(--clr-txt-muted)] mb-3">
-          Year: {{ student.year }}
-        </p>
-
-        <!-- STATUS + ACTION ROW -->
-        <div class="flex items-center gap-3">
-
-          <!-- Status -->
-          <form method="POST"
-                action="{{ url_for('teacher.update_student_status', class_id=class_info.class_id, cs_id=student.class_student_id) }}"
-                class="flex-1">
-            <select name="status"
-                    onchange="this.form.submit()"
-                    class="w-full px-3 py-2 rounded-lg border border-[var(--clr-border)] bg-[var(--clr-bg)]
-                          text-[var(--clr-txt-primary)] focus:ring-2 focus:ring-[var(--clr-primary)] text-sm">
+        <!-- Status -->
+        <td class="px-4 py-3 text-sm">
+          <form method="POST" action="{{ url_for('teacher.update_student_status', class_id=class_info.class_id, cs_id=student.class_student_id) }}">
+            <select name="status" onchange="this.form.submit()"
+                    class="px-2 py-1 rounded-full border border-[var(--clr-border)] bg-[var(--clr-bg)] 
+                           text-[var(--clr-txt-primary)] focus:ring-2 focus:ring-[var(--clr-primary)]">
               <option value="active" {% if student.enrollment_status == 'active' %}selected{% endif %}>Active</option>
               <option value="dropped" {% if student.enrollment_status == 'dropped' %}selected{% endif %}>Dropped</option>
               <option value="completed" {% if student.enrollment_status == 'completed' %}selected{% endif %}>Completed</option>
             </select>
           </form>
+        </td>
 
-          <!-- Progress Button -->
+        <!-- Actions -->
+        <td class="px-4 py-3 text-sm">
           <a href="{{ url_for('teacher.student_progress', class_id=class_info.class_id, school_id=student.school_id) }}"
-            class="px-4 py-2 text-sm rounded-lg bg-[var(--clr-primary)] text-white whitespace-nowrap hover:opacity-90 transition">
+            class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] font-medium transition-all duration-200">
             Progress
           </a>
-
-        </div>
-
-      </div>
+        </td>
+      </tr>
       {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+<!-- MOBILE CARDS -->
+<div class="md:hidden space-y-3">
+  {% for student in students %}
+  <div class="p-4 rounded-xl border border-[var(--clr-border)] bg-[var(--clr-surface)]
+              dark:bg-[var(--clr-surface-alt)] shadow-sm">
+
+    <!-- Name -->
+    <p class="font-semibold text-[var(--clr-txt-primary)]">
+      {{ student.full_name }}
+    </p>
+
+    <!-- Year & Overall Grade -->
+    <div class="flex justify-between items-center mb-2 text-xs text-[var(--clr-txt-muted)]">
+      <span>Year: {{ student.year }}</span>
+      <span>
+        Grade: 
+        {% if student.overall_percentage is not none %}
+          {{ student.overall_percentage }}%
+        {% else %}
+          —
+        {% endif %}
+      </span>
     </div>
+
+    <!-- STATUS + ACTION ROW -->
+    <div class="flex items-center gap-3">
+
+      <!-- Status -->
+      <form method="POST"
+            action="{{ url_for('teacher.update_student_status', class_id=class_info.class_id, cs_id=student.class_student_id) }}"
+            class="flex-1">
+        <select name="status"
+                onchange="this.form.submit()"
+                class="w-full px-3 py-2 rounded-lg border border-[var(--clr-border)] bg-[var(--clr-bg)]
+                      text-[var(--clr-txt-primary)] focus:ring-2 focus:ring-[var(--clr-primary)] text-sm">
+          <option value="active" {% if student.enrollment_status == 'active' %}selected{% endif %}>Active</option>
+          <option value="dropped" {% if student.enrollment_status == 'dropped' %}selected{% endif %}>Dropped</option>
+          <option value="completed" {% if student.enrollment_status == 'completed' %}selected{% endif %}>Completed</option>
+        </select>
+      </form>
+
+      <!-- Progress Button -->
+      <a href="{{ url_for('teacher.student_progress', class_id=class_info.class_id, school_id=student.school_id) }}"
+        class="px-4 py-2 text-sm rounded-lg bg-[var(--clr-primary)] text-white whitespace-nowrap hover:opacity-90 transition">
+        Progress
+      </a>
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+
       {% endif %}
     </div>
 </section>

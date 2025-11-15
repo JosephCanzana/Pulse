@@ -10,114 +10,142 @@
     <!-- Left Column Wrapper -->
     <div>
       <aside class="bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-lg flex-1 sticky top-17 p-6">
+        {% set class_color = class_info.color if class_info.color else 'var(--clr-primary)' %}
 
-  {% set class_color = class_info.color if class_info.color else 'var(--clr-primary)' %}
+        <!-- Header with back button -->
+        <div class="flex items-center mb-6">
+          <a href="{{ url_for('student.view_classes') }}"
+             class="mr-4 flex items-center justify-center w-10 h-10 rounded-full 
+                    bg-[var(--clr-surface)] border border-[var(--clr-border)] 
+                    text-[var(--clr-primary)] 
+                    hover:bg-[var(--clr-primary)] hover:text-[var(--clr-surface)] 
+                    shadow-md hover:shadow-[0_0_15px_{{ class_color }}] 
+                    transition-all duration-200">
+            <span class="material-symbols-rounded text-2xl">arrow_back</span>
+          </a>
+          <h2 class="text-2xl font-bold" style="color: {{ class_color }};">Class Info</h2>
+        </div>
 
-  <!-- Header with back button -->
-  <div class="flex items-center mb-6">
-    <a href="{{ url_for('student.view_classes') }}"
-       class="mr-4 flex items-center justify-center w-10 h-10 rounded-full 
-              bg-[var(--clr-surface)] border border-[var(--clr-border)] 
-              text-[var(--clr-primary)] 
-              hover:bg-[var(--clr-primary)] hover:text-[var(--clr-surface)] 
-              shadow-md hover:shadow-[0_0_15px_{{ class_color }}] 
-              transition-all duration-200">
-      <span class="material-symbols-rounded text-2xl">arrow_back</span>
-    </a>
-    <h2 class="text-2xl font-bold" style="color: {{ class_color }};">Class Info</h2>
-  </div>
+        {% if lessons %}
+        <div class="space-y-4">
+          <!-- Class Info -->
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[1.2rem]" style="color: {{ class_color }};">class</span>
+            <p class="text-[var(--clr-txt-primary)] font-semibold">
+              <strong>Class:</strong> {{ class_info.subject_name or "N/A" }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[1.2rem]" style="color: {{ class_color }};">groups</span>
+            <p class="text-[var(--clr-txt-primary)] font-semibold">
+              <strong>Section:</strong> {{ class_info.section_name or "N/A" }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[1.2rem]" style="color: {{ class_color }};">info</span>
+            <p class="text-[var(--clr-txt-primary)] font-semibold">
+              <strong>Status:</strong> {{ class_info.status or "N/A" }}
+            </p>
+          </div>
+        </div>
+        {% else %}
+        <p class="text-[var(--clr-txt-secondary)] mt-2">No class info available.</p>
+        {% endif %}
 
-  {% if lessons %}
-  <div class="space-y-4">
-    <!-- Class -->
-    <div class="flex items-center gap-2">
-      <span class="material-symbols-outlined text-[1.2rem]" style="color: {{ class_color }};">class</span>
-      <p class="text-[var(--clr-txt-primary)] font-semibold">
-        <strong>Class:</strong> {{ class_info.subject_name or "N/A" }}
-      </p>
-    </div>
+        <!-- Progress Summary Card -->
+        {% if progress_summary and activities_summary %}
+        <div class="mt-6 bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-lg p-6 flex flex-col sm:flex-row items-center justify-around gap-6">
 
-    <!-- Section -->
-    <div class="flex items-center gap-2">
-      <span class="material-symbols-outlined text-[1.2rem]" style="color: {{ class_color }};">groups</span>
-      <p class="text-[var(--clr-txt-primary)] font-semibold">
-        <strong>Section:</strong> {{ class_info.section_name or "N/A" }}
-      </p>
-    </div>
+          <!-- Lesson Progress (Left) -->
+          <div class="flex flex-col items-center">
+            <p class="text-[var(--clr-txt-secondary)] font-semibold mb-2">Lesson Progress</p>
 
-    <!-- Status -->
-    <div class="flex items-center gap-2">
-      <span class="material-symbols-outlined text-[1.2rem]" style="color: {{ class_color }};">info</span>
-      <p class="text-[var(--clr-txt-primary)] font-semibold">
-        <strong>Status:</strong> {{ class_info.status or "N/A" }}
-      </p>
-    </div>
-  </div>
-  {% else %}
-  <p class="text-[var(--clr-txt-secondary)] mt-2">No class info available.</p>
-  {% endif %}
+            <div class="relative w-24 h-24">
+              {% set lesson_pct = (progress_summary.completed / progress_summary.total * 100) if progress_summary.total > 0 else 0 %}
+              {% set lesson_color = class_info.color if class_info.color else 'var(--clr-primary)' %}
 
-  <!-- Progress Summary Card -->
-  {% if progress_summary %}
-  <div class="mt-6 bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-lg p-4 flex flex-col items-center">
-    
-    <p class="text-[var(--clr-txt-secondary)] font-semibold mb-2">Lesson Progress</p>
+              <!-- Circle -->
+              <svg class="w-24 h-24 rotate-[-90deg]" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="16" stroke="#E2E8F0" stroke-width="4" fill="none"></circle>
+                <circle
+                  cx="18" cy="18" r="16"
+                  stroke="{{ lesson_color }}"
+                  stroke-width="4"
+                  fill="none"
+                  stroke-dasharray="100"
+                  stroke-dashoffset="{{ 100 - lesson_pct }}"
+                  stroke-linecap="round"
+                  style="transition: stroke-dashoffset 0.5s ease;">
+                </circle>
+              </svg>
 
-    <div class="relative w-24 h-24">
-      {% set completed_pct = (progress_summary.completed / progress_summary.total * 100) if progress_summary.total > 0 else 0 %}
-      {% set progress_color = class_info.color if class_info.color else 'var(--clr-primary)' %}
-      
-      <!-- Background Circle -->
-      <svg class="w-24 h-24 rotate-[-90deg]" viewBox="0 0 36 36">
-        <circle cx="18" cy="18" r="16" stroke="#E2E8F0" stroke-width="4" fill="none"></circle>
-        <circle
-          cx="18" cy="18" r="16"
-          stroke="{{ progress_color }}"
-          stroke-width="4"
-          fill="none"
-          stroke-dasharray="100"
-          stroke-dashoffset="{{ 100 - completed_pct }}"
-          stroke-linecap="round"
-          style="transition: stroke-dashoffset 0.5s ease;">
-        </circle>
-      </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-[var(--clr-txt-primary)] font-semibold">
+                <span>{{ lesson_pct|round(0) }}%</span>
+                <span class="text-xs text-[var(--clr-txt-secondary)]">completed</span>
+              </div>
+            </div>
 
-      <!-- Percentage Text -->
-      <div class="absolute inset-0 flex flex-col items-center justify-center text-[var(--clr-txt-primary)] font-semibold">
-        <span>{{ completed_pct|round(0) }}%</span>
-        <span class="text-xs text-[var(--clr-txt-secondary)]">completed</span>
-      </div>
-    </div>
+            <div class="mt-2 text-sm text-[var(--clr-txt-muted)] space-y-1 text-center">
+              <p>Completed: <strong>{{ progress_summary.completed }}</strong></p>
+              <p>In Progress: <strong>{{ progress_summary.in_progress }}</strong></p>
+              <p>Not Started: <strong>{{ progress_summary.not_started }}</strong></p>
+            </div>
+          </div>
 
-    <!-- Detailed Counts -->
-    <div class="mt-3 text-sm text-[var(--clr-txt-muted)] space-y-1 text-center">
-      <p>Completed: <strong>{{ progress_summary.completed }}</strong></p>
-      <p>In Progress: <strong>{{ progress_summary.in_progress }}</strong></p>
-      <p>Not Started: <strong>{{ progress_summary.not_started }}</strong></p>
-    </div>
+          <!-- Assignments Progress (Right) -->
+          <div class="flex flex-col items-center">
+            <p class="text-[var(--clr-txt-secondary)] font-semibold mb-2">Assignments Progress</p>
 
-  </div>
-  {% endif %}
+            <div class="relative w-24 h-24">
+              {% set assign_pct = (activities_summary.passed / activities_summary.total * 100) if activities_summary.total > 0 else 0 %}
 
-</aside>
+              <!-- Circle -->
+              <svg class="w-24 h-24 rotate-[-90deg]" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="16" stroke="#E2E8F0" stroke-width="4" fill="none"></circle>
+                <circle
+                  cx="18" cy="18" r="16"
+                  stroke="#16a34a"
+                  stroke-width="4"
+                  fill="none"
+                  stroke-dasharray="100"
+                  stroke-dashoffset="{{ 100 - assign_pct }}"
+                  stroke-linecap="round"
+                  style="transition: stroke-dashoffset 0.5s ease;">
+                </circle>
+              </svg>
 
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-[var(--clr-txt-primary)] font-semibold">
+                <span>{{ assign_pct|round(0) }}%</span>
+                <span class="text-xs text-[var(--clr-txt-secondary)]">passed</span>
+              </div>
+            </div>
+
+            <div class="mt-2 text-sm text-[var(--clr-txt-muted)] space-y-1 text-center">
+              <p>Passed: <strong>{{ activities_summary.passed }}</strong></p>
+              <p>Total: <strong>{{ activities_summary.total }}</strong></p>
+              <p>Overall: <strong>{{ overall_score }}/{{ total_possible }}</strong></p>
+            </div>
+          </div>
+
+        </div>
+        {% endif %}
+
+      </aside>
     </div>
 
     <!-- Right Column: Lessons -->
     <div class="lg:col-span-2 space-y-4">
-      {% if lessons  and not class_info.enrollment_status == 'dropped'%}
+      {% if lessons and class_info.enrollment_status != 'dropped' %}
       <ul class="space-y-4">
         {% for l in lessons %}
         <li class="group bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden min-w-0">
 
           <!-- Lesson header -->
-          <div class="flex justify-between items-center cursor-pointer" onclick="toggleDetail({{ l.id }})">
+          <div class="flex justify-between items-center cursor-pointer" onclick="toggleDetail({{ l.lesson_id }})">
             <div class="flex items-center gap-2 flex-1 min-w-0">
-              <!-- Show short title on small screens -->
               <h3 class="font-semibold text-lg sm:text-xl text-[var(--clr-txt-primary)] truncate sm:truncate-none sm:hidden">
                 Lesson {{ l.lesson_number }}
               </h3>
-              <!-- Full title hidden until toggle -->
               <h3 class="font-semibold text-lg sm:text-xl text-[var(--clr-txt-primary)] hidden sm:block">
                 Lesson {{ l.lesson_number }}: {{ l.title }}
               </h3>
@@ -125,35 +153,35 @@
 
             <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <span class="px-2 py-1 text-xs sm:text-sm rounded-full flex items-center gap-1
-                {% if l.status == 'completed' %}bg-[var(--clr-success)]/20 text-[var(--clr-success)]
-                {% elif l.status == 'in_progress' %}bg-[var(--clr-warning)]/20 text-[var(--clr-warning)]
+                {% if l.progress_status == 'completed' %}bg-[var(--clr-success)]/20 text-[var(--clr-success)]
+                {% elif l.progress_status == 'in_progress' %}bg-[var(--clr-warning)]/20 text-[var(--clr-warning)]
                 {% else %}bg-[var(--clr-border-strong)]/20 text-[var(--clr-txt-muted)]{% endif %}">
                 <span class="material-symbols-outlined text-[0.75rem] sm:text-[0.8rem]">circle</span>
-                {{ l.status.replace('_', ' ')|capitalize }}
+                {{ l.progress_status.replace('_', ' ')|capitalize }}
               </span>
               <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[var(--clr-txt-secondary)] group-hover:text-[var(--clr-primary)] transition-transform duration-200"
-                   id="arrow-{{ l.id }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   id="arrow-{{ l.lesson_id }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </div>
           </div>
 
           <!-- Lesson detail -->
-          <div id="detail-{{ l.id }}" class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+          <div id="detail-{{ l.lesson_id }}" class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
             <div class="mt-4 border-t border-[var(--clr-border)] pt-4 space-y-3 text-sm sm:text-base leading-relaxed text-[var(--clr-txt-secondary)]">
 
-              <!-- Full title revealed on toggle for small screens -->
+              <!-- Full title for small screens -->
               <h3 class="font-semibold text-lg sm:hidden">
                 Lesson {{ l.lesson_number }}: {{ l.title }}
               </h3>
 
               <!-- Status times -->
-              {% if l.status in ['in_progress', 'completed'] %}
+              {% if l.progress_status in ['in_progress', 'completed'] %}
               <p class="flex items-center gap-1 text-[var(--clr-txt-muted)] text-sm sm:text-base">
                 <span class="material-symbols-outlined text-[0.8rem] sm:text-[0.9rem]">schedule</span>
-                {% if l.status == 'in_progress' %}
-                Started at: {{ l.started_at | datetimeformat('%B %d, %Y - %I:%M %p')}}
-                {% elif l.status == 'completed' %}
+                {% if l.progress_status == 'in_progress' %}
+                Started at: {{ l.started_at | datetimeformat('%B %d, %Y - %I:%M %p') }}
+                {% elif l.progress_status == 'completed' %}
                 Completed at: {{ l.completed_at | datetimeformat('%B %d, %Y - %I:%M %p') }}
                 {% endif %}
               </p>
@@ -172,13 +200,47 @@
                 </a>
               </div>
               {% endif %}
+<!-- Activity / Assignment Button -->
+{% if l.activity_id %}
+<div class="mt-2 space-y-1">
+    <a href="{{ url_for('student.view_activity', activity_id=l.activity_id) }}"
+       class="flex items-center justify-between px-4 py-2 rounded-lg 
+              {% if (l.activity_score is not none and l.activity_score > 0) 
+                    or (l.activity_file_path or l.activity_text_answer) %}
+                  bg-green-600 hover:bg-green-700
+              {% else %}
+                  bg-gray-300 hover:bg-gray-400
+              {% endif %}
+              text-white transition text-sm sm:text-base w-full sm:w-auto">
+        <span class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">assignment</span>
+            {{ l.activity_title or "View Assignment" }}
+        </span>
+        <span class="text-xs sm:text-sm text-gray-200">
+            {% if l.activity_score is not none %}
+                Submitted | Score: {{ l.activity_score }} pts
+            {% else %}
+                {% if l.activity_file_path or l.activity_text_answer %}
+                    Submitted | Pending grading
+                {% elif l.activity_due %}
+                    Due: {{ l.activity_due.strftime('%Y-%m-%d %H:%M') }}
+                {% else %}
+                    Pending
+                {% endif %}
+            {% endif %}
+        </span>
+    </a>
+</div>
+{% endif %}
+
+
 
               <!-- Lesson action -->
-              {% if class_status == 'active' and l.status != 'completed' %}
-              <form method="POST" action="{{ url_for('student.update_lesson_progress', lesson_id=l.id) }}">
+              {% if class_status == 'active' and l.progress_status != 'completed' %}
+              <form method="POST" action="{{ url_for('student.update_lesson_progress', lesson_id=l.lesson_id) }}">
                 <button type="submit"
                   class="mt-3 px-4 py-2 rounded-lg bg-[var(--clr-primary)] text-white hover:bg-[var(--clr-secondary)] hover:text-[var(--clr-bg)] transition w-full sm:w-auto text-sm sm:text-base">
-                  {% if l.status == 'not_started' %}Start Lesson{% elif l.status == 'in_progress' %}Complete Lesson{% endif %}
+                  {% if l.progress_status == 'not_started' %}Start Lesson{% elif l.progress_status == 'in_progress' %}Complete Lesson{% endif %}
                 </button>
               </form>
               {% endif %}
@@ -189,7 +251,7 @@
       </ul>
       {% else %}
       <p class="text-center text-[var(--clr-txt-secondary)] mt-10">
-        {%  if not class_info.enrollment_status == 'dropped' %}
+        {% if class_info.enrollment_status != 'dropped' %}
         No lessons found for this class.
         {% else %}
         Your lessons are hidden.

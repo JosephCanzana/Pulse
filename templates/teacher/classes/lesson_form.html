@@ -61,48 +61,12 @@
                 <!-- File -->
                 <div>
                     <label class="block font-medium mb-1 text-[var(--clr-txt-secondary)]">
-                        Attach Lesson File (optional)
+                        Attach File (optional)
                     </label>
                     <input type="file" name="file"
                            class="w-full rounded-lg border border-[var(--clr-border)] bg-[var(--clr-bg)]
                                   px-3 py-2 focus:ring-2 focus:ring-[var(--clr-primary)] outline-none">
-                </div>
-                
-                <!-- Title -->
-                <div>
-                    <label class="block font-medium mb-1 text-[var(--clr-txt-secondary)]">
-                        Activity Title
-                    </label>
-                    <input type="text" name="title"
-                           class="w-full rounded-lg border border-[var(--clr-border)] bg-[var(--clr-bg)]
-                                  px-3 py-2 sm:px-4 text-[var(--clr-txt-primary)]
-                                  focus:ring-2 focus:ring-[var(--clr-primary)] outline-none"
-                           placeholder="Enter lesson title" required>
-                </div>
-
-                <!-- Description -->
-                <div>
-                    <label class="block font-medium mb-1 text-[var(--clr-txt-secondary)]">
-                        Instruction
-                    </label>
-                    <textarea name="description"
-                              class="w-full rounded-lg border border-[var(--clr-border)] bg-[var(--clr-bg)]
-                                     px-3 py-2 sm:px-4 text-[var(--clr-txt-primary)]
-                                     focus:ring-2 focus:ring-[var(--clr-primary)] outline-none"
-                              rows="3"
-                              placeholder="Enter lesson description (optional)"></textarea>
-                </div>
-
-                <!-- File -->
-                <div>
-                    <label class="block font-medium mb-1 text-[var(--clr-txt-secondary)]">
-                        Attach Activity File (optional)
-                    </label>
-                    <input type="file" name="file"
-                           class="w-full rounded-lg border border-[var(--clr-border)] bg-[var(--clr-bg)]
-                                  px-3 py-2 focus:ring-2 focus:ring-[var(--clr-primary)] outline-none">
-                </div>
-
+                </div>                
 
                 <button type="submit"
                         class="w-full py-2 rounded-lg bg-[var(--clr-primary)] text-white font-medium
@@ -181,6 +145,18 @@
 
         <!-- Actions -->
         <div class="flex gap-1 sm:gap-2 ml-2 sm:ml-3 shrink-0">
+
+          <!-- Add Activity button -->
+          <a href="{{ url_for('teacher.activity_form', lesson_id=lesson.id) }}"
+            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full
+                    bg-[var(--clr-primary)]/80 hover:bg-[var(--clr-primary)] 
+                    text-white transition shadow-sm"
+            title="Manage Activity">
+            <span class="material-symbols-outlined text-xs sm:text-base">
+                assignment
+            </span>
+          </a>
+
 
           <!-- Edit -->
           <a href="{{ url_for('teacher.edit_lesson', class_id=class_id, lesson_id=lesson.id) }}"
