@@ -9,7 +9,6 @@ from datetime import datetime
 from decorators import role_required
 
 # ==== GLOBAL VARIABLES ====
-DEFAULT_PASSWORD = "mcmY_1946"
 ADMIN_DELETABLE_ROWS = ("Users", "Subject", "Course", "Department", "Section", "Class")
 NOW = datetime.now()
 ACADEMIC_YEAR = str(NOW.year) + '-' + str((NOW.year + 1))
@@ -771,7 +770,7 @@ def teacher_edit(school_id):
         school_id_new = request.form.get("school_id")
         department_id = request.form.get("department_id") or None  # allow None
         lvl_id = request.form.get("lvl_id") or None
-        reset_account = request.form.get("reset_account") == "1"
+      
 
         new_email = f"{school_id_new}@holycross.edu.ph"
 
@@ -811,15 +810,7 @@ def teacher_edit(school_id):
             "lvl_id": lvl_id,
             "user_id": teacher["user_id"]
         })
-        # Reset account if triggered
-        if reset_account:
-            db.session.execute(text("""
-                UPDATE Users
-                SET password = :default_password, is_verified = FALSE
-                WHERE id = :user_id
-            """), {"default_password": DEFAULT_PASSWORD, "user_id": teacher["user_id"]})
-            flash("Teacher account has been reset.", "info")
-
+      
         db.session.commit()
         flash("Teacher record updated successfully.", "success")
         return redirect(url_for("admin.teacher"))
@@ -1005,7 +996,7 @@ def section_add():
             if teacher:
                 teacher_id = teacher["id"]
             else:
-                flash("Teacher not found. Section will be saved without a teacher.", "info")
+                flash("Teacher not found.", "info")
                 teacher_id = None
                 return redirect(url_for("admin.section_add"))
 

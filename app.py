@@ -359,8 +359,8 @@ def profile():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
+        email = request.form.get("email").strip().title()
+        password = request.form.get("password").strip().title()
 
         # Query user by email
         user = db.session.execute(
@@ -390,6 +390,17 @@ def login():
                 "school_id": user["school_id"],
                 "role": user["role"]
             })
+            role = session.get("role")
+            if role == "student":
+                # Execute the query
+                result = db.session.execute(
+                    text("SELECT is_suspended FROM StudentProfile WHERE user_id = :user_id"),
+                    {"user_id": user["id"]}
+                ).fetchone()  
+                if result[0]: 
+                    flash("You are currently suspended.", "warning")
+                    logout_user()
+                    return redirect(url_for("index"))
             return redirect(url_for("account_activation", school_id=user["school_id"]))
 
         # Normal login
@@ -426,8 +437,8 @@ def login():
 @login_required
 def account_activation(school_id):
     if request.method == "POST":
-        f_name = request.form.get("first_name").capitalize().strip() 
-        l_name = request.form.get("last_name").capitalize().strip()
+        f_name = request.form.get("first_name").title().strip() 
+        l_name = request.form.get("last_name").title().strip()
         new_pwd = request.form.get("new_password")
         c_pwd = request.form.get("confirm_password")
 
@@ -514,7 +525,7 @@ def unauthorized():
     return redirect(url_for("login"))
 
 
-
+# Safety net
 @app.errorhandler(Exception)
 def handle_all_exceptions(e):
     # Log the error
@@ -525,7 +536,6 @@ def handle_all_exceptions(e):
 
     # Redirect to the appropriate dashboard
     if current_user.is_authenticated:
-        # Example: choose based on role
         if current_user.role == "teacher":
             return redirect(url_for("teacher.dashboard"))
         elif current_user.role == "student":
