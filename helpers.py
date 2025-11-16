@@ -38,7 +38,7 @@ def reset_table_row(db, table, row_id):
     if table != "Users":
         raise ValueError("Reset operation is only allowed for the Users table.")
     
-    DEFAULT_PASSWORD = "mcmY_1946"
+    DEFAULT_PASSWORD = encrypt_password("mcmY_1946")
 
     query = text("""
         UPDATE Users

@@ -6,11 +6,12 @@
 {% block main %}
 <section class="min-h-full space-y-6">
 
-  <header class="flex items-center justify-between mb-6">
+  <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
     <h1 class="text-3xl font-bold text-[var(--clr-primary)]">My Grades</h1>
-    <a href="{{ url_for('student.dashboard') }}" class="text-[var(--clr-primary)] hover:text-[var(--clr-secondary)] flex items-center gap-1">
-      <span class="material-symbols-outlined">arrow_back</span> Back to Dashboard
-    </a>
+    
+    <p class="text-sm text-[var(--clr-text-secondary)] italic">
+      "Progress is progress, no matter how small."
+    </p>
   </header>
 
   {% if classes|length == 0 %}
