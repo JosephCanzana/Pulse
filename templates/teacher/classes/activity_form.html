@@ -6,37 +6,57 @@
 {% endblock %}
 
 {% block main %}
-<div class="w-full h-full">
+<div class="w-full h-full px-0 md:px-2 lg:px-10">
 
   <!-- Header -->
-  <div class="flex items-center justify-between mb-10">
+  <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 md:mb-10 gap-4 md:gap-0">
+
     <div class="flex items-center gap-3">
 
       <!-- Back Button -->
       <a href="{{ url_for('teacher.manage_lesson', class_id=lesson.class_id) }}"
-         class="flex items-center justify-center w-9 h-9 rounded-full border border-[var(--clr-txt-secondary)] hover:border-[var(--clr-primary)] hover:text-[var(--clr-primary)] text-[var(--clr-txt-secondary)] transition">
+         class="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full 
+                  bg-[var(--clr-surface)] text-[var(--clr-txt-secondary)]
+                  shadow-sm hover:text-[var(--clr-primary)] hover:shadow transition">
         <span class="material-symbols-outlined text-xl">arrow_back</span>
       </a>
 
       <!-- Title -->
       <div>
-        <h1 class="text-2xl font-semibold text-[var(--clr-primary)] leading-tight">{{ page_title }}</h1>
+        <h1 class="text-xl md:text-2xl font-semibold text-[var(--clr-primary)] leading-tight">{{ page_title }}</h1>
         <p class="text-sm text-[var(--clr-txt-secondary)]">Manage your assignment below.</p>
       </div>
     </div>
 
-    <!-- Submit Button -->
-    <button type="submit" form="activity-form"
-            class="px-6 py-2.5 rounded-lg bg-[var(--clr-primary)] text-white font-medium hover:bg-[var(--clr-secondary)] transition shadow-sm hover:shadow-md">
-      {{ activity and "Update Assignment" or "Create Assignment" }}
-    </button>
+<!-- Buttons -->
+<div class="flex flex-row sm:flex-row gap-2 md:gap-3 mt-2 md:mt-0">
+
+  {% if activity %}
+    <form action="{{ url_for('teacher.delete_activity', activity_id=activity.id) }}" method="POST"
+          onsubmit="return confirm('Are you sure you want to delete this assignment?');">
+        <button type="submit"
+                class="flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-[var(--clr-error)] text-white hover:bg-[var(--clr-error)]/80 transition shadow-sm hover:shadow-md text-sm">
+          <span class="material-symbols-outlined text-base">delete</span>
+          <span class="hidden sm:inline">Delete</span>
+        </button>
+    </form>
+  {% endif %}
+
+  <button type="submit" form="activity-form"
+          class="flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-[var(--clr-primary)] text-white hover:bg-[var(--clr-secondary)] transition shadow-sm hover:shadow-md text-sm">
+    <span class="material-symbols-outlined text-base">{{ activity and 'edit' or 'add' }}</span>
+    <span class="hidden sm:inline">{{ activity and 'Update' or 'Create' }}</span>
+  </button>
+
+</div>
+
   </div>
 
   <!-- Main Form -->
   <form id="activity-form"
         method="POST"
         enctype="multipart/form-data"
-        class="grid grid-cols-1 md:grid-cols-2 gap-12">
+        class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
 
     <!-- LEFT: Assignment Details -->
     <div class="space-y-6">
@@ -46,14 +66,14 @@
         <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">Assignment Title</label>
         <input type="text" name="title" required
                value="{{ activity.title if activity else '' }}"
-               class="w-full bg-transparent text-2xl font-semibold text-[var(--clr-txt-primary)] border-b border-gray-300 focus:border-[var(--clr-primary)] focus:outline-none transition py-2">
+               class="w-full bg-transparent text-xl md:text-2xl font-semibold text-[var(--clr-txt-primary)] border-b border-gray-300 focus:border-[var(--clr-primary)] focus:outline-none transition py-2">
       </div>
 
       <!-- Instructions -->
       <div>
         <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-2">Instructions</label>
-        <textarea name="instructions" rows="8"
-                  class="w-full bg-[var(--clr-glass-light)] border border-gray-200 rounded-lg text-[var(--clr-txt-primary)] text-base leading-relaxed focus:border-[var(--clr-primary)] focus:ring-1 focus:ring-[var(--clr-primary)] focus:outline-none transition p-3 min-h-[220px] resize-y">{{ activity.instructions if activity else '' }}</textarea>
+        <textarea name="instructions" rows="6" md:rows="8"
+                  class="w-full bg-[var(--clr-glass-light)] border border-gray-200 rounded-lg text-[var(--clr-txt-primary)] text-base leading-relaxed focus:border-[var(--clr-primary)] focus:ring-1 focus:ring-[var(--clr-primary)] focus:outline-none transition p-3 min-h-[180px] md:min-h-[220px] resize-y">{{ activity.instructions if activity else '' }}</textarea>
       </div>
 
       <!-- Due Date -->
@@ -67,7 +87,7 @@
       <!-- Max Score -->
       <div>
         <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">Max Score</label>
-        <input type="number" name="max_score" min="1"
+        <input type="number" name="max_score" min="1" readonly
                value="{{ activity.max_score if activity else 100 }}"
                class="w-full bg-transparent border border-gray-300 rounded-lg text-[var(--clr-txt-primary)] px-4 py-2 focus:border-[var(--clr-primary)] focus:ring-1 focus:ring-[var(--clr-primary)] focus:outline-none transition">
       </div>
@@ -84,15 +104,15 @@
         {% if files and files|length > 0 %}
           <div class="space-y-3">
             {% for f in files %}
-              <div class="flex items-center justify-between bg-[var(--clr-surface)] border border-gray-200 rounded-lg px-4 py-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-[var(--clr-surface)] border border-gray-200 rounded-lg px-4 py-3 gap-2">
                 <span class="text-sm text-[var(--clr-txt-primary)] truncate">{{ f.file_name }}</span>
 
-                <!-- UPDATED DOWNLOAD LINK -->
+                <!-- Download Link -->
                 <a href="/uploads/activity/{{ activity.id }}/{{ f.file_name }}" download
-                  class="inline-flex items-center gap-1 px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg
+                   class="inline-flex items-center gap-1 px-3 py-1 bg-[var(--clr-primary)] text-white rounded-lg
                           hover:bg-[var(--clr-secondary)] transition shadow-sm text-sm font-medium">
-                    <span class="material-symbols-outlined text-sm">download</span>
-                    <span>Download</span>
+                  <span class="material-symbols-outlined text-sm">download</span>
+                  <span>Download</span>
                 </a>
               </div>
             {% endfor %}

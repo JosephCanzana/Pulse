@@ -6,8 +6,11 @@
 {% endblock %}
 
 {% block main %}
-<div class="max-w-3xl mx-auto h-full sm:p-6 space-y-6">
-
+<div class="max-full h-full space-y-6">
+            
+    <!-- Activity Card -->
+    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 space-y-4">
+        
     <!-- Back Button -->
     <div>
         <a href="{{ url_for('student.view_lessons', class_id=activity.class_id) }}"
@@ -18,10 +21,7 @@
             <span class="material-symbols-rounded text-2xl">arrow_back</span>
         </a>
     </div>
-
-            
-    <!-- Activity Card -->
-    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 space-y-4">
+        
         <!-- Title & Lesson -->
         <div class="space-y-1">
             <h1 class="text-2xl sm:text-3xl font-bold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">

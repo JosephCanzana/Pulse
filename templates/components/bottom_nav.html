@@ -23,7 +23,8 @@
     {% else %}
       {% set all_links = [
         {'url': url_for('student.dashboard'), 'icon': 'home', 'label': 'Home'},
-        {'url': url_for('student.view_classes'), 'icon': 'book', 'label': 'Subjects'}
+        {'url': url_for('student.view_classes'), 'icon': 'book', 'label': 'Subjects'},
+        {'url': url_for('student.grade_overview'), 'icon': 'book_2', 'label': 'Grades'}
       ] %}
     {% endif %}
 

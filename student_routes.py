@@ -225,6 +225,31 @@ def view_lessons(class_id):
 
     lesson_ids = [row['id'] for row in lesson_rows]
 
+    if not lesson_ids:
+        return render_template(
+            "student/lessons.html",
+            lessons=[],                # no lessons
+            class_id=class_id,
+            class_status=class_status,
+            class_info=class_info,
+            progress_summary={
+                'total': 0,
+                'completed': 0,
+                'in_progress': 0,
+                'not_started': 0
+            },
+            activities_summary={
+                'total': 0,
+                'passed': 0,
+                'not_passed': 0
+            },
+            overall_score=0,
+            total_possible=0
+        )
+
+
+    lesson_ids = [row['id'] for row in lesson_rows]
+
     if lesson_ids:
         # Existing progress for this student
         existing_progress_rows = db.session.execute(
@@ -324,7 +349,6 @@ def view_lessons(class_id):
     ).mappings().all()
 
 
-
     # Lesson progress summary
     total_lessons = len(lessons)
     completed_count = sum(1 for l in lessons if l['progress_status'] == 'completed')
@@ -363,6 +387,8 @@ def view_lessons(class_id):
         flash("This class is no longer active. You can view it in your history, but cannot update progress.", "info")
     elif class_info.enrollment_status == 'dropped':
         flash("You have dropped this class. Lessons are hidden and cannot be accessed.", "info")
+    elif class_info.enrollment_status == 'completed':
+        flash("You are marked as completed.", "info")
 
     return render_template(
         "student/lessons.html",
@@ -677,7 +703,7 @@ def submit_activity(activity_id):
 @login_required
 @role_required("student")
 def grade_overview():
-    """Show all classes with total grades for the logged-in student."""
+    """Show all ACTIVE classes with total grades for the logged-in student."""
 
     # Get the student profile ID from the logged-in user
     student_profile = db.session.execute(
@@ -691,7 +717,7 @@ def grade_overview():
 
     student_profile_id = student_profile["id"]
 
-    # Fetch all classes the student is enrolled in
+    # Fetch active classes the student is enrolled in
     classes_query = text("""
         SELECT 
             c.id AS class_id,
@@ -708,6 +734,7 @@ def grade_overview():
         LEFT JOIN YearLevel yl ON sec.year_id = yl.id
         LEFT JOIN EducationLevel el_from_year ON yl.education_level_id = el_from_year.id
         WHERE cs.student_id = :student_profile_id
+          AND c.status = 'active'         
         ORDER BY s.name
     """)
     enrolled_classes = db.session.execute(classes_query, {"student_profile_id": student_profile_id}).mappings().all()

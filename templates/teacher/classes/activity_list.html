@@ -8,7 +8,9 @@
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
     <div class="flex flex-row">
         <a href="{{ url_for('teacher.view_class', class_id=class_id) }}"
-             class="mr-2 ml-2 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-[var(--clr-txt-secondary)] hover:border-[var(--clr-primary)] hover:text-[var(--clr-primary)] text-[var(--clr-txt-secondary)] transition">
+             class="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full 
+                  bg-[var(--clr-surface)] text-[var(--clr-txt-secondary)]
+                  shadow-sm hover:text-[var(--clr-primary)] hover:shadow transition">
               <span class="material-symbols-outlined text-xl sm:text-2xl">arrow_back</span>
           </a>
         <header class=" mr-2 ml-2 text-center md:text-left">

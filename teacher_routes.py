@@ -369,16 +369,6 @@ def manage_lesson(class_id):
         # Get inserted lesson ID
         lesson_id = db.session.execute(text("SELECT LAST_INSERT_ID()")).scalar()
 
-        # NEW: create StudentLessonProgress for all enrolled students 
-        create_progress = text("""
-            INSERT IGNORE INTO StudentLessonProgress (class_id, lesson_id, student_id, status, started_at, completed_at)
-            SELECT cs.class_id, :lesson_id, cs.student_id, 'not_started', NULL, NULL
-            FROM ClassStudent cs
-            WHERE cs.class_id = :class_id
-        """)
-        db.session.execute(create_progress, {"lesson_id": lesson_id, "class_id": class_id})
-        db.session.commit()
-
 
         # Handle file upload
         if file and allowed_file(file.filename):
@@ -401,12 +391,17 @@ def manage_lesson(class_id):
         flash("Lesson added successfully!", "success")
         return redirect(url_for("teacher.manage_lesson", class_id=class_id))
 
-    # Fetch lessons
+    # Fetch lessons with a flag indicating if they have an activity
     lessons = db.session.execute(text("""
-        SELECT * FROM Lesson
-        WHERE class_id = :class_id
-        ORDER BY lesson_number ASC
+        SELECT 
+            l.*,
+            CASE WHEN a.id IS NOT NULL THEN 1 ELSE 0 END AS has_activity
+        FROM Lesson l
+        LEFT JOIN Activity a ON a.lesson_id = l.id
+        WHERE l.class_id = :class_id
+        ORDER BY l.lesson_number ASC
     """), {"class_id": class_id}).mappings().all()
+
 
     return render_template("teacher/classes/lesson_form.html", lessons=lessons, class_id=class_id)
 
@@ -538,10 +533,36 @@ def edit_lesson(class_id, lesson_id):
 @login_required
 @role_required("teacher")
 def delete_lesson(class_id, lesson_id):
+
+    # 1. Delete ActivitySubmissions for activities under this lesson
+    db.session.execute(text("""
+        DELETE ActivitySubmission
+        FROM ActivitySubmission
+        JOIN Activity ON ActivitySubmission.activity_id = Activity.id
+        WHERE Activity.lesson_id = :lesson_id
+    """), {"lesson_id": lesson_id})
+
+    # 2. Delete ActivityFiles for activities under this lesson
+    db.session.execute(text("""
+        DELETE ActivityFile
+        FROM ActivityFile
+        JOIN Activity ON ActivityFile.activity_id = Activity.id
+        WHERE Activity.lesson_id = :lesson_id
+    """), {"lesson_id": lesson_id})
+
+    # 3. Delete all Activities tied to this lesson
+    db.session.execute(text("""
+        DELETE FROM Activity WHERE lesson_id = :lesson_id
+    """), {"lesson_id": lesson_id})
+
+    # 4. Delete the lesson itself
     db.session.execute(text("DELETE FROM Lesson WHERE id = :lesson_id"), {"lesson_id": lesson_id})
+
     db.session.commit()
-    flash("Lesson deleted successfully!", "success")
+
+    flash("Lesson and related activities deleted successfully!", "success")
     return redirect(url_for("teacher.manage_lesson", class_id=class_id))
+
 
 # ============================
 # Manage Student Per Class
@@ -1101,18 +1122,18 @@ def section_manage_students(section_id):
     if search_query:
         unassigned_students = db.session.execute(text("""
             SELECT sp.id AS student_id, u.first_name, u.middle_name AS second_name, u.last_name, u.email,
-                   s.name AS section_name                    
+                s.name AS section_name                    
             FROM StudentProfile sp
             JOIN Users u ON sp.user_id = u.id
             LEFT JOIN Section s ON sp.section_id = s.id
-            WHERE sp.section_id IS NULL
-              AND (
+            WHERE (sp.section_id IS NULL OR s.status = 0)
+            AND (
                     CAST(sp.id AS CHAR) LIKE :search OR
                     u.first_name LIKE :search OR
                     u.middle_name LIKE :search OR
                     u.last_name LIKE :search OR
                     s.name LIKE :search
-                  )
+                )
             ORDER BY u.last_name ASC
         """), {"search": f"%{search_query}%"}).mappings().all()
     else:
@@ -1123,7 +1144,8 @@ def section_manage_students(section_id):
                     u.middle_name AS second_name, 
                     u.last_name, 
                     u.email,
-                    s.name AS section_name, 
+                    s.name AS section_name,
+                    s.status AS section_status, 
                     u.school_id, 
                     sp.year_id,
                     yl.name AS year_name
@@ -1131,11 +1153,10 @@ def section_manage_students(section_id):
                 JOIN Users u ON sp.user_id = u.id
                 LEFT JOIN Section s ON sp.section_id = s.id
                 LEFT JOIN YearLevel yl ON sp.year_id = yl.id
-                WHERE sp.section_id IS NULL 
+                WHERE (sp.section_id IS NULL OR s.status = 0)
                 AND sp.education_level_id = :sec_ed_lvl
                 ORDER BY u.last_name ASC
             """), {"sec_ed_lvl": section["education_lvl_id"]}).mappings().all()
-
 
     return render_template(
         "teacher/section/students.html",
@@ -1280,7 +1301,7 @@ def activity_form(lesson_id):
                         })
 
                 db.session.commit()
-                flash("Files uploaded successfully.", "success")
+             
 
         return redirect(url_for("teacher.activity_form", lesson_id=lesson_id))
 
@@ -1343,6 +1364,22 @@ def activity_list(class_id):
         activities=activities,
         class_id=class_id
     )
+
+@teacher_bp.route("/activity/delete/<int:activity_id>", methods=["POST"])
+@login_required
+@role_required("teacher")
+def delete_activity(activity_id):
+    # Fetch activity
+    activity = db.session.execute(text("SELECT * FROM Activity WHERE id = :aid"), {"aid": activity_id}).fetchone()
+    if not activity:
+        flash("Activity not found.", "error")
+        return redirect(request.referrer or url_for("teacher.dashboard"))
+
+    # Delete activity (submissions and files will cascade)
+    db.session.execute(text("DELETE FROM Activity WHERE id = :aid"), {"aid": activity_id})
+    db.session.commit()
+    flash("Assignment deleted successfully.", "success")
+    return redirect(url_for("teacher.activity_form", lesson_id=activity.lesson_id))
 
 @teacher_bp.route("/activity/<int:activity_id>/submissions")
 @login_required

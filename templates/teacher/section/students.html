@@ -95,9 +95,20 @@
                             <input type="checkbox" name="student_ids" value="{{ student.student_id }}"
                                 class="h-4 w-4 text-[var(--clr-primary)] border-[var(--clr-border)] rounded">
                             <div>
-                                <p class="font-medium text-[var(--clr-txt-primary)]">{{ student.first_name }} {{ student.last_name }}</p>
-                                <p class="text-sm text-[var(--clr-txt-secondary)]">{{ student.school_id }} | {{ student.year_name }}</p>
-                            </div>
+    <p class="font-medium text-[var(--clr-txt-primary)]">
+        {{ student.first_name }} {{ student.last_name }}
+    </p>
+    <p class="text-sm text-[var(--clr-txt-secondary)]">
+        {{ student.school_id }} | {{ student.year_name }}
+        {% if student.section_name %}
+            | Section: {{ student.section_name }}
+            {% if student.section_status == 0 %}
+                <span class="text-red-500">(Archived)</span>
+            {% endif %}
+        {% endif %}
+    </p>
+</div>
+
                         </div>
                         <button type="submit" name="student_ids" value="{{ student.student_id }}"
                                 class="flex items-center gap-1 bg-[var(--clr-primary)] text-white px-3 py-1 rounded-full hover:opacity-90 transition">

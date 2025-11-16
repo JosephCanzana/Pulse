@@ -147,15 +147,15 @@
         <div class="flex gap-1 sm:gap-2 ml-2 sm:ml-3 shrink-0">
 
           <!-- Add Activity button -->
-          <a href="{{ url_for('teacher.activity_form', lesson_id=lesson.id) }}"
-            class="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full
-                    bg-[var(--clr-primary)]/80 hover:bg-[var(--clr-primary)] 
-                    text-white transition shadow-sm"
-            title="Manage Activity">
-            <span class="material-symbols-outlined text-xs sm:text-base">
-                assignment
-            </span>
-          </a>
+                  <a href="{{ url_for('teacher.activity_form', lesson_id=lesson.id) }}"
+          class="relative flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full
+                 bg-[var(--clr-primary)]/80 hover:bg-[var(--clr-primary)] text-white transition shadow-sm"
+          title="{{ lesson.has_activity and 'Edit Activity' or 'Add Activity' }}">
+          <span class="material-symbols-outlined text-xs sm:text-base">assignment</span>
+          {% if lesson.has_activity %}
+          <span class="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full border border-[var(--clr-primary)]"></span>
+          {% endif %}
+        </a>
 
 
           <!-- Edit -->
