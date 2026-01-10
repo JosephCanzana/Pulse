@@ -1,0 +1,148 @@
+{% set page_title = "Admin Dashboard" %}
+{% extends "layout.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block main %}
+<div class="p-0 space-y-8 h-full w-full">
+
+  <!-- Greeting -->
+  <h1 class="text-3xl font-bold text-[var(--clr-txt-primary)]">
+    Welcome back, {{ name }}!
+  </h1>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {% set card_colors = [
+      'bg-gradient-to-r from-[var(--clr-primary)] to-[var(--clr-secondary)]',
+      'bg-gradient-to-r from-[var(--clr-success)] to-[var(--clr-success)]',
+      'bg-gradient-to-r from-[var(--clr-tertiary)] to-[var(--clr-info)]',
+      'bg-gradient-to-r from-[var(--clr-warning)] to-[var(--clr-warning)]'
+    ] %}
+    {% set icons = ['fa-user-graduate','fa-chalkboard-teacher','fa-book-open','fa-building'] %}
+    {% set totals = [total_students, total_teachers, total_courses, total_departments] %}
+    {% set titles = ['Total Students', 'Total Teachers', 'Courses', 'Departments'] %}
+
+    {% for i in range(4) %}
+    <div class="p-6 rounded-xl shadow-lg flex justify-between items-center {{ card_colors[i] }} text-white transition-all hover:scale-[1.03] duration-300">
+      <div>
+        <h2 class="text-2xl font-bold">{{ totals[i] }}</h2>
+        <p>{{ titles[i] }}</p>
+      </div>
+      <i class="fa {{ icons[i] }} text-4xl opacity-80"></i>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- New Feature Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    
+    <!-- Quick Insights -->
+<div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6">
+  <h3 class="font-bold mb-4 text-[var(--clr-txt-primary)] flex items-center gap-2">
+    <i class="fa fa-lightbulb text-[var(--clr-info)]"></i> Quick Insights
+  </h3>
+
+  <ul class="space-y-3 text-[var(--clr-txt-secondary)]">
+    
+    <!-- Students -->
+    <li class="border-b border-[var(--clr-border)] pb-3">
+      <div class="flex justify-between items-center mb-1">
+        <span class="flex items-center">
+          <i class="fa fa-user-graduate text-[var(--clr-success)] mr-2"></i> Students
+        </span>
+        <span class="font-semibold text-[var(--clr-txt-primary)]">{{ total_students + archived_students }}</span>
+      </div>
+      <div class="flex justify-between ml-1 mr-1 text-sm">
+        <span class="text-[var(--clr-success)]">Active: {{ total_students }}</span>
+        <span class="text-[var(--clr-danger)]">Archived: {{ archived_students }}</span>
+      </div>
+    </li>
+
+    <!-- Teachers -->
+    <li class="border-b border-[var(--clr-border)] pb-3">
+      <div class="flex justify-between items-center mb-1">
+        <span class="flex items-center">
+          <i class="fa fa-chalkboard-teacher text-[var(--clr-primary)] mr-2"></i> Teachers
+        </span>
+        <span class="font-semibold text-[var(--clr-txt-primary)]">{{ total_teachers + archived_teachers }}</span>
+      </div>
+      <div class="flex justify-between  ml-1 mr-1 text-sm">
+        <span class="text-[var(--clr-success)]">Active: {{ total_teachers }}</span>
+        <span class="text-[var(--clr-danger)]">Archived: {{ archived_teachers }}</span>
+      </div>
+    </li>
+
+    <!-- Courses -->
+    <li class="flex justify-between items-center border-b border-[var(--clr-border)] pb-2">
+      <span><i class="fa fa-layer-group text-[var(--clr-warning)] mr-2"></i> Total Courses</span>
+      <span class="font-semibold text-[var(--clr-txt-primary)]">{{ total_courses }}</span>
+    </li>
+
+    <!-- Departments -->
+    <li class="flex justify-between items-center border-b border-[var(--clr-border)] pb-2">
+      <span><i class="fa fa-building-columns text-[var(--clr-tertiary)] mr-2"></i> Departments</span>
+      <span class="font-semibold text-[var(--clr-txt-primary)]">{{ total_departments }}</span>
+    </li>
+
+    <!-- Subjects -->
+    <li class="flex justify-between items-center">
+      <span><i class="fa fa-book text-[var(--clr-info)] mr-2"></i> Subjects</span>
+      <span class="font-semibold text-[var(--clr-txt-primary)]">{{ total_subjects }}</span>
+    </li>
+
+  </ul>
+</div>
+
+
+    <!-- Top Active Courses -->
+    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6">
+      <h3 class="font-bold mb-4 text-[var(--clr-txt-primary)] flex items-center gap-2">
+        <i class="fa fa-chart-simple text-[var(--clr-success)]"></i> Top Active Courses
+      </h3>
+      <div class="space-y-3">
+        {% for course in top_courses %}
+        <div class="flex justify-between items-center p-3 rounded-lg border border-[var(--clr-border)] hover:bg-[var(--clr-hover)] transition-all duration-200">
+          <div class="flex items-center gap-2">
+            <i class="fa fa-graduation-cap text-[var(--clr-primary)]"></i>
+            <span class="font-semibold">{{ course.course_name }}</span>
+          </div>
+          <span class="text-sm text-[var(--clr-txt-secondary)]">{{ course.total_students }} Students</span>
+        </div>
+        {% else %}
+        <p class="text-[var(--clr-txt-muted)] text-center">No course data available.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Recent Students -->
+    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6">
+      <h3 class="font-bold mb-4 text-[var(--clr-txt-primary)]">Recent Students</h3>
+      <ul class="space-y-2 text-[var(--clr-txt-secondary)]">
+        {% for s in recent_students %}
+        <li class="flex justify-between border-b border-[var(--clr-border)] py-1">
+          <span>{{ s.first_name }} {{ s.middle_name }} {{ s.last_name }}</span>
+          <span class="text-[var(--clr-txt-muted)]">{{ s.school_id }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Recent Teachers -->
+    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-xl shadow p-6">
+      <h3 class="font-bold mb-4 text-[var(--clr-txt-primary)]">Recent Teachers</h3>
+      <ul class="space-y-2 text-[var(--clr-txt-secondary)]">
+        {% for t in recent_teachers %}
+        <li class="flex justify-between border-b border-[var(--clr-border)] py-1">
+          <span>{{ t.first_name }} {{ t.middle_name }} {{ t.last_name }}</span>
+          <span class="text-[var(--clr-txt-muted)]">{{ t.school_id }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/pulse.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet"/>
+
+</head>
+
+<body class="relative flex flex-col min-h-screen bg-[var(--clr-bg)] overflow-x-hidden">
+
+    <!-- Glowing Corner Backgrounds -->
+    <div class="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+        <!-- Top-left glow -->
+        <div class="absolute top-0 left-0 w-[400px] h-[400px] rounded-full 
+                    bg-[var(--clr-glow-primary)] blur-[200px] opacity-60 animate-pulse-slow"></div>
+        <!-- Bottom-right glow -->
+        <div class="absolute bottom-0 right-0 w-[450px] h-[450px] rounded-full 
+                    bg-[var(--clr-glow-tertiary)] blur-[220px] opacity-55 animate-pulse"></div>
+    </div>
+
+    <!-- LANDING PAGE NON-LOGGED IN USERS -->
+    {% if not current_user.is_authenticated or not current_user.activated %}
+    
+    {% include 'components/navbar_guest.html' %}
+    
+    <div 
+    id="wrapper" 
+    class="flex-1 transition-all duration-300 {% if request.endpoint == 'index' %}px-0{% else %}px-6 md:px-40{% endif %}"
+    >
+        <main class="flex justify-center items-center w-full min-h-[calc(100vh-4.25rem)] text-[var(--clr-txt-primary)]">
+            {% block landing %}
+            {% endblock %}
+        </main>
+    </div>
+
+
+    <footer>
+        {% block footer %}
+        {% endblock %}
+    </footer>
+
+    {% else %}
+    <!-- LOGGED IN USERS -->
+
+    {% include 'components/navbar.html' %}
+    {% include 'components/sidebar.html' %}
+    {% include 'components/bottom_nav.html' %}
+    
+<div class="flex-1 transition-all duration-450 md:ml-20 sm:ml-10" id="wrapper">    
+    <main class="w-full min-h-[calc(100vh-4.25rem)] text-[var(--clr-txt-primary)] pb-24 pt-12 
+                 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+        {% block main %}
+        {% endblock %}
+    </main>
+</div>
+
+    <footer class="fixed flex bottom-0 items-center text-[var(--clr-txt-muted)] justify-center h-10 w-full">
+        {% include 'components/footer.html' %}
+    </footer>
+    {% endif %}
+        
+    {% include 'partials/confirm.html' %}
+    {% include 'partials/_flash_modal.html' %}
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sorting.js') }}"></script>
+</body>
+</html>

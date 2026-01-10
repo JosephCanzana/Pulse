@@ -1,0 +1,157 @@
+{% set page_title = "My Advisory Class" %}
+{% extends "layout.html" %}
+
+{% block title %}Add Students to Section{% endblock %}
+
+{% block main %}
+<div class="w-full h-full">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <a href="{{ url_for('teacher.manage_sections') }}"
+               class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--clr-surface)] text-[var(--clr-txt-secondary)] shadow-sm hover:text-[var(--clr-primary)] hover:shadow transition">
+                <span class="material-symbols-outlined text-2xl">arrow_back</span>
+            </a>
+            <h1 class="text-3xl font-bold text-[var(--clr-primary)]">Manage Students in {{ section.name }}</h1>
+        </div>
+    </div>
+
+    <!-- Split layout -->
+    <div class="flex flex-col lg:flex-row gap-6 flex-1 overflow-hidden">
+        
+        <!-- Left: Existing Students -->
+        <div class="lg:w-1/2 flex flex-col bg-[var(--clr-surface)] rounded-2xl shadow-md overflow-hidden">
+            <div class="p-4 border-b border-[var(--clr-border)]">
+                <h2 class="text-xl font-semibold text-[var(--clr-txt-primary)] flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[var(--clr-primary)]">groups</span>
+                    Existing Students
+                </h2>
+            </div>
+            <div class="overflow-y-auto p-4 space-y-3 custom-scroll">
+                {% if assigned_students %}
+                    {% for s in assigned_students %}
+                    <div class="flex items-center justify-between bg-[var(--clr-surface-alt)] p-4 rounded-xl shadow-sm hover:shadow transition">
+                        <div>
+                            <p class="font-medium text-[var(--clr-txt-primary)]">{{ s.first_name }} {{ s.last_name }}</p>
+                            <p class="text-sm text-[var(--clr-txt-secondary)]">{{ s.school_id }} | {{ s.year_name }}</p>
+                        </div>
+                        <form method="POST" action="{{ url_for('teacher.remove_student_from_section', section_id=section.id, student_id=s.student_id) }}"
+                              onsubmit="return openConfirmFormModal(event, this, 'Remove Student', 'This will unassign the student from this section. Continue?')">
+                            <button type="submit"
+                                    class="flex items-center gap-1 bg-[var(--clr-error)] text-white px-3 py-1 rounded-full hover:opacity-90 transition">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                                Remove
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-[var(--clr-txt-muted)] italic">No students are currently enrolled in this section.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right: Add/Search Students -->
+        <div class="lg:w-1/2 flex flex-col bg-[var(--clr-surface)] rounded-2xl shadow-md overflow-hidden">
+            <div class="p-4 border-b border-[var(--clr-border)] flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-[var(--clr-txt-primary)] flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[var(--clr-primary)]">person_add</span>
+                    Add Students
+                </h2>
+            </div>
+
+            <div class="p-4 border-b border-[var(--clr-border)]">
+                <form method="GET" class="flex gap-2 flex-wrap items-center">
+                    <input type="text" name="q" placeholder="Search by ID, or name"
+                        value="{{ search_query }}"
+                        class="flex-1 bg-[var(--clr-surface-alt)] border border-[var(--clr-border)] rounded-lg px-4 py-2 text-[var(--clr-txt-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+                    <button type="submit"
+                        class="flex items-center gap-1 bg-[var(--clr-primary)] text-white font-medium px-4 py-2 rounded-lg hover:bg-opacity-90 transition">
+                        <span class="material-symbols-outlined text-sm">search</span>
+                        Search
+                    </button>
+                    <button form="add-selected-form" type="submit"
+                        class="flex items-center gap-1 bg-[var(--clr-secondary)] text-white font-medium px-4 py-2 rounded-lg hover:bg-opacity-90 transition">
+                        <span class="material-symbols-outlined text-sm">add_task</span>
+                        Add Selected
+                    </button>
+                </form>
+            </div>
+
+            <!-- Add Students Scrollable List -->
+            <div class="overflow-y-auto p-4 space-y-3 flex-1 custom-scroll">
+                {% if unassigned_students %}
+                <form method="POST" id="add-selected-form" class="space-y-3">
+                    <!-- Select All -->
+                    <div class="flex items-center gap-2 bg-[var(--clr-surface-alt)] p-3 rounded-xl shadow-sm">
+                        <input type="checkbox" id="select-all" class="h-4 w-4 text-[var(--clr-primary)] border-[var(--clr-border)] rounded">
+                        <label for="select-all" class="text-[var(--clr-txt-primary)] font-medium">Select All</label>
+                    </div>
+
+                    {% for student in unassigned_students %}
+                    <div class="flex items-center justify-between bg-[var(--clr-surface-alt)] p-4 rounded-xl shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" name="student_ids" value="{{ student.student_id }}"
+                                class="h-4 w-4 text-[var(--clr-primary)] border-[var(--clr-border)] rounded">
+                            <div>
+    <p class="font-medium text-[var(--clr-txt-primary)]">
+        {{ student.first_name }} {{ student.last_name }}
+    </p>
+    <p class="text-sm text-[var(--clr-txt-secondary)]">
+        {{ student.school_id }} | {{ student.year_name }}
+        {% if student.section_name %}
+            | Section: {{ student.section_name }}
+            {% if student.section_status == 0 %}
+                <span class="text-red-500">(Archived)</span>
+            {% endif %}
+        {% endif %}
+    </p>
+</div>
+
+                        </div>
+                        <button type="submit" name="student_ids" value="{{ student.student_id }}"
+                                class="flex items-center gap-1 bg-[var(--clr-primary)] text-white px-3 py-1 rounded-full hover:opacity-90 transition">
+                            <span class="material-symbols-outlined text-sm">add</span>
+                            Add
+                        </button>
+                    </div>
+                    {% endfor %}
+                </form>
+                {% else %}
+                    <p class="text-[var(--clr-txt-muted)] italic">No students found to add.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script>
+        const selectAllCheckbox = document.getElementById('select-all');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('input[name="student_ids"]');
+                checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+            });
+        }
+    </script>
+
+    <!-- Custom Scrollbar -->
+    <style>
+        .custom-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: var(--clr-primary) var(--clr-surface);
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background-color: var(--clr-primary);
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: var(--clr-surface);
+        }
+    </style>
+</div>
+{% endblock %}

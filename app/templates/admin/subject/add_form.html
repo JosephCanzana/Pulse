@@ -1,0 +1,90 @@
+{% set page_title = "Subject" %}
+{% extends "layout.html" %}
+
+{% block title %}
+  Add Subject
+{% endblock %}
+
+{% block main %}
+<section class="w-full h-full flex flex-col items-center justify-start">
+
+  <!-- Container Card -->
+  <div class="w-full max-w-4xl bg-[var(--clr-surface)]/60 backdrop-blur-xl shadow-lg rounded-2xl p-8 sm:p-10 border border-[var(--clr-border)]/40">
+
+    <!-- Header -->
+    <header class="text-center mb-8">
+      <h1 class="text-3xl md:text-4xl font-semibold text-[var(--clr-primary)]">Add Subject</h1>
+      <p class="text-[var(--clr-txt-muted)] mt-2 text-base">
+        Fill out the details to create a new subject.
+      </p>
+    </header>
+
+    <!-- Form -->
+    <form
+      id="subjectForm"
+      action="{{ url_for('admin.subject_add') }}"
+      method="post"
+      onsubmit="return openConfirmFormModal(event, this, 'Add Subject', 'Are you sure you want to add this subject?')"
+      class="grid grid-cols-1 md:grid-cols-2 gap-6"
+    >
+
+      <!-- Left Column -->
+      <div class="flex flex-col gap-5">
+        <div>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Subject Name</label>
+          <input
+            type="text"
+            name="name"
+            placeholder="Enter subject name"
+            required
+            class="input-field"
+          />
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="flex flex-col gap-5">
+        <div>
+          <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
+          <select name="level" required class="input-field">
+            <option value="" disabled selected>Select education level</option>
+            {% for lvl in lvls %}
+              <option value="{{ lvl.id }}">{{ lvl.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="md:col-span-2 flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
+
+        <!-- Go Back -->
+        <a href="{{ url_for('admin.subject') }}"
+          class="w-full sm:w-auto px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
+                 hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
+                 transition-all duration-200 text-center">
+          ← Go Back
+        </a>
+
+        <!-- Restore -->
+        <button type="button"
+          onclick="restoreLastEntry('#subjectForm', 'lastSubjectForm')"
+          class="w-full sm:w-auto px-6 py-2 rounded-lg text-[var(--clr-primary)] text-sm font-medium border border-[var(--clr-primary)]
+                 hover:bg-[var(--clr-primary)] hover:text-white
+                 transition-all duration-200">
+          Restore Last Entry
+        </button>
+
+        <!-- Submit -->
+        <button type="submit"
+          class="w-full sm:w-auto px-8 py-2.5 rounded-lg font-semibold text-white text-sm
+                 bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                 shadow-sm hover:shadow-[0_0_15px_var(--clr-glow-primary)]
+                 transition-all duration-200">
+          Add Subject
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

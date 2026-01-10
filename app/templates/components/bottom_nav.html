@@ -1,0 +1,110 @@
+<!-- BOTTOM NAVIGATION BAR (Mobile Only) -->
+<div class="sm:hidden fixed bottom-0 left-0 w-full bg-[var(--clr-glass-light)] backdrop-blur-md border-t border-[var(--clr-glass-border)] shadow-inner z-50">
+  <div class="flex justify-around items-center px-2 py-1">
+
+    {% set all_links = [] %}
+    {% if session.get('role') == 'admin' %}
+      {% set all_links = [
+        {'url': url_for('admin.dashboard'), 'icon': 'home', 'label': 'Home'},
+        {'url': url_for('admin.teacher'), 'icon': 'school', 'label': 'Teachers'},
+        {'url': url_for('admin.student'), 'icon': 'people', 'label': 'Students'},
+        {'url': url_for('admin.section'), 'icon': 'group_work', 'label': 'Sections'},
+        {'url': url_for('admin.class_list'), 'icon': 'class', 'label': 'Classes'},
+        {'url': url_for('admin.department'), 'icon': 'business', 'label': 'Departments'},
+        {'url': url_for('admin.course'), 'icon': 'menu_book', 'label': 'Courses'},
+        {'url': url_for('admin.subject'), 'icon': 'book_3', 'label': 'Subjects'}
+      ] %}
+    {% elif session.get('role') == 'teacher' %}
+      {% set all_links = [
+        {'url': url_for('teacher.dashboard'), 'icon': 'home', 'label': 'Home'},
+        {'url': url_for('teacher.classes'), 'icon': 'menu_book', 'label': 'Teaching'},
+        {'url': url_for('teacher.manage_sections'), 'icon': 'nest_multi_room', 'label': 'Sections'}
+      ] %}
+    {% else %}
+      {% set all_links = [
+        {'url': url_for('student.dashboard'), 'icon': 'home', 'label': 'Home'},
+        {'url': url_for('student.view_classes'), 'icon': 'book', 'label': 'Subjects'},
+        {'url': url_for('student.grade_overview'), 'icon': 'book_2', 'label': 'Grades'}
+      ] %}
+    {% endif %}
+
+    {% set bottom_nav = all_links[:3] %}
+    {% set menu_links = all_links[3:] %}
+
+    <!-- Navigation Links (Bottom Nav) -->
+    {% for item in bottom_nav %}
+      <a href="{{ item.url }}" class="flex flex-col items-center justify-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] transition-colors duration-200 {{ 'text-[var(--clr-primary)]' if request.path == item.url }}">
+        <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
+        <span class="text-[0.65rem] mt-0.5 truncate">{{ item.label }}</span>
+      </a>
+    {% endfor %}
+
+    <!-- Menu Button -->
+    <button id="mobile-menu-button" class="flex flex-col items-center justify-center text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] focus:outline-none transition-colors duration-200">
+      <span class="material-symbols-outlined text-xl">menu</span>
+      <span class="text-[0.65rem] mt-0.5">Menu</span>
+    </button>
+  </div>
+</div>
+
+<!-- FULL SCREEN MOBILE MENU -->
+<div id="mobile-menu" class="fixed inset-0 bg-[var(--clr-surface)] z-50 transform translate-y-full transition-transform duration-300 ease-in-out overflow-y-auto">
+  <div class="flex flex-col h-full">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center p-4 border-b border-[var(--clr-border)]">
+      <h2 class="text-xl font-semibold text-[var(--clr-primary)]">Menu</h2>
+      <button id="mobile-menu-close" class="text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)]">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="flex-1 p-4 space-y-6">
+
+      <!-- Navigation Section -->
+      {% if menu_links %}
+      <div>
+        <h3 class="text-[var(--clr-txt-secondary)] font-semibold mb-2">Navigation</h3>
+        <div class="space-y-2">
+          {% for item in menu_links %}
+            <a href="{{ item.url }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+              <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">{{ item.icon }}</span> {{ item.label }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Utilities / Menu Section -->
+      <div>
+        <h3 class="text-[var(--clr-txt-secondary)] font-semibold mb-2">Menu</h3>
+        <div class="space-y-2">
+          <a href="{{ url_for('about') }}" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm text-[var(--clr-txt-primary)]">
+            <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">info</span> About
+          </a>
+          <button class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm w-full text-left text-[var(--clr-txt-primary)] theme-toggle">
+            <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">light_mode</span> Toggle Theme
+          </button>
+          <button onclick="document.getElementById('mobile-menu').classList.add('translate-y-full'); setTimeout(() => openConfirmModal('Confirm Logout', 'Are you sure you want to log out?', '{{ url_for('logout') }}'), 300);" class="flex items-center p-3 rounded-xl hover:bg-[var(--clr-glass-light)] transition shadow-sm w-full text-left text-[var(--clr-txt-primary)]">
+            <span class="material-symbols-outlined mr-3 text-[var(--clr-primary)]">logout</span> Logout
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const menuButton = document.getElementById('mobile-menu-button');
+  const menu = document.getElementById('mobile-menu');
+  const menuClose = document.getElementById('mobile-menu-close');
+
+  menuButton.addEventListener('click', () => {
+    menu.classList.remove('translate-y-full');
+  });
+
+  menuClose.addEventListener('click', () => {
+    menu.classList.add('translate-y-full');
+  });
+</script>

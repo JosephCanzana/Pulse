@@ -1,0 +1,78 @@
+{% set page_title = "Grade Overview" %}
+{% extends "layout.html" %}
+
+{% block title %}Grade Overview{% endblock %}
+
+{% block main %}
+<section class="min-h-full space-y-6">
+
+  <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
+    <h1 class="text-3xl font-bold text-[var(--clr-primary)]">My Grades</h1>
+    
+    <p class="text-sm text-[var(--clr-text-secondary)] italic">
+      "Progress is progress, no matter how small."
+    </p>
+  </header>
+
+  {% if classes|length == 0 %}
+    <p class="text-[var(--clr-txt-muted)] italic">You are not enrolled in any classes yet.</p>
+  {% else %}
+
+  <!-- DESKTOP TABLE -->
+  <div class="hidden md:block overflow-x-auto rounded-lg border border-[var(--clr-border)]">
+    <table class="min-w-full divide-y divide-[var(--clr-border)]">
+      <thead class="bg-[var(--clr-surface-alt)] sticky top-0 z-10">
+        <tr>
+          <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Class / Subject</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-[var(--clr-txt-secondary)]">Course / Section</th>
+          <th class="px-4 py-2 text-center text-sm font-medium text-[var(--clr-txt-secondary)]">Total Score</th>
+          <th class="px-4 py-2 text-center text-sm font-medium text-[var(--clr-txt-secondary)]">Max Score</th>
+          <th class="px-4 py-2 text-center text-sm font-medium text-[var(--clr-txt-secondary)]">Grade %</th>
+        </tr>
+      </thead>
+      <tbody class="bg-[var(--clr-surface)] divide-y divide-[var(--clr-border)]">
+        {% for cls in classes %}
+        <tr class="hover:bg-[var(--clr-glass-light)] transition-colors">
+          <td class="px-4 py-3 text-sm">{{ cls.subject_name }}</td>
+          <td class="px-4 py-3 text-sm">{{ cls.course_name or 'N/A' }} / {{ cls.section_name }}</td>
+          <td class="px-4 py-3 text-center text-sm">{{ cls.total_score }}</td>
+          <td class="px-4 py-3 text-center text-sm">{{ cls.max_score }}</td>
+          <td class="px-4 py-3 text-center text-sm">
+            {% if cls.overall_percentage is not none %}
+              {{ cls.overall_percentage }}%
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MOBILE CARDS -->
+  <div class="md:hidden space-y-4">
+    {% for cls in classes %}
+    <div class="p-4 rounded-xl border border-[var(--clr-border)] bg-[var(--clr-surface)] shadow-sm">
+      <h2 class="font-semibold text-[var(--clr-primary)] mb-2">{{ cls.subject_name }}</h2>
+      <p class="text-[var(--clr-txt-secondary)] text-sm mb-2">{{ cls.course_name or 'N/A' }} / {{ cls.section_name }}</p>
+
+      <div class="flex justify-between text-sm text-[var(--clr-txt-muted)]">
+        <span>Total: {{ cls.total_score }}</span>
+        <span>Max: {{ cls.max_score }}</span>
+        <span>
+          Grade: 
+          {% if cls.overall_percentage is not none %}
+            {{ cls.overall_percentage }}%
+          {% else %}
+            —
+          {% endif %}
+        </span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% endif %}
+</section>
+{% endblock %}

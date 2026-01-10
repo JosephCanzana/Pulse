@@ -1,0 +1,108 @@
+{% set page_title = "My Classes" %}
+{% extends "layout.html" %}
+{% block title %}My Classes{% endblock %}
+
+{% block main %}
+<section class="w-full space-y-6">
+
+  <!-- HEADER -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-2">
+  <div>
+    <h1 class="text-3xl font-bold text-[var(--clr-primary)] tracking-tight">
+      My Classes
+    </h1>
+    <p class="text-sm text-[var(--clr-text-secondary)] italic">
+      "Learning today, leading tomorrow."
+    </p>
+  </div>
+
+  <a href="{{ url_for('student.history') }}"
+     class="mt-2 md:mt-0 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--clr-primary)] text-white font-medium shadow-md hover:shadow-[0_0_10px_var(--clr-glow-primary)] hover:scale-[1.02] transition-all duration-200">
+    <span class="material-symbols-rounded text-xl">history</span>
+    View History
+  </a>
+</header>
+
+
+  <!-- ACTIVE CLASSES -->
+  <div>
+    <h2 class="text-xl font-semibold mb-4 text-[var(--clr-txt-secondary)]">Active Classes</h2>
+
+    {% if active_classes %}
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {% for c in active_classes %}
+      {% set accent = c.color if c.color else 'var(--clr-primary)' %}
+
+      <div class="relative group rounded-2xl overflow-hidden border border-[var(--clr-border)] bg-[var(--clr-surface)] shadow-sm
+                  transition-all duration-300 hover:-translate-y-[3px]"
+           style="box-shadow: 0 0 0 var(--tw-shadow-color);">
+        
+        <!-- Accent Strip -->
+        <div class="absolute left-0 top-0 h-full w-1.5"
+             style="background-color: {{ accent }};"></div>
+
+        
+        <!-- Enrollment Status Badge -->
+        <div class="absolute right-4 top-4">
+          {% if c.enrollment_status == 'active' %}
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+          {% elif c.enrollment_status == 'dropped' %}
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800">Dropped</span>
+          {% elif c.enrollment_status == 'completed' %}
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Completed</span>
+          {% endif %}
+        </div>
+
+        <!-- Card Content -->
+        <div class="relative p-6 pl-8 flex flex-col justify-between">
+          <div>
+            <h3 class="text-lg font-semibold text-[var(--clr-txt-primary)] mb-1 tracking-wide group-hover:text-[var(--clr-primary)] transition-colors">
+              {{ c.subject_name }}
+            </h3>
+            <p class="text-sm text-[var(--clr-txt-secondary)] flex items-center gap-1 mb-1">
+              <span class="material-symbols-rounded text-base text-[var(--clr-txt-muted)]">group</span>
+              Section: {{ c.section_name }}
+            </p>
+            <p class="text-sm text-[var(--clr-txt-secondary)] flex items-center gap-1 mb-2">
+              <span class="material-symbols-rounded text-base text-[var(--clr-txt-muted)]">person</span>
+              Teacher: {{ c.teacher_name }}
+            </p>
+
+            <!-- Progress Bar -->
+            <div class="mt-2">
+              <p class="text-xs text-[var(--clr-txt-muted)] mb-1">Progress: {{ c.progress_percentage }}%</p>
+              <div class="w-full h-2 rounded-full bg-[var(--clr-border)]">
+                <div class="h-2 rounded-full" style="width: {{ c.progress_percentage }}%; background-color: {{ accent }};"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- View Lessons Button -->
+          <a href="{{ url_for('student.view_lessons', class_id=c.id) }}"
+             class="inline-flex items-center gap-2 mt-5 px-4 py-2 rounded-lg text-white text-sm font-medium shadow
+                    transition-all duration-200 relative overflow-hidden"
+             style="background-color: {{ accent }};
+                    box-shadow: 0 0 0 {{ accent }};
+                    color: white;"
+             onmouseover="this.style.boxShadow='0 0 12px {{ accent }}'"
+             onmouseout="this.style.boxShadow='0 0 0 {{ accent }}'">
+              <span class="material-symbols-rounded text-base">menu_book</span>
+              View Lessons
+          </a>
+        </div>
+
+        <!-- Hover Glow -->
+        <div class="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition duration-500"
+             style="box-shadow: 0 0 15px {{ accent }};"></div>
+      </div>
+
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <p class="text-[var(--clr-txt-muted)] italic">No active classes found.</p>
+    {% endif %}
+  </div>
+
+</section>
+{% endblock %}

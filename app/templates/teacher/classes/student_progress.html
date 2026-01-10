@@ -1,0 +1,161 @@
+{% set page_title = "Student Progress" %}
+{% extends "layout.html" %}
+
+{% block title %}Student Progress{% endblock %}
+
+{% block main %}
+<section class="w-full max-w-6xl mx-auto space-y-8 text-[var(--clr-txt-primary)]">
+
+  <!-- Back Button -->
+  <div class="flex items-center gap-2 text-[var(--clr-txt-secondary)] hover:text-[var(--clr-primary)] transition-colors">
+    <a href="{{ url_for('teacher.view_class', class_id=class_id) }}" class="flex items-center gap-2 font-medium">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      <span>Back to Class</span>
+    </a>
+  </div>
+
+  <!-- Header -->
+  <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-[var(--clr-glass-light)] border border-[var(--clr-border)] rounded-3xl p-6 shadow-sm backdrop-blur-md">
+    <div class="space-y-1">
+      <h1 class="text-3xl font-bold text-[var(--clr-primary)] leading-tight">
+        {{ student_info.first_name }} {{ student_info.last_name }}
+      </h1>
+      <p class="text-[var(--clr-txt-secondary)] text-sm">
+        {{ student_info.section_name }} • {{ student_info.subject_name }}
+      </p>
+    </div>
+
+    <!-- Progress Summary -->
+    <div class="flex flex-col sm:flex-row gap-4">
+      <!-- Lesson Progress -->
+      <div class="text-center">
+        <p class="text-sm text-[var(--clr-txt-secondary)] font-medium mb-1">Lesson Progress</p>
+        <div class="relative w-36 h-3 bg-[var(--clr-surface-alt)] rounded-full overflow-hidden mx-auto">
+          <div class="absolute left-0 top-0 h-3 bg-[var(--clr-primary)] transition-all duration-500" style="width: {{ progress_percentage }}%;"></div>
+        </div>
+        <p class="text-xs mt-1 text-[var(--clr-txt-muted)]">{{ progress_percentage|round(1) }}% completed</p>
+      </div>
+
+      <!-- Activity Progress -->
+      <div class="text-center">
+        <p class="text-sm text-[var(--clr-txt-secondary)] font-medium mb-1">Activity Score</p>
+        <div class="relative w-36 h-3 bg-[var(--clr-surface-alt)] rounded-full overflow-hidden mx-auto">
+          <div class="absolute left-0 top-0 h-3 bg-green-500 transition-all duration-500" style="width: {{ overall_activity_percentage }}%;"></div>
+        </div>
+        <p class="text-xs mt-1 text-[var(--clr-txt-muted)]">
+          {{ total_activity_score }}/{{ total_max_score }} points
+          ({{ overall_activity_percentage|round(1) }}%)
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+    <div class="flex flex-col items-center justify-center p-6 rounded-3xl border border-[var(--clr-border)] bg-[var(--clr-glass-light)] shadow-sm backdrop-blur-md hover:shadow-md transition-all duration-300">
+      <span class="material-symbols-outlined text-3xl text-green-500 mb-1">check_circle</span>
+      <h2 class="text-2xl font-bold text-green-500">{{ completed }}</h2>
+      <p class="text-sm text-[var(--clr-txt-secondary)] mt-1">Completed</p>
+    </div>
+
+    <div class="flex flex-col items-center justify-center p-6 rounded-3xl border border-[var(--clr-border)] bg-[var(--clr-glass-light)] shadow-sm backdrop-blur-md hover:shadow-md transition-all duration-300">
+      <span class="material-symbols-outlined text-3xl text-yellow-500 mb-1">hourglass_top</span>
+      <h2 class="text-2xl font-bold text-yellow-500">{{ in_progress }}</h2>
+      <p class="text-sm text-[var(--clr-txt-secondary)] mt-1">In Progress</p>
+    </div>
+
+    <div class="flex flex-col items-center justify-center p-6 rounded-3xl border border-[var(--clr-border)] bg-[var(--clr-glass-light)] shadow-sm backdrop-blur-md hover:shadow-md transition-all duration-300">
+      <span class="material-symbols-outlined text-3xl text-gray-400 mb-1">pause_circle</span>
+      <h2 class="text-2xl font-bold text-gray-400">{{ not_started }}</h2>
+      <p class="text-sm text-[var(--clr-txt-secondary)] mt-1">Not Started</p>
+    </div>
+  </div>
+
+    <!-- Activities Table -->
+  <div class="bg-[var(--clr-glass-light)] border border-[var(--clr-border)] rounded-3xl shadow-sm backdrop-blur-md overflow-hidden">
+    <table class="w-full text-sm text-left border-collapse">
+      <thead class="bg-[var(--clr-surface-alt)] text-[var(--clr-txt-secondary)] uppercase text-xs tracking-wider">
+        <tr>
+          <th class="px-5 py-3 font-semibold">Activity</th>
+          <th class="px-5 py-3 text-center font-semibold">Type</th>
+          <th class="px-5 py-3 text-center font-semibold">Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for activity in activities %}
+          <tr class="hover:bg-[var(--clr-surface-alt)]/60 transition duration-200">
+            <td class="px-5 py-3">{{ activity.activity_title }}</td>
+            <td class="px-5 py-3 text-center capitalize">{{ activity.activity_type }}</td>
+            <td class="px-5 py-3 text-center">{{ activity.student_score }}/{{ activity.max_score }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="3" class="text-center py-8 text-[var(--clr-txt-secondary)] italic">
+              No activities found for this student.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Lessons Table -->
+  <div class="bg-[var(--clr-glass-light)] border border-[var(--clr-border)] rounded-3xl shadow-sm backdrop-blur-md overflow-hidden">
+    <table class="w-full text-sm text-left border-collapse">
+      <thead class="bg-[var(--clr-surface-alt)] text-[var(--clr-txt-secondary)] uppercase text-xs tracking-wider">
+        <tr>
+          <th class="px-5 py-3 font-semibold">Lesson #</th>
+          <th class="px-5 py-3 font-semibold">Title</th>
+          <th class="px-5 py-3 text-center font-semibold">Status</th>
+          <th class="px-5 py-3 text-center font-semibold">Started</th>
+          <th class="px-5 py-3 text-center font-semibold">Completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lesson in lessons %}
+          <tr class="hover:bg-[var(--clr-surface-alt)]/60 transition duration-200">
+            <td class="px-5 py-3">{{ lesson.lesson_number }}</td>
+            <td class="px-5 py-3">{{ lesson.title }}</td>
+            <td class="px-5 py-3 text-center">
+              {% if lesson.status == 'completed' %}
+                <span class="flex justify-center items-center gap-1 px-3 py-1 text-xs rounded-full bg-green-500/15 text-green-500 font-semibold">
+                  <span class="material-symbols-outlined text-sm">check</span> Completed
+                </span>
+              {% elif lesson.status == 'in_progress' %}
+                <span class="flex justify-center items-center gap-1 px-3 py-1 text-xs rounded-full bg-yellow-500/15 text-yellow-500 font-semibold">
+                  <span class="material-symbols-outlined text-sm">hourglass_top</span> In Progress
+                </span>
+              {% else %}
+                <span class="flex justify-center items-center gap-1 px-3 py-1 text-xs rounded-full bg-gray-500/15 text-gray-400 font-semibold">
+                  <span class="material-symbols-outlined text-sm">pause_circle</span> Not Started
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3 text-center">
+              {% if lesson.started_at %}
+                {{ lesson.started_at.strftime("%b %d, %Y %I:%M %p") }}
+              {% else %}
+                <span class="text-[var(--clr-txt-muted)] italic">—</span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3 text-center">
+              {% if lesson.completed_at %}
+                {{ lesson.completed_at.strftime("%b %d, %Y %I:%M %p") }}
+              {% else %}
+                <span class="text-[var(--clr-txt-muted)] italic">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5" class="text-center py-8 text-[var(--clr-txt-secondary)] italic">
+              No lessons found for this student.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</section>
+{% endblock %}

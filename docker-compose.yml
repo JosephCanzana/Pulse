@@ -1,0 +1,42 @@
+services:
+  app:
+    build: .
+    restart: no
+    ports:
+      - "8000:5000"
+    depends_on:
+      - db
+    volumes:
+      - ./app:/app
+    environment:
+      FLASK_APP: app
+      FLASK_DEBUG: 1
+
+  db:
+    image: mysql:8.1
+    restart: no
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: lms_db
+      MYSQL_USER: cool
+      MYSQL_PASSWORD: HardPass_1
+    ports:
+      - "3306:3306" 
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  adminer:
+    image: adminer
+    restart: no
+    container_name: adminer
+    ports:
+      - "8080:8080"
+
+
+volumes:
+  db_data:

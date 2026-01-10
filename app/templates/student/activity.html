@@ -1,0 +1,137 @@
+{% set page_title = activity.title %}
+{% extends "layout.html" %}
+
+{% block title %}
+    {{ page_title }}
+{% endblock %}
+
+{% block main %}
+<div class="max-full h-full space-y-6">
+            
+    <!-- Activity Card -->
+    <div class="bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)] rounded-2xl shadow-lg p-6 space-y-4">
+        
+    <!-- Back Button -->
+    <div>
+        <a href="{{ url_for('student.view_lessons', class_id=activity.class_id) }}"
+           class="inline-flex items-center justify-center w-10 h-10 rounded-full
+                  bg-[var(--clr-surface)] border border-[var(--clr-border)]
+                  text-[var(--clr-primary)] hover:bg-[var(--clr-primary)] hover:text-[var(--clr-bg)]
+                  shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)] transition-all duration-200">
+            <span class="material-symbols-rounded text-2xl">arrow_back</span>
+        </a>
+    </div>
+        
+        <!-- Title & Lesson -->
+        <div class="space-y-1">
+            <h1 class="text-2xl sm:text-3xl font-bold text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">
+                {{ activity.title }}
+            </h1>
+            {% if activity.lesson_title %}
+            <p class="text-sm sm:text-base text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)]">
+                Lesson: <strong>{{ activity.lesson_title }}</strong>
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Teacher File Download -->
+        {% if activity.file_name %}
+        <div class="mb-2">
+            <a href="{{ url_for('download_activity_file', activity_id=activity.id, filename=activity.file_name) }}"
+               class="inline-flex items-center px-3 py-2 bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)] text-white rounded-lg shadow-sm text-sm transition">
+                <span class="material-symbols-rounded mr-1">download</span> Download Assignment File
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Instructions -->
+        <div class="bg-[var(--clr-surface-alt)] dark:bg-[var(--clr-surface)] p-4 rounded-lg border border-[var(--clr-border)] space-y-2">
+            <h2 class="font-semibold text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)]">Instructions</h2>
+            <p class="text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">
+                {{ activity.instructions or "No instructions provided." }}
+            </p>
+        </div>
+
+           {% if teacher_files %}
+                <div class="mb-4">
+                    <h3 class="font-medium text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)]">Reference / Teacher Files</h3>
+                    <div class="flex flex-col space-y-2">
+                        {% for f in teacher_files %}
+                        <a href="/uploads/activity/{{ activity.id }}/{{ f.file_name }}" download
+                        class="inline-flex items-center px-3 py-2 bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)] text-white rounded-lg shadow-sm text-sm transition w-max">
+                            <span class="material-symbols-rounded mr-1">download</span> {{ f.file_name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+        <!-- Due Date & Max Score -->
+        <div class="flex flex-col sm:flex-row justify-between text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)] text-sm sm:text-base">
+            {% if activity.due_date %}
+            <p>Due: <strong>{{ activity.due_date.strftime('%b %d, %Y %I:%M %p') }}</strong></p>
+            {% endif %}
+            <p>Max Score: <strong>{{ activity.max_score }}</strong></p>
+        </div>
+
+        <!-- Submission Section -->
+        <div class="space-y-4">
+            {% if submission %}
+            <div class="bg-[var(--clr-success)]/20 dark:bg-[var(--clr-success)]/25 p-4 rounded-lg border border-[var(--clr-success)] dark:border-[var(--clr-success)] space-y-2">
+                <p class="text-[var(--clr-txt-primary)] dark:text-[var(--clr-bg)] font-medium">You have submitted this assignment.</p>
+                
+                {% if submission.score is not none %}
+                <p class="text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)]">Score: <strong>{{ submission.score }}</strong></p>
+                {% endif %}
+
+                {% if submission.feedback %}
+                <div class="p-2 bg-[var(--clr-surface-alt)] dark:bg-[var(--clr-surface)] rounded-md border border-[var(--clr-border)] max-h-40 overflow-auto text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]">
+                    Feedback: {{ submission.feedback }}
+                </div>
+                {% endif %}
+
+                {% if submission.file_name %}
+                <a href="{{ url_for('download_activity_file', activity_id=activity.id, filename=submission.file_name) }}"
+                   class="inline-flex items-center px-3 py-1 bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)] text-white rounded-lg shadow-sm text-sm transition">
+                    <span class="material-symbols-rounded mr-1">download</span> Download Your Submission
+                </a>
+                {% endif %}
+             
+
+                <p class="text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)] text-sm">
+                    Submitted at: {{ submission.submitted_at.strftime('%b %d, %Y %I:%M %p') }}
+                </p>
+            </div>
+            {% else %}
+            <form method="POST" action="{{ url_for('student.submit_activity', activity_id=activity.id) }}" enctype="multipart/form-data" class="space-y-4">
+                <!-- File Upload -->
+                <div class="space-y-1">
+                    <label for="file" class="block text-sm font-medium text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)]">Upload File (optional)</label>
+                    <input type="file" name="file" id="file"
+                           class="block w-full text-sm text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]
+                                  border border-[var(--clr-border)] dark:border-[var(--clr-border-strong)] rounded-lg p-2
+                                  focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)] focus:border-[var(--clr-primary)]">
+                </div>
+
+                <!-- Text Answer -->
+                <div class="space-y-1">
+                    <label for="text_answer" class="block text-sm font-medium text-[var(--clr-txt-secondary)] dark:text-[var(--clr-txt-muted)]">Text Answer (optional)</label>
+                    <textarea name="text_answer" id="text_answer" rows="6"
+                              class="block w-full rounded-lg border border-[var(--clr-border)] dark:border-[var(--clr-border-strong)]
+                                     p-3 bg-[var(--clr-surface)] dark:bg-[var(--clr-surface-alt)]
+                                     text-[var(--clr-txt-primary)] dark:text-[var(--clr-txt-primary)]
+                                     shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)] focus:border-[var(--clr-primary)] resize-none"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit"
+                        class="w-full sm:w-auto px-4 py-2 bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)] text-[var(--clr-bg)]
+                               font-semibold rounded-lg transition">
+                    Submit Assignment
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

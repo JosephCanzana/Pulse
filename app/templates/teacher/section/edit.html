@@ -1,0 +1,160 @@
+{% set page_title = "My Advisory Class" %}
+{% extends "layout.html" %}
+
+{% block title %}
+  Edit Section
+{% endblock %}
+
+{% block main %}
+<section class="w-full h-full flex flex-col justify-center px-10 py-10 text-[var(--clr-txt-primary)] transition-all duration-300">
+
+  <!-- Header -->
+  <header class="text-center mb-4">
+    <h1 class="text-3xl font-semibold text-[var(--clr-primary)]">Edit Section</h1>
+    <p class="text-[var(--clr-txt-muted)] mt-1 text-base">
+      Modify the details below to update this section.
+    </p>
+  </header>
+
+  <!-- Form -->
+  <form
+    id="editSectionForm"
+    method="POST"
+    onsubmit="return openConfirmFormModal(event, this, 'Edit Section', 'Are you sure you want to save these changes?')"
+    class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full"
+  >
+    <!-- Left Column -->
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Section Name</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value="{{ section.name }}"
+          required
+          class="input-field"
+        />
+      </div>
+
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Academic Year</label>
+        <input
+          type="text"
+          id="academic_year"
+          name="academic_year"
+          value="{{ section.academic_year }}"
+          readonly
+          class="input-field"
+        />
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="flex flex-col gap-4">
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Education Level</label>
+        <select id="education_lvl_id" name="education_lvl_id" required class="input-field">
+          <option value="">Select education level</option>
+          {% for lvl in education_levels %}
+            <option value="{{ lvl.id }}" {% if lvl.id == section.education_lvl_id %}selected{% endif %}>
+              {{ lvl.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Course</label>
+        <select id="course_id" name="course_id" class="input-field">
+          <option value="">Select a course, or skip if not applicable.</option>
+          {% for course in courses %}
+            <option value="{{ course.id }}" {% if course.id == section.course_id %}selected{% endif %}>
+              {{ course.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Year Level</label>
+        <select id="year_lvl_id" name="year_lvl_id" required class="input-field">
+          <option value="">Select year level</option>
+          {% for year in year_levels %}
+            <option value="{{ year.id }}" {% if year.id == section.year_id %}selected{% endif %}>
+              {{ year.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-[var(--clr-txt-secondary)] font-medium text-sm">Status</label>
+        <select id="status" name="status" class="input-field">
+          <option value="1" {% if section.status == 1 %}selected{% endif %}>Active</option>
+          <option value="0" {% if section.status == 0 %}selected{% endif %}>Archived</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="md:col-span-2 flex justify-center items-center gap-4 mt-6">
+      <!-- Go Back -->
+      <a href="{{ url_for('teacher.manage_sections') }}"
+         class="px-6 py-2 rounded-lg text-[var(--clr-txt-primary)] text-sm font-medium border border-[var(--clr-border)]
+                hover:bg-[var(--clr-surface-alt)] hover:text-[var(--clr-txt-hover)]
+                transition-all duration-200">
+        ← Cancel
+      </a>
+      <!-- Submit -->
+      <button type="submit"
+              class="px-8 py-2.5 rounded-lg font-semibold text-white text-sm
+                     bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)]
+                     shadow-sm hover:shadow-[0_0_12px_var(--clr-glow-primary)]
+                     transition-all duration-200">
+        Save Changes
+      </button>
+    </div>
+  </form>
+</section>
+
+<!-- AJAX Script -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const levelSelect = document.getElementById("education_lvl_id");
+  const courseSelect = document.getElementById("course_id");
+  const yearSelect = document.getElementById("year_lvl_id");
+
+  // Helper to populate select dropdown
+  const populateSelect = (selectElem, data, selectedValue = null) => {
+    selectElem.innerHTML = '<option value="">Select</option>';
+    data.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item.id;
+      opt.textContent = item.name;
+      if (selectedValue && parseInt(selectedValue) === item.id) opt.selected = true;
+      selectElem.appendChild(opt);
+    });
+  };
+
+  // On Education Level change → fetch new Course & Year data
+  levelSelect.addEventListener("change", async () => {
+    const levelId = levelSelect.value;
+    populateSelect(courseSelect, []);
+    populateSelect(yearSelect, []);
+    if (!levelId) return;
+
+    const [coursesRes, yearsRes] = await Promise.all([
+      fetch(`/api/student-hierarchy?type=courses&education_level_id=${levelId}`),
+      fetch(`/api/student-hierarchy?type=year_levels&education_level_id=${levelId}`)
+    ]);
+
+    const courses = await coursesRes.json();
+    const years = await yearsRes.json();
+
+    populateSelect(courseSelect, courses, "{{ section.course_id }}");
+    populateSelect(yearSelect, years, "{{ section.year_id }}");
+  });
+});
+</script>
+{% endblock %}

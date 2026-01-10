@@ -1,0 +1,56 @@
+<footer class="bg-[var(--clr-surface)] text-[var(--clr-txt-primary)] border-t border-[var(--clr-border)] pt-12 pb-6 px-8 md:px-20 lg:px-40">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
+
+    <!-- Brand / About -->
+    <div>
+      <div class="flex items-center mb-4">
+        <img src="{{ url_for('static', filename='images/pulse.png') }}" alt="Pulse" class="w-10 h-10 mr-2">
+        <h2 class="text-2xl font-bold text-[var(--clr-primary)]">Pulse</h2>
+      </div>
+      <p class="text-[var(--clr-txt-secondary)] leading-relaxed text-sm">
+        Pulse is a student-developed Learning Management System project designed to help streamline online learning and classroom management in a simple and modern way.
+      </p>
+    </div>
+
+    <!-- Quick Links -->
+    <div>
+      <h3 class="font-semibold text-lg mb-3 text-[var(--clr-primary)]">Quick Links</h3>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#" class="hover:text-[var(--clr-txt-hover)] transition">Home</a></li>
+        <li><a href="#features" class="hover:text-[var(--clr-txt-hover)] transition">Features</a></li>
+        <li><a href="#" class="hover:text-[var(--clr-txt-hover)] transition">Feedback</a></li>
+      </ul>
+    </div>
+
+    <!-- Resources -->
+    <div>
+      <h3 class="font-semibold text-lg mb-3 text-[var(--clr-primary)]">Resources</h3>
+      <ul class="space-y-2 text-sm">
+        <li><a href="https://github.com/JosephCanzana/Pulse/blob/main/README.md" class="hover:text-[var(--clr-txt-hover)] transition">Documentation</a></li>
+        <li><a href="#faq" class="hover:text-[var(--clr-txt-hover)] transition">FAQs</a></li>
+        <li><a href="https://github.com/JosephCanzana/Pulse" class="hover:text-[var(--clr-txt-hover)] transition">Project GitHub</a></li>
+      </ul>
+    </div>
+
+    <!-- Contact -->
+    <div>
+      <h3 class="font-semibold text-lg mb-3 text-[var(--clr-primary)]">Get in Touch</h3>
+      <ul class="space-y-2 text-sm text-[var(--clr-txt-secondary)]">
+        <li>Holy Cross College, Nueva Ecija</li>
+        <li>pulseproject@gmail.com</li>
+        <li>Open for feedback and collaboration</li>
+      </ul>
+      <div class="flex mt-4 space-x-4">
+        <a href="#" class="hover:text-[var(--clr-txt-hover)] transition"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="hover:text-[var(--clr-txt-hover)] transition"><i class="fab fa-github"></i></a>
+        <a href="#" class="hover:text-[var(--clr-txt-hover)] transition"><i class="fab fa-instagram"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="border-t border-[var(--clr-border)] pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-[var(--clr-txt-muted)]">
+    <p>© 2025 Pulse Project. Built by Holy Cross College students.</p>
+    <p>For educational purposes only.</p>
+  </div>
+</footer>

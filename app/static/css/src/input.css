@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@import "./my-theme.css";
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+/* Text input */
+.txt-input-box {
+  @apply w-full text-lg px-5 py-3 rounded-xl 
+  bg-[var(--clr-glass-light)] backdrop-blur-md text-[var(--clr-txt-primary)] 
+  placeholder-[var(--clr-txt-muted)] border border-[var(--clr-glass-border)] 
+  focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)] transition-all;
+}
+
+/* Submit button */
+.btn-submit {
+  @apply mt-2 py-3 text-lg rounded-xl 
+  bg-gradient-to-r from-[var(--clr-primary)] to-[var(--clr-tertiary)] 
+  text-white font-medium 
+  shadow-[0_0_8px_var(--clr-glow-primary)] 
+  hover:shadow-[0_0_15px_var(--clr-glow-tertiary)] 
+  hover:scale-[1.015] 
+  transition-all duration-300 cursor-pointer;
+}
+
+
+.btn-nav{
+  @apply mr-3 ml-3 text-base font-normal text-center text-[var(--clr-txt-primary)]
+  hover:text-[var(--clr-txt-hover)]
+  transition-all ease-in-out duration-200
+}
+
+.btn-nav-icon{
+  @apply mr-3 ml-3 
+  text-sm
+  text-center
+  text-[var(--clr-txt-primary)]
+  hover:text-[var(--clr-txt-hover)]
+  transition-all ease-in-out duration-200
+}
+
+.btn-side-bar{
+  @apply 
+  text-[var(--clr-txt-primary)]
+  hover:text-[var(--clr-bg)]
+  transition-all ease-in-out duration-200
+  cursor-pointer
+  select-none;
+}
+
+.side-bar-container{
+  @apply fixed top-17 flex-col items-center justify-between pt-5 pb-5 text-[var(--clr-txt-primary)];
+}
+
+.btn-side-bar-collapsed{
+  @apply flex items-center justify-center w-12 h-12 
+  text-[var(--clr-txt-primary)]
+  mt-0.5 mb-0.5
+  rounded-xl 
+  cursor-pointer
+  hover:bg-[var(--clr-primary)] hover:text-[var(--clr-bg)]
+  transition-all ease-in-out duration-200
+  select-none
+}
+
+.btn-side-bar-expand {
+  @apply flex items-center justify-start w-56 h-12 px-4
+  text-[var(--clr-txt-primary)]
+  text-center
+  mt-0.5 mb-0.5 ml-1
+  rounded-full
+  cursor-pointer
+  hover:bg-[var(--clr-primary)] hover:text-[var(--clr-bg)]
+  transition-all ease-in-out duration-200
+  select-none;
+}
+
+
+/* Collapsed (icon only) */
+.btn-side-bar-collapsed-active {
+  @apply relative text-[var(--clr-primary)] font-medium;
+}
+
+.btn-side-bar-collapsed-active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;           
+  left: 25%;             
+  width: 50%;            
+  height: 2px;           
+  background: var(--clr-primary);
+  border-radius: 1px;    
+  transition: all 0.3s ease-in-out;
+}
+
+/* Expanded (icon + text) */
+.btn-side-bar-expanded-active {
+  @apply relative text-[var(--clr-primary)] font-medium;
+}
+
+.btn-side-bar-expanded-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 2;
+  width: 80%;           
+  height: 3px;          
+  background: var(--clr-primary);
+  border-radius: 2px;   
+  transition: all 0.3s ease-in-out;
+}
+
+
+.txt-input{
+  @apply p-2 
+  mr-1 ml-1 mt-1 mb-1 
+  bg-[var(--clr-txt-muted)] text-[var(--clr-txt-secondary)]
+  rounded-xl
+}
+
+.input-field {
+  @apply w-full px-3 py-2 rounded-md border text-sm
+         bg-[var(--clr-surface-alt)] text-[var(--clr-txt-primary)]
+         border-[var(--clr-border)] placeholder-[var(--clr-txt-muted)]
+         focus:outline-none focus:ring-2 focus:ring-[var(--clr-secondary)]
+         focus:border-[var(--clr-secondary)] transition-all duration-200;
+}
+
+@keyframes pulse {
+      0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.05); }
+}
+.animate-pulse-slow {
+  animation: pulse 10s ease-in-out infinite;
+}
+.animate-pulse {
+  animation: pulse 8s ease-in-out infinite;
+}

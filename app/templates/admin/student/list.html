@@ -1,0 +1,261 @@
+{% set page_title = "Student" %}
+{% extends "layout.html" %}
+
+{% block title %}
+  Student List
+{% endblock %}
+
+{% block main %}
+
+<!-- Page Header -->
+<div class="flex flex-col gap-3 mb-6">
+
+  <!-- Top Row: Actions + Search -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 w-full">
+
+    <!-- Left: Actions -->
+    <div class="flex items-center gap-2">
+      <!-- Archive Icon Only -->
+      <a href="{{ url_for('admin.student_archive_switch') }}" 
+         class="flex items-center justify-center w-10 h-10 rounded-full 
+                {{ 'bg-yellow-100 text-yellow-600' if show_archive else 'bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)]' }} 
+                hover:bg-[var(--clr-glass-border)] transition duration-200 shadow-sm">
+        <span class="material-symbols-rounded text-lg">
+          {{ 'unarchive' if show_archive else 'archive' }}
+        </span>
+      </a>
+
+      <!-- Add Student Button -->
+      <a href="{{ url_for('admin.student_add') }}" 
+         class="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--clr-glass-light)] hover:bg-[var(--clr-glass-border)] text-[var(--clr-txt-primary)] font-medium shadow-sm transition duration-200">
+        <span class="material-symbols-rounded text-[var(--clr-txt-hover)]">person_add</span>
+        <span class="hidden sm:inline">Add Student</span>
+      </a>
+    </div>
+
+<!-- Search Bar -->
+<div class="flex-grow">
+  <form method="get" action="{{ url_for('admin.student') }}">
+    <div class="flex items-center bg-[var(--clr-surface)] rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-all duration-200 focus-within:ring-2 focus-within:ring-[var(--clr-primary)]">
+      <span class="material-symbols-rounded text-[var(--clr-txt-secondary)] mr-2">search</span>
+      <input
+        type="text"
+        name="search"
+        value="{{ request.args.get('search', '') }}"
+        placeholder="Search by name, email, or ID..."
+        class="bg-transparent w-full focus:outline-none text-[var(--clr-txt-primary)] placeholder-[var(--clr-txt-muted)]"
+      >
+      {% if request.args.get('search') %}
+      <a href="{{ url_for('admin.student') }}" 
+         class="material-symbols-rounded text-[var(--clr-error)] ml-2 hover:text-[var(--clr-error)] transition-colors duration-200">
+        close
+      </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+  </div>
+
+  <!-- Bottom Row: Filters -->
+  <form method="get" action="{{ url_for('admin.student') }}" class="flex flex-wrap items-center gap-2">
+
+    <!-- Education Level -->
+    <select name="education_level" class="px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] focus:outline-none min-w-[120px]">
+      <option value="" class="bg-[var(--clr-bg)] text-[var(--clr-txt-primary)]">All Levels</option>
+      {% for lvl in education_levels %}
+        <option class="bg-[var(--clr-bg)]" value="{{ lvl.id }}" {% if lvl.id|string == education_level_id %}selected{% endif %} class="bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] hover:bg-[var(--clr-glass-border)]">{{ lvl.name }}</option>
+      {% endfor %}
+    </select>
+
+    <!-- Course -->
+    <select name="course" class="px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] focus:outline-none min-w-[120px]">
+      <option value="" class="bg-[var(--clr-bg)] text-[var(--clr-txt-primary)]">All Courses</option>
+      {% for c in courses %}
+        <option class="bg-[var(--clr-bg)]" value="{{ c.id }}" {% if c.id|string == course_id %}selected{% endif %} class="bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] hover:bg-[var(--clr-glass-border)]">{{ c.name }}</option>
+      {% endfor %}
+    </select>
+
+    <!-- Section -->
+    <select name="section" class="px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] focus:outline-none min-w-[120px]">
+      <option value="" class="bg-[var(--clr-bg)] text-[var(--clr-txt-primary)]">All Sections</option>
+      {% for sec in sections %}
+        <option class="bg-[var(--clr-bg)]" value="{{ sec.id }}" {% if sec.id|string == section_id %}selected{% endif %} class="bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] hover:bg-[var(--clr-glass-border)]">{{ sec.name }}</option>
+      {% endfor %}
+    </select>
+
+    <!-- Year -->
+    <select name="year" class="px-3 py-2 rounded-full border border-[var(--clr-border)] bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] focus:outline-none min-w-[120px]">
+      <option value="" class="bg-[var(--clr-bg)] text-[var(--clr-txt-primary)]">All Years</option>
+      {% for y in years %}
+        <option class="bg-[var(--clr-bg)]" value="{{ y.id }}" {% if y.id|string == year_id %}selected{% endif %} class="bg-[var(--clr-glass-light)] text-[var(--clr-txt-primary)] hover:bg-[var(--clr-glass-border)]">{{ y.name }}</option>
+      {% endfor %}
+    </select>
+
+    <!-- Filter Button -->
+    <button type="submit" class="ml-2 px-4 py-2 rounded-full bg-[var(--clr-primary)] text-white font-medium shadow-sm hover:bg-[var(--clr-glow-primary)] transition-all">
+      Filter
+    </button>
+  </form>
+</div>
+
+
+<h1 class="text-2xl font-semibold mb-6 text-[var(--clr-txt-primary)]">
+  Student List
+  {% if request.args.get('search') %}
+    <span class="text-sm text-[var(--clr-txt-secondary)] ml-2">
+      (Results for “{{ request.args.get('search') }}”)
+    </span>
+  {% endif %}
+</h1>
+
+<!-- Glass Table Container -->
+<div class="overflow-x-auto rounded-3xl border border-[var(--clr-glass-border)] bg-[var(--clr-glass-light)] backdrop-blur-md shadow-xl">
+  <table class="w-full border-collapse text-sm">
+    <thead class="bg-[var(--clr-surface-alt)]/70 text-[var(--clr-txt-secondary)]">
+      <tr>
+        <th class="px-4 py-3 text-left">Name</th>
+        <th class="px-4 py-3 text-left">School ID</th>
+        <th class="px-4 py-3 text-left">Education Level</th>
+        <th class="px-4 py-3 text-left">Course</th>
+        <th class="px-4 py-3 text-left">Section</th>
+        <th class="px-4 py-3 text-left">Year</th>
+        <th class="px-4 py-3 text-center">Account Status</th>
+        <th class="px-4 py-3 text-center">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if students %}
+        {% for s in students %}
+        <tr class="border-t border-[var(--clr-border)] hover:bg-[var(--clr-glass-border)]/40 transition-all">
+          <td class="px-4 py-3 whitespace-nowrap">{{ s.first_name }} {{ s.last_name }}</td>
+          <td class="px-4 py-3 whitespace-nowrap">{{ s.school_id }}</td>
+          <td class="px-4 py-3">{{ s.education_level_name or 'N/A' }}</td>
+          <td class="px-4 py-3">{{ s.course_name or 'N/A' }}</td>
+          <td class="px-4 py-3">{{ s.section_name or 'N/A' }}</td>
+          <td class="px-4 py-3">{{ s.academic_year_name or 'N/A' }}</td>
+          <td class="px-4 py-3 text-center">
+            {% if s.is_suspended or show_archive %}
+            <span class="text-[var(--clr-warning)] font-medium flex items-center justify-center gap-1">
+                <span class="material-symbols-rounded text-sm">warning</span>
+                Suspended
+              </span>
+            {% elif s.is_verified %}
+            <span class="text-[var(--clr-success)] font-medium flex items-center justify-center gap-1">
+                <span class="material-symbols-rounded text-sm">check_circle</span>
+                Activated
+              </span>
+            {% else %}
+              <span class="text-[var(--clr-error)] font-medium flex items-center justify-center gap-1">
+                <span class="material-symbols-rounded text-sm">cancel</span>
+                Not Activated
+              </span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-center">
+            <div class="flex justify-center gap-1">
+
+              <!-- Edit -->
+              <a href="{{ url_for('admin.student_edit', school_id=s.school_id) }}" 
+                class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-txt-hover)] hover:bg-[var(--clr-glow-tertiary)]/10 hover:shadow-md transition-all">
+                <span class="material-symbols-rounded text-base">edit</span> 
+                
+              </a>
+
+              {% if not show_archive %}
+                <!-- Archive -->
+                <form action="{{ url_for('admin.student_archive', school_id=s.school_id) }}" 
+                      method="POST"
+                      class="inline"
+                      onsubmit="return openConfirmFormModal(event, this, 'Archive Student', 'Are you sure you want to archive this student?')">
+                  <button type="submit" 
+                          class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-yellow-600 hover:bg-yellow-100/60 hover:shadow-md transition-all">
+                    <span class="material-symbols-rounded text-base">archive</span> 
+                    
+                  </button>
+                </form>
+
+                <!-- Reset -->
+                <form action="{{ url_for('admin.reset') }}" 
+                      method="POST" 
+                      class="inline"
+                      onsubmit="return openConfirmFormModal(event, this, 'Reset Student Account', 'Are you sure you want to reset this password?')">
+                  <input type="hidden" name="id" value="{{ s.user_id }}">
+                  <input type="hidden" name="table" value="Users">
+                  <button type="submit" 
+                          class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
+                    <span class="material-symbols-rounded text-base">refresh</span> 
+                    
+                  </button>
+                </form>
+                <!-- Suspend / Unblock -->
+                <form action="{{ url_for('admin.student_suspend', user_id=s.user_id) }}" 
+                      method="POST"
+                      class="inline"
+                      onsubmit="return openConfirmFormModal(
+                                  event, 
+                                  this, 
+                                  '{{ 'Unblock Student' if s.is_suspended else 'Suspend Student' }}', 
+                                  'Do you want to {{ 'unblock' if s.is_suspended else 'suspend' }} this student?'
+                              )">
+                  <button type="submit" 
+                          class="flex items-center justify-center gap-1 rounded-full 
+                                px-3 py-1.5 border transition-all
+                                {% if s.is_suspended %}
+                                bg-[var(--clr-success-light)] border-[var(--clr-warning)] text-[var(--clr-warning)] hover:bg-[var(--clr-warning)]/10 hover:shadow-md
+                                {% else %}
+                                bg-[var(--clr-glass-light)] border-[var(--clr-border)] text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md
+                                {% endif %}">
+                    <span class="material-symbols-rounded text-base">
+                      {% if s.is_suspended %}
+                      check
+                      {% else %}
+                      block
+                      {% endif %}
+                    </span>
+                  </button>
+                </form>
+
+              {% else %}
+                <!-- Unarchive -->
+                <form action="{{ url_for('admin.student_archive', school_id=s.school_id) }}" 
+                      method="POST"
+                      class="inline"
+                      onsubmit="return openConfirmFormModal(event, this, 'Unarchive Student', 'Do you want to unarchive this student?')">
+                  <button type="submit" 
+                          class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-green-600 hover:bg-green-100/60 hover:shadow-md transition-all">
+                    <span class="material-symbols-rounded text-base">unarchive</span> 
+                    
+                  </button>
+                </form>
+
+                <!-- Delete -->
+                <form action="{{ url_for('admin.delete') }}" 
+                      method="POST" 
+                      class="inline"
+                      onsubmit="return openConfirmFormModal(event, this, 'Delete Student', 'This will permanently delete the record. Continue?')">
+                  <input type="hidden" name="id" value="{{ s.user_id }}">
+                  <input type="hidden" name="table" value="Users">
+                  <button type="submit" 
+                          class="flex items-center justify-center gap-1 rounded-full bg-[var(--clr-glass-light)] border border-[var(--clr-border)] px-3 py-1.5 text-[var(--clr-error)] hover:bg-[var(--clr-error)]/10 hover:shadow-md transition-all">
+                    <span class="material-symbols-rounded text-base">delete</span> 
+                    
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="9" class="text-center py-6 text-[var(--clr-txt-secondary)]">
+            No students found.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

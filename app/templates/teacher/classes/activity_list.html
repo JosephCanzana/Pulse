@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block title %}Activities{% endblock %}
+
+{% block main %}
+<section class="p-0 space-y-6 text-[var(--clr-txt-primary)]">
+
+  <!-- Page Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+    <div class="flex flex-row">
+        <a href="{{ url_for('teacher.view_class', class_id=class_id) }}"
+             class="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full 
+                  bg-[var(--clr-surface)] text-[var(--clr-txt-secondary)]
+                  shadow-sm hover:text-[var(--clr-primary)] hover:shadow transition">
+              <span class="material-symbols-outlined text-xl sm:text-2xl">arrow_back</span>
+          </a>
+        <header class=" mr-2 ml-2 text-center md:text-left">
+          <h1 class="text-2xl sm:text-3xl font-semibold text-[var(--clr-primary)]">Activities</h1>
+          <p class="text-[var(--clr-txt-muted)] mt-1 text-sm sm:text-base">Assignments and tasks for this class</p>
+        </header>
+    </div>  
+  </div>
+
+
+  <!-- Activity Cards -->
+  {% if activities %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for a in activities %}
+    <div class="group relative bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
+
+      <!-- Accent Bar -->
+      <div class="h-1.5 w-full" style="background: var(--clr-primary)"></div>
+
+      <!-- Card Content -->
+      <div class="p-5 flex-1 flex flex-col justify-between">
+        <div>
+          <h2 class="text-base sm:text-lg font-semibold text-[var(--clr-txt-primary)] mb-2 truncate">{{ a.title }}</h2>
+          <div class="space-y-1 text-sm">
+            <p class="text-[var(--clr-txt-secondary)]">
+              <span class="font-medium">Type:</span>
+              <span class="text-[var(--clr-txt-muted)]">{{ a.type|capitalize }}</span>
+            </p>
+            <p class="text-[var(--clr-txt-secondary)]">
+              <span class="font-medium">Max Score:</span>
+              <span class="text-[var(--clr-txt-muted)]">{{ a.max_score }}</span>
+            </p>
+            {% if a.due_date %}
+            <p class="text-[var(--clr-txt-secondary)]">
+              <span class="font-medium">Due:</span>
+              <span class="text-[var(--clr-txt-muted)]">{{ a.due_date.strftime("%b %d, %Y %I:%M %p") }}</span>
+            </p>
+            {% endif %}
+            <p class="text-[var(--clr-txt-secondary)]">
+              <span class="font-medium">Submitted:</span>
+              <span class="text-[var(--clr-txt-muted)]">{{ a.submitted_count }}</span>
+              •
+              <span class="font-medium">Not Submitted:</span>
+              <span class="text-[var(--clr-txt-muted)]">{{ a.not_submitted_count }}</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- View Submissions Button -->
+        <a href="{{ url_for('teacher.view_activity_submissions', activity_id=a.id) }}"
+           class="mt-4 inline-flex items-center gap-1 font-medium relative overflow-hidden transition-all duration-200
+                  after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 after:bg-current
+                  hover:after:w-full after:transition-all after:duration-300 text-sm sm:text-base text-[var(--clr-primary)]">
+          <span class="relative z-10 flex items-center gap-1">
+            View Submissions
+            <span class="material-symbols-outlined text-base translate-y-[1px]">arrow_forward</span>
+          </span>
+        </a>
+      </div>
+
+      <!-- Hover Glow -->
+      <div class="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition duration-500"
+           style="box-shadow: 0 0 20px var(--clr-glow-primary);"></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-[var(--clr-txt-secondary)] mt-6 text-center text-sm sm:text-base">No activities yet.</p>
+  {% endif %}
+
+</section>
+{% endblock %}

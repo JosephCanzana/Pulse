@@ -1,0 +1,144 @@
+{% set page_title = "Profile" %}
+{% extends "layout.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block main %}
+<section class="h-full w-full flex flex-col items-center space-y-10">
+
+  <!-- Profile Header -->
+  <div class="w-full max-w-4xl flex flex-col md:flex-row items-center gap-6 p-6 rounded-2xl bg-[var(--clr-surface)]/70 backdrop-blur-xl border border-[var(--clr-border)]/30 shadow-lg">
+    <!-- Avatar -->
+    <div class="w-28 h-28 rounded-full bg-[var(--clr-primary)] text-[var(--clr-surface)] text-5xl font-bold flex items-center justify-center shadow-xl">
+      {{ user.first_name[0] }}{{ user.last_name[0] }}
+    </div>
+    <div class="flex flex-col gap-1">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-[var(--clr-primary)]">{{ user.first_name }} {{ user.last_name }}</h1>
+      <p class="text-[var(--clr-txt-muted)]">@{{ user.username or user.email.split('@')[0] }}</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <form method="POST" class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
+
+    <!-- Left Panel -->
+    <div class="space-y-6 p-6 rounded-2xl bg-[var(--clr-surface)]/70 backdrop-blur-xl border border-[var(--clr-border)]/30 shadow-lg">
+      <h2 class="text-xl font-semibold text-[var(--clr-txt-primary)] mb-4">Personal Info</h2>
+
+      <div>
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">First Name</label>
+        <input type="text" name="first_name" value="{{ user.first_name }}" 
+               class="w-full px-4 py-2 rounded-lg border border-[var(--clr-border)] focus:ring-2 focus:ring-[var(--clr-primary)] focus:outline-none"
+               {% if role != 'admin' %}readonly{% endif %}>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">Middle Name</label>
+        <input type="text" name="middle_name" value="{{ user.middle_name }}" 
+               class="w-full px-4 py-2 rounded-lg border border-[var(--clr-border)] focus:ring-2 focus:ring-[var(--clr-primary)] focus:outline-none"
+               {% if role != 'admin' %}readonly{% endif %}>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">Last Name</label>
+        <input type="text" name="last_name" value="{{ user.last_name }}" 
+               class="w-full px-4 py-2 rounded-lg border border-[var(--clr-border)] focus:ring-2 focus:ring-[var(--clr-primary)] focus:outline-none"
+               {% if role != 'admin' %}readonly{% endif %}>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">Email</label>
+        <input type="email" name="email" value="{{ user.email }}" 
+               class="w-full px-4 py-2 rounded-lg border border-[var(--clr-border)] focus:ring-2 focus:ring-[var(--clr-primary)] focus:outline-none"
+               {% if role != 'admin' %}readonly{% endif %}>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="space-y-6 p-6 rounded-2xl bg-[var(--clr-surface)]/70 backdrop-blur-xl border border-[var(--clr-border)]/30 shadow-lg">
+      {% if role == 'admin' %}
+      <h2 class="text-xl font-semibold text-[var(--clr-txt-primary)] mb-4">Change Password</h2>
+
+      <div class="relative">
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">Current Password</label>
+        <input type="password" name="current_password" id="current_password" 
+               class="w-full px-4 py-2 rounded-lg border border-[var(--clr-border)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+        <button type="button" onclick="togglePassword('current_password')" class="absolute right-3 top-9 text-[var(--clr-txt-muted)] text-sm">Show</button>
+      </div>
+
+      <div class="relative">
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">New Password</label>
+        <input type="password" name="new_password" id="new_password" oninput="checkPasswordStrength(this)" 
+               class="w-full px-4 py-2 rounded-lg border border-[var(--clr-border)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+        <button type="button" onclick="togglePassword('new_password')" class="absolute right-3 top-9 text-[var(--clr-txt-muted)] text-sm">Show</button>
+        <p id="password_strength" class="mt-1 text-sm text-[var(--clr-txt-muted)]">Must be 8+ characters, include uppercase, number, and special character.</p>
+      </div>
+
+      <div class="relative">
+        <label class="block text-sm font-medium text-[var(--clr-txt-secondary)] mb-1">Confirm New Password</label>
+        <input type="password" name="confirm_password" id="confirm_password" 
+               class="w-full px-4 py-2 rounded-lg border border-[var(--clr-border)] focus:outline-none focus:ring-2 focus:ring-[var(--clr-primary)]">
+        <button type="button" onclick="togglePassword('confirm_password')" class="absolute right-3 top-9 text-[var(--clr-txt-muted)] text-sm">Show</button>
+      </div>
+      {% endif %}
+
+      {% if extra_profile %}
+      <div class="space-y-2">
+        <h2 class="text-lg font-semibold text-[var(--clr-txt-primary)]">Additional Info</h2>
+        {% if role == 'student' %}
+          <p><strong>Education Level:</strong> {{ extra_profile.education_level_name or '-' }}</p>
+          <p><strong>Course:</strong> {{ extra_profile.course_name or '-' }}</p>
+          <p><strong>Section:</strong> {{ extra_profile.section_name or '-' }}</p>
+        {% elif role == 'teacher' %}
+          <p><strong>Education Level:</strong> {{ extra_profile.education_level_name or '-' }}</p>
+          <p><strong>Department:</strong> {{ extra_profile.department_name or '-' }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if role in ['teacher', 'student'] %}
+      <div class="p-4 bg-[var(--clr-surface-alt)]/50 backdrop-blur-sm rounded-lg text-[var(--clr-txt-muted)]">
+        <p class="font-semibold">Notice:</p>
+        <p>To change your information, please contact the admin.</p>
+      </div>
+      {% endif %}
+
+      {% if role == 'admin' %}
+      <button type="submit" class="w-full mt-4 py-2 bg-[var(--clr-primary)] hover:bg-[var(--clr-secondary)] text-white font-semibold rounded-lg transition-all shadow-lg">
+        Update Profile
+      </button>
+      {% endif %}
+    </div>
+
+  </form>
+</section>
+
+<script>
+  function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === "password" ? "text" : "password";
+  }
+
+  function checkPasswordStrength(input) {
+    const strengthText = document.getElementById('password_strength');
+    const val = input.value.trim();
+    const weak = /.{1,7}$/;
+    const medium = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    const strong = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+    if (strong.test(val)) {
+      strengthText.textContent = "Strong password";
+      strengthText.className = "mt-1 text-sm font-semibold text-green-600";
+    } else if (medium.test(val)) {
+      strengthText.textContent = "Medium strength — add a special character for extra security.";
+      strengthText.className = "mt-1 text-sm font-semibold text-yellow-600";
+    } else if (weak.test(val)) {
+      strengthText.textContent = "Weak password — add uppercase, number, and special character.";
+      strengthText.className = "mt-1 text-sm font-semibold text-red-600";
+    } else {
+      strengthText.textContent = "Must be 8+ characters, include uppercase, number, and special character.";
+      strengthText.className = "mt-1 text-sm text-gray-500";
+    }
+  }
+</script>
+{% endblock %}

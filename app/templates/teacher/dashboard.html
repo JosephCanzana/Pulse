@@ -1,0 +1,223 @@
+{% set page_title = "Teacher Dashboard" %}
+{% extends "layout.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block main %}
+<section class="p-0 w-full h-full">
+
+  <!-- HEADER -->
+  <header class="relative mb-8">
+  <div class="flex flex-col lg:flex-row items-start gap-4 lg:gap-6">
+    <!-- Greeting -->
+    <div class="flex-1 min-w-0">
+      <h1 class="text-3xl font-semibold text-[var(--clr-primary)] leading-tight tracking-tight">
+        Welcome back, {{ name }}
+      </h1>
+      <p class="text-[var(--clr-txt-muted)] mt-1">
+        Here’s your day at a glance.
+      </p>
+    </div>
+
+    {% if daily %}
+    <!-- Daily Inspiration Panel -->
+    <div 
+      id="dailyPanel"
+      class="bg-[var(--clr-surface)] rounded-2xl border border-[var(--clr-border)] shadow-sm px-5 py-4 w-full lg:w-[300px] transition-all duration-300 ease-out opacity-100 translate-y-0"
+    >
+      <!-- Header Row -->
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-sm font-semibold text-[var(--clr-txt-primary)]">Daily Inspiration</h2>
+        <button id="hideDailyPanel" class="text-xs text-[var(--clr-secondary)] hover:underline">
+          Hide
+        </button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex text-xs font-medium border-b border-[var(--clr-border)] mb-2">
+        <button class="tab-btn flex-1 py-1 text-center text-[var(--clr-txt-muted)] hover:text-[var(--clr-primary)]" data-tab="motivation">Motivation</button>
+        <button class="tab-btn flex-1 py-1 text-center text-[var(--clr-txt-muted)] hover:text-[var(--clr-primary)]" data-tab="verse">Verse</button>
+        <button class="tab-btn flex-1 py-1 text-center text-[var(--clr-txt-muted)] hover:text-[var(--clr-primary)]" data-tab="reflection">Reflection</button>
+      </div>
+
+      <!-- Tab Content -->
+      <div id="tab-motivation" class="tab-content text-sm leading-relaxed text-[var(--clr-txt-secondary)]">
+        <p class="italic">"{{ daily.quote }}"</p>
+        <p class="text-xs text-right text-[var(--clr-txt-muted)] mt-2">— {{ daily.author }}</p>
+      </div>
+
+      <div id="tab-verse" class="tab-content hidden text-sm leading-relaxed text-[var(--clr-txt-secondary)]">
+        <p class="italic">"{{ daily.verse_text }}"</p>
+        <p class="text-xs text-right text-[var(--clr-txt-muted)] mt-2">{{ daily.reference }}</p>
+      </div>
+
+      <div id="tab-reflection" class="tab-content hidden text-sm leading-relaxed text-[var(--clr-txt-secondary)]">
+        <p class="italic">"{{ daily.message }}"</p>
+        <p class="text-xs text-right text-[var(--clr-txt-muted)] mt-2">{{ daily.theme }}</p>
+      </div>
+    </div>
+
+    <!-- Show Button -->
+    <button 
+      id="showDailyPanel"
+      class="hidden absolute top-0 right-0 text-sm text-[var(--clr-secondary)] hover:text-[var(--clr-txt-hover)] font-medium transition"
+    >
+      Show Daily Inspiration
+    </button>
+    {% endif %}
+  </div>
+</header>
+
+  <!-- QUICK STATS -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    {% set stats = [
+      ('Total Sections', sections|length),
+      ('Total Students', sections|sum(attribute='student_count')),
+      ('Active Courses', sections|map(attribute='course_name')|unique|list|length),
+      ('Education Levels', sections|map(attribute='education_level')|unique|list|length)
+    ] %}
+    {% for title, value in stats %}
+    <div class="bg-[var(--clr-surface)] rounded-xl border border-[var(--clr-border)] p-6 shadow-sm hover:shadow-md transition">
+      <h3 class="text-sm font-medium text-[var(--clr-txt-muted)]">{{ title }}</h3>
+      <p class="text-3xl font-semibold text-[var(--clr-primary)] mt-1">{{ value }}</p>
+    </div>
+    {% endfor %}
+  </section>
+
+  <!-- RECENT ACTIVITY -->
+  <section class="mt-8">
+  <!-- Header -->
+  <h2 class="text-2xl font-semibold text-[var(--clr-txt-primary)] mb-4 flex items-center gap-2">
+    <i class="fa-solid fa-bolt text-[var(--clr-accent)]"></i>
+    Recent Activity
+  </h2>
+
+  <!-- Activity Container -->
+  <div class="bg-[var(--clr-surface)] border border-[var(--clr-border)] rounded-2xl shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+
+    {% if lesson_progress %}
+      <ul class="divide-y divide-[var(--clr-border)]">
+        {% for progress in lesson_progress %}
+        <li class="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-[var(--clr-hover)] rounded-xl px-3 transition-colors duration-200">
+          <!-- Student and Lesson Info -->
+          <div class="flex items-center gap-4">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--clr-accent)]/10 flex items-center justify-center text-[var(--clr-accent)] font-semibold">
+              {{ progress.student_name[0] }}
+            </div>
+            <div>
+              <p class="font-medium text-[var(--clr-txt-primary)]">{{ progress.student_name }}</p>
+              <p class="text-sm text-[var(--clr-txt-secondary)]">
+                {{ progress.lesson_title }} — <span class="italic">{{ progress.subject_name }}</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Time Info -->
+          <div class="text-right">
+            <p class="text-sm text-[var(--clr-txt-secondary)]">
+              Started: {{ progress.started_at.strftime("%b %d, %Y %I:%M %p") if progress.started_at else '—' }}
+            </p>
+            <p class="text-sm text-[var(--clr-accent)] font-medium">
+              Completed: {{ progress.completed_at.strftime("%b %d, %Y %I:%M %p") if progress.completed_at else '—' }}
+            </p>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-[var(--clr-txt-secondary)] italic text-center py-6">
+        No recent updates yet. Once your students finish a lesson or class, you’ll see them here.
+      </p>
+    {% endif %}
+  </div>
+</section>
+
+</section>
+
+<!-- SCRIPT -->
+<style>
+  /* Animation utilities */
+  .fade-slide-in {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .fade-slide-in.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .fade-slide-out {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .fade-slide-out.hide {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const tabContents = document.querySelectorAll(".tab-content");
+  const panel = document.getElementById("dailyPanel");
+  const hideBtn = document.getElementById("hideDailyPanel");
+  const showBtn = document.getElementById("showDailyPanel");
+
+  // Restore hidden state
+  const isHidden = sessionStorage.getItem("dailyPanelHidden") === "true";
+  if (isHidden && panel) {
+    panel.classList.add("hidden");
+    showBtn.classList.remove("hidden");
+  }
+
+  // Tab switching
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.tab;
+      tabButtons.forEach(b => b.classList.remove("text-[var(--clr-primary)]", "border-b-2", "border-[var(--clr-primary)]"));
+      tabContents.forEach(c => c.classList.add("hidden"));
+      btn.classList.add("text-[var(--clr-primary)]", "border-b-2", "border-[var(--clr-primary)]");
+      document.getElementById(`tab-${target}`).classList.remove("hidden");
+    });
+  });
+
+  // Hide animation
+  hideBtn?.addEventListener("click", () => {
+    if (!panel) return;
+
+    panel.classList.remove("fade-slide-in", "show");
+    panel.classList.add("fade-slide-out", "hide");
+
+    setTimeout(() => {
+      panel.classList.add("hidden");
+      showBtn.classList.remove("hidden");
+    }, 350);
+
+    sessionStorage.setItem("dailyPanelHidden", "true");
+  });
+
+  // Show animation
+  showBtn?.addEventListener("click", () => {
+    if (!panel) return;
+
+    showBtn.classList.add("hidden");
+    panel.classList.remove("hidden", "fade-slide-out", "hide");
+    panel.classList.add("fade-slide-in");
+    
+    // Trigger reflow for animation start
+    void panel.offsetWidth;
+
+    panel.classList.add("show");
+    sessionStorage.setItem("dailyPanelHidden", "false");
+  });
+});
+</script>
+
+{% endblock %}
